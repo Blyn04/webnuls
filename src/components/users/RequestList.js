@@ -5,126 +5,120 @@ import {
   Table,
   Button,
   Card,
+  List,
+  Typography,
   Modal,
-  DatePicker,
   message,
 } from "antd";
-import {
-  PlusOutlined,
-  DeleteOutlined,
-  CalendarOutlined,
-} from "@ant-design/icons";
+import { SearchOutlined, CloseOutlined } from "@ant-design/icons";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
-import "../styles/usersStyle/Requisition.css";
+import "../styles/usersStyle/RequestList.css";
 
 const { Content } = Layout;
+const { Title, Text } = Typography;
 
-const initialItems = [
-  { id: "SPL02", description: "Bondpaper", department: "MEDTECH" },
-  { id: "MED03", description: "Paracetamol", department: "NURSING" },
-  { id: "MED04", description: "Syringe", department: "MEDTECH" },
-  { id: "SPL03", description: "Pen", department: "NURSING" },
+const pendingRequests = [
+  {
+    id: "REQ002",
+    dateRequested: "2025-09-20",
+    dateRequired: "2025-09-28",
+    status: "PENDING",
+    requester: "Henreizh Nathan H. Aruta",
+    items: [
+      {
+        description: "Bond Paper",
+        itemId: "SPL02",
+        quantity: 20,
+        department: "MEDTECH",
+      },
+      {
+        description: "Paracetamol",
+        itemId: "SPL02",
+        quantity: 30,
+        department: "NURSING",
+      },
+    ],
+    message: "hello, may klase kami kc, we need these thx",
+  },
+  {
+    id: "REQ003",
+    dateRequested: "2025-09-20",
+    dateRequired: "2025-09-28",
+    status: "PENDING",
+    requester: "Henreizh Nathan H. Aruta",
+    items: [
+      {
+        description: "Bond Paper",
+        itemId: "SPL02",
+        quantity: 20,
+        department: "MEDTECH",
+      },
+      {
+        description: "Paracetamol",
+        itemId: "SPL02",
+        quantity: 30,
+        department: "NURSING",
+      },
+      {
+        description: "Syringe",
+        itemId: "SPL02",
+        quantity: 10,
+        department: "MEDTECH",
+      },
+      {
+        description: "Pen",
+        itemId: "SPL02",
+        quantity: 15,
+        department: "NURSING",
+      },
+    ],
+    message: "hello, may klase kami kc, we need these thx",
+  },
 ];
 
-// Table styles for finalize modal
-const tableHeaderStyle = {
-  padding: "8px",
-  borderBottom: "1px solid #ddd",
-  backgroundColor: "#f5f5f5",
-  fontWeight: "bold",
-  textAlign: "center",
-};
+const columns = [
+  {
+    title: "Request ID",
+    dataIndex: "id",
+    key: "id",
+  },
+  {
+    title: "Requisition Date",
+    dataIndex: "dateRequested",
+    key: "dateRequested",
+  },
+  {
+    title: "Date Required",
+    dataIndex: "dateRequired",
+    key: "dateRequired",
+  },
+  {
+    title: "Status",
+    dataIndex: "status",
+    key: "status",
+    render: (status) => (
+      <Button type="text" className="status-btn">
+        {status}
+      </Button>
+    ),
+  },
+];
 
-const tableCellStyle = {
-  padding: "8px",
-  borderBottom: "1px solid #ddd",
-  textAlign: "center",
-};
-
-const Requisition = () => {
-  const [items] = useState(initialItems);
-  const [requestList, setRequestList] = useState([]);
-  const [dateRequired, setDateRequired] = useState(null);
-  const [reason, setReason] = useState("");
-  const [isCalendarVisible, setIsCalendarVisible] = useState(false);
-  const [isFinalizeVisible, setIsFinalizeVisible] = useState(false);
+const RequestList = () => {
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [isCancelVisible, setIsCancelVisible] = useState(false);
   const [pageTitle, setPageTitle] = useState("");
 
-  const addToList = (item) => {
-    const alreadyAdded = requestList.find((req) => req.id === item.id);
-    if (alreadyAdded) {
-      message.warning("Item already added!");
-    } else {
-      setRequestList([...requestList, { ...item, quantity: "" }]);
-    }
+  const handleRowClick = (record) => {
+    setSelectedRequest(record);
   };
 
-  const removeFromList = (id) => {
-    const updatedList = requestList.filter((item) => item.id !== id);
-    setRequestList(updatedList);
+  const handleCancelRequest = () => {
+    message.success("Request successfully canceled!");
+    setSelectedRequest(null);
+    setIsCancelVisible(false);
   };
-
-  const updateQuantity = (id, value) => {
-    const updatedList = requestList.map((item) =>
-      item.id === id ? { ...item, quantity: value } : item
-    );
-    setRequestList(updatedList);
-  };
-
-  const finalizeRequest = () => {
-    if (!dateRequired) {
-      message.error("Please select a date!");
-      return;
-    }
-    if (requestList.length === 0) {
-      message.error("Please add items to the request list!");
-      return;
-    }
-    setIsFinalizeVisible(true); 
-  };
-
-  const columns = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-    },
-    {
-      title: "Item Description",
-      dataIndex: "description",
-      key: "description",
-    },
-    {
-      title: "Department",
-      dataIndex: "department",
-      key: "department",
-      render: (text) => (
-        <span
-          style={{
-            color: text === "MEDTECH" ? "magenta" : "orange",
-            fontWeight: "bold",
-          }}
-        >
-          {text}
-        </span>
-      ),
-    },
-    {
-      title: "",
-      key: "action",
-      render: (text, record) => (
-        <Button
-          type="primary"
-          danger
-          size="small"
-          onClick={() => addToList(record)}
-        >
-          Add to List
-        </Button>
-      ),
-    },
-  ];
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -132,181 +126,112 @@ const Requisition = () => {
 
       <Layout className="site-layout">
         <AppHeader pageTitle={pageTitle} />
-        
-        <Content className="requisition-content">
-          <div className="requisition-header">
-            <h2>Requisition</h2>
+
+        <Content className="pending-content">
+          <div className="pending-header">
+            <Title level={3}>
+              <span className="icon-pending">⏳</span> Pending Requests
+            </Title>
+          </div>
+
+          <div className="search-container">
             <Input
-              placeholder="Search"
-              className="requisition-search"
-              allowClear
+                placeholder="Search requests..."
+                prefix={<SearchOutlined />}
+                className="pending-search"
+                allowClear
             />
           </div>
 
-          <Table
-            dataSource={items}
-            columns={columns}
-            rowKey="id"
-            className="requisition-table"
-          />
+          <div className="pending-main">
+            <Table
+                columns={columns}
+                dataSource={pendingRequests}
+                rowKey="id"
+                onRow={(record) => ({
+                onClick: () => handleRowClick(record),
+                })}
+                className="pending-table"
+            />
 
-          <div className="request-list-container">
-            <h3>Request List:</h3>
-            {requestList.map((item) => (
-              <Card
-                key={item.id}
-                className="request-card"
-                size="small"
-                title={`Item ID: ${item.id}`}
-                extra={
-                  <Button
-                    type="text"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => removeFromList(item.id)}
-                  />
+            {selectedRequest && (
+                <Card
+                title={
+                    <div className="details-header">
+                    <span>Details:</span>
+                    <span className="req-id">
+                        <strong>ID:</strong> {selectedRequest.id}
+                    </span>
+                    </div>
                 }
-              >
+                className="details-card"
+                >
                 <p>
-                  <strong>Description:</strong> {item.description}
+                    <strong>Requester:</strong> {selectedRequest.requester}
                 </p>
                 <p>
-                  <strong>Department:</strong>{" "}
-                  <span
-                    style={{
-                      color: item.department === "MEDTECH" ? "magenta" : "orange",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {item.department}
-                  </span>
+                    <strong>Requisition Date:</strong> {selectedRequest.dateRequested}
                 </p>
-                <Input
-                  placeholder="Enter quantity"
-                  type="number"
-                  min={1}
-                  value={item.quantity}
-                  onChange={(e) => updateQuantity(item.id, e.target.value)}
+                <p>
+                    <strong>Date Required:</strong> {selectedRequest.dateRequired}
+                </p>
+
+                <Title level={5}>Requested Items:</Title>
+                <List
+                    size="small"
+                    bordered
+                    dataSource={selectedRequest.items}
+                    renderItem={(item, index) => (
+                    <List.Item className="list-item">
+                        <span>
+                        {index + 1}. {item.description}
+                        </span>
+                        <span>
+                        <strong>Item ID:</strong> {item.itemId}
+                        </span>
+                        <span>
+                        <strong>Qty:</strong> {item.quantity}
+                        </span>
+                        <span
+                        style={{
+                            color:
+                            item.department === "MEDTECH" ? "magenta" : "orange",
+                            fontWeight: "bold",
+                        }}
+                        >
+                        {item.department}
+                        </span>
+                    </List.Item>
+                    )}
                 />
-              </Card>
-            ))}
-          </div>
+                <p style={{ marginTop: "15px" }}>
+                    <strong>Message:</strong>{" "}
+                    <em>{selectedRequest.message || "No message provided."}</em>
+                </p>
 
-          <div className="request-details">
-            <div className="date-required">
-              <strong>Date Required:</strong>
-              <Button
-                type="primary"
-                icon={<CalendarOutlined />}
-                onClick={() => setIsCalendarVisible(true)}
-              >
-                Calendar
-              </Button>
-              <Modal
-                title="Select Date"
-                open={isCalendarVisible}
-                onCancel={() => setIsCalendarVisible(false)}
-                onOk={() => setIsCalendarVisible(false)}
-              >
-                <DatePicker
-                  onChange={(date, dateString) => setDateRequired(dateString)}
-                  style={{ width: "100%" }}
-                />
-              </Modal>
+                <Button
+                    type="primary"
+                    danger
+                    block
+                    icon={<CloseOutlined />}
+                    onClick={() => setIsCancelVisible(true)}
+                    className="cancel-btn"
+                >
+                    Cancel Request
+                </Button>
+                </Card>
+            )}
             </div>
-
-            <div className="reason-container">
-              <strong>Reason of Request:</strong>
-              <Input.TextArea
-                rows={3}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Enter reason for request"
-              />
-            </div>
-
-            <Button
-              type="primary"
-              danger
-              block
-              className="finalize-btn"
-              onClick={finalizeRequest}
-            >
-              Finalize
-            </Button>
-          </div>
 
           <Modal
-            title={
-              <div style={{ background: "#f60", padding: "12px", color: "#fff" }}>
-                <strong>📝 Finalize Request</strong>
-              </div>
-            }
-            open={isFinalizeVisible}
-            onCancel={() => setIsFinalizeVisible(false)}
-            footer={null}
-            centered
-            className="finalize-modal"
+            title="Confirm Cancellation"
+            open={isCancelVisible}
+            onCancel={() => setIsCancelVisible(false)}
+            onOk={handleCancelRequest}
+            okText="Yes, Cancel"
+            cancelText="No"
           >
-            <div style={{ padding: "10px" }}>
-              <h3 style={{ marginBottom: "10px" }}>Item Summary:</h3>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  marginBottom: "10px",
-                }}
-              >
-                <thead>
-                  <tr>
-                    <th style={tableHeaderStyle}>#</th>
-                    <th style={tableHeaderStyle}>Item Description</th>
-                    <th style={tableHeaderStyle}>Item ID</th>
-                    <th style={tableHeaderStyle}>Qty</th>
-                    <th style={tableHeaderStyle}>Dept.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {requestList.map((item, index) => (
-                    <tr key={item.id}>
-                      <td style={tableCellStyle}>{index + 1}.</td>
-                      <td style={tableCellStyle}>{item.description}</td>
-                      <td style={tableCellStyle}>{item.id}</td>
-                      <td style={tableCellStyle}>{item.quantity || "N/A"}</td>
-                      <td
-                        style={{
-                          ...tableCellStyle,
-                          color: item.department === "MEDTECH" ? "magenta" : "orange",
-                        }}
-                      >
-                        {item.department}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <h4>
-                <strong>Date Required:</strong> {dateRequired || "N/A"}
-              </h4>
-              <h4>
-                <strong>Message:</strong>{" "}
-                <em>{reason || "No message provided."}</em>
-              </h4>
-
-              <Button
-                type="primary"
-                danger
-                block
-                style={{ marginTop: "15px" }}
-                onClick={() => {
-                  message.success("Requisition sent successfully!");
-                  setIsFinalizeVisible(false);
-                }}
-              >
-                Send Requisition
-              </Button>
-            </div>
+            <p>Are you sure you want to cancel this request?</p>
           </Modal>
         </Content>
       </Layout>
@@ -314,4 +239,4 @@ const Requisition = () => {
   );
 };
 
-export default Requisition;
+export default RequestList;

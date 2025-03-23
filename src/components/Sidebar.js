@@ -30,7 +30,11 @@ const Sidebar = ({ setPageTitle }) => {
 
   useEffect(() => {
     const state = location.state || {};
-    setRole(state.role || "user");
+    const storedRole = localStorage.getItem("role");
+    const normalizedRole = state.role ? state.role.toLowerCase() : storedRole ? storedRole.toLowerCase() : "user";
+
+    setRole(normalizedRole);
+    localStorage.setItem("role", normalizedRole); // Store role in localStorage
 
     const path = location.pathname.replace(/\/$/, "");
     switch (path.toLowerCase()) {
@@ -94,27 +98,27 @@ const Sidebar = ({ setPageTitle }) => {
     switch (e.key) {
       case "1":
         navigate("/dashboard");
-        if (typeof setPageTitle === "function") setPageTitle("Dashboard");
+        setPageTitle("Dashboard");
         break;
 
       case "2":
         navigate("/inventory");
-        if (typeof setPageTitle === "function") setPageTitle("Inventory");
+        setPageTitle("Inventory");
         break;
 
       case "3":
         navigate("/pending-request");
-        if (typeof setPageTitle === "function") setPageTitle("Pending Requests");
+        setPageTitle("Pending Requests");
         break;
 
       case "4":
         navigate("/borrow-catalog");
-        if (typeof setPageTitle === "function") setPageTitle("Borrow Catalog");
+        setPageTitle("Borrow Catalog");
         break;
 
       case "5":
         navigate("/history");
-        if (typeof setPageTitle === "function") setPageTitle("History");
+        setPageTitle("History");
         break;
 
       case "6":
@@ -123,22 +127,22 @@ const Sidebar = ({ setPageTitle }) => {
 
       case "7":
         navigate("/accounts");
-        if (typeof setPageTitle === "function") setPageTitle("Accounts");
+        setPageTitle("Accounts");
         break;
 
       case "8":
         navigate("/requisition");
-        if (typeof setPageTitle === "function") setPageTitle("Requisition");
+        setPageTitle("Requisition");
         break;
 
       case "9":
         navigate("/request-list");
-        if (typeof setPageTitle === "function") setPageTitle("Request List");
+        setPageTitle("Request List");
         break;
 
       case "10":
         navigate("/activity-log");
-        if (typeof setPageTitle === "function") setPageTitle("Activity Log");
+        setPageTitle("Activity Log");
         break;
 
       default:
@@ -165,7 +169,7 @@ const Sidebar = ({ setPageTitle }) => {
     },
   ];
 
-  const regularMenuItems = [
+  const adminMenuItems = [
     {
       key: "1",
       icon: <DashboardOutlined />,
@@ -192,9 +196,18 @@ const Sidebar = ({ setPageTitle }) => {
       label: "History",
     },
     {
-      key: "7",
-      icon: <UserOutlined />,
-      label: "Accounts",
+      key: "6",
+      icon: <LogoutOutlined />,
+      label: "Sign Out",
+      danger: true,
+    },
+  ];
+
+  const userMenuItems = [
+    {
+      key: "1",
+      icon: <DashboardOutlined />,
+      label: "Dashboard",
     },
     {
       key: "8",
@@ -218,6 +231,13 @@ const Sidebar = ({ setPageTitle }) => {
       danger: true,
     },
   ];
+
+  const menuItems =
+    role === "super-admin"
+      ? superAdminMenuItems
+      : role === "admin"
+      ? adminMenuItems
+      : userMenuItems;
 
   return (
     <Sider
@@ -250,7 +270,7 @@ const Sidebar = ({ setPageTitle }) => {
         mode="vertical"
         selectedKeys={[selectedKey]}
         onClick={handleMenuClick}
-        items={role === "super-admin" ? superAdminMenuItems : regularMenuItems}
+        items={menuItems}
       />
 
       <CustomModal
