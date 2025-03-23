@@ -1,24 +1,20 @@
-// src/Login.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   signInWithEmailAndPassword,
-  sendPasswordResetEmail,
+  createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { auth } from "../backend/firebase/FirebaseConfig";
+import { auth, db } from "../backend/firebase/FirebaseConfig";
+import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 
 import "./styles/Login.css";
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false); 
+  const [showPassword, setShowPassword] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const navigate = useNavigate();
 
@@ -32,66 +28,85 @@ const Login = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const checkUserAndLogin = async () => {
     try {
       const { email, password } = formData;
 
+      // Check if admin
       if (email === adminCredentials.email && password === adminCredentials.password) {
         navigate("/accounts", { state: { loginSuccess: true, role: "super-admin" } });
-
-      } else {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log("User logged in:", userCredential.user);
-        navigate("/dashboard", { state: { loginSuccess: true, role: "user" } });
+        return;
       }
 
+      // Query Firestore for user with matching email
+      const usersRef = collection(db, "accounts");
+      const q = query(usersRef, where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0]; // Get the first matching document
+        const userData = userDoc.data();
+
+        if (!userData.password) {
+          setIsNewUser(true);
+          return;
+        }
+
+        // User exists, attempt login with Firebase Auth
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        console.log("User logged in:", userCredential.user);
+        navigate("/dashboard", { state: { loginSuccess: true, role: userData.role || "user" } });
+
+      } else {
+        setError("User not found. Please contact admin.");
+      }
     } catch (error) {
       console.error("Error during login:", error.message);
       setError("Invalid email or password. Please try again.");
     }
   };
 
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setResetEmail("");
-  };
-
-  const handleResetSubmit = async (e) => {
-    e.preventDefault();
+  const handleRegisterPassword = async () => {
+    if (formData.password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
 
     try {
-      await sendPasswordResetEmail(auth, resetEmail);
-      alert(`Password reset link sent to ${resetEmail}`);
-      closeModal();
-      
+      const { email, password } = formData;
+
+      // Create account in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+      // Query Firestore for the user's document
+      const usersRef = collection(db, "accounts");
+      const q = query(usersRef, where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0].ref; // Reference to the Firestore document
+
+        // Update Firestore document with password (not recommended for production)
+        await updateDoc(userDoc, { password });
+
+        console.log("Password set successfully for:", userCredential.user);
+        navigate("/dashboard", { state: { loginSuccess: true, role: "user" } });
+      } else {
+        setError("User record not found in Firestore.");
+      }
     } catch (error) {
-      console.error("Error sending reset link:", error.message);
-      alert("Error sending password reset link. Please check your email.");
+      console.error("Error setting password:", error.message);
+      setError("Failed to set password. Try again.");
     }
-  };
-
-  const handleOverlayClick = (e) => {
-    if (e.target.classList.contains("modal-overlay")) {
-      closeModal();
-    }
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
   };
 
   return (
     <div className="login-container">
       <div className="login-box">
-        <h2 className="login-title">Login</h2>
+        <h2 className="login-title">{isNewUser ? "Set Your Password" : "Login"}</h2>
         {error && <p className="error-message">{error}</p>}
-        <form onSubmit={handleSubmit}>
+
+        <form onSubmit={(e) => { e.preventDefault(); isNewUser ? handleRegisterPassword() : checkUserAndLogin(); }}>
           <div className="form-group">
             <label>Email</label>
             <input
@@ -115,51 +130,33 @@ const Login = () => {
                 required
                 placeholder="Enter your password"
               />
-              <span
-                className="toggle-password"
-                onClick={togglePasswordVisibility}
-              >
+              <span className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? "🔒" : "👁️"}
               </span>
             </div>
           </div>
 
-          <button type="submit" className="login-btn">
-            Login
-          </button>
-
-          <p className="forgot-password" onClick={openModal}>
-            Forgot Password?
-          </p>
-        </form>
-      </div>
-
-      {isModalOpen && (
-        <div className="modal-overlay" onClick={handleOverlayClick}>
-          <div className="modal-content">
-            <h3 className="modal-title">Reset Password</h3>
-            <form onSubmit={handleResetSubmit}>
-              <div className="form-group">
-                <label>Enter your email</label>
+          {isNewUser && (
+            <div className="form-group password-group">
+              <label>Confirm Password</label>
+              <div className="password-wrapper">
                 <input
-                  type="email"
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
+                  type={showPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  placeholder="Enter your email"
+                  placeholder="Confirm your password"
                 />
               </div>
+            </div>
+          )}
 
-              <button type="submit" className="modal-btn">
-                Send Reset Link
-              </button>
-              <button type="button" className="modal-close-btn" onClick={closeModal}>
-                Cancel
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+          <button type="submit" className="login-btn">
+            {isNewUser ? "Set Password" : "Login"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
