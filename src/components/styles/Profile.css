@@ -1,0 +1,22 @@
+.profile-content {
+  padding: 50px 20px;
+  margin: 0 auto;
+  width: 1700px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}
+
+.ant-card {
+  width: 100%;
+  max-width: 1000px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.ant-upload-select {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}

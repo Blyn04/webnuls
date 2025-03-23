@@ -1,0 +1,21 @@
+.view-details {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.view-details:hover {
+  text-decoration: underline;
+}
+
+.ant-modal-title {
+  font-weight: bold;
+}
+
+.ant-btn {
+  background-color: #f0f0f0;
+  border-color: #d9d9d9;
+}
+
+.ant-btn:hover {
+  background-color: #d9d9d9;
+}

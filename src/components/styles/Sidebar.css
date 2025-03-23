@@ -1,0 +1,22 @@
+.ant-modal-content {
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.ant-modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  overflow: auto;
+}

@@ -1,0 +1,76 @@
+.request-card {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  padding: 15px;
+  transition: all 0.3s;
+}
+
+.request-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.view-btn {
+  text-decoration: underline;
+  color: #1890ff;
+}
+
+.view-btn:hover {
+  color: #40a9ff;
+}
+
+.approved-card {
+  background-color: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.content {
+  padding: 20px;
+  background-color: #f9f9f9;
+}
+
+.request-card {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.approved-card {
+  margin-bottom: 12px;
+  background-color: #e6ffed;
+  border-left: 5px solid #52c41a;
+}
+
+.view-btn {
+  color: #1890ff;
+  font-weight: bold;
+}
+
+.request-card {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.approved-card {
+  margin-bottom: 12px;
+  background-color: #e6ffed;
+  border-left: 5px solid #52c41a;
+}
+
+.view-btn {
+  color: #1890ff;
+  font-weight: bold;
+}
+
+.download-link {
+  color: #1890ff;
+  font-style: italic;
+  text-decoration: underline;
+}

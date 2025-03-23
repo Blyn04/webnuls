@@ -1,0 +1,44 @@
+.view-details {
+  color: #1890ff;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.view-details:hover {
+  color: #40a9ff;
+}
+
+.ant-table {
+  border-radius: 8px;
+}
+
+.ant-input {
+  border-radius: 6px;
+}
+
+.ant-btn {
+  border-radius: 6px;
+  background-color: #f0f0f0;
+}
+
+/* Modal Header */
+.ant-modal-header {
+  padding: 0;
+  border-radius: 8px 8px 0 0;
+}
+
+.ant-modal-title {
+  color: #fff;
+}
+
+/* Modal Content */
+.ant-modal-content {
+  border-radius: 8px;
+}
+
+/* QR Code Alignment */
+.qr-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}

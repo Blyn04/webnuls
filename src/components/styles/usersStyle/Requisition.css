@@ -1,0 +1,50 @@
+.requisition-content {
+  padding: 24px;
+  background-color: #f0f2f5;
+}
+
+.requisition-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.requisition-search {
+  width: 300px;
+}
+
+.requisition-table {
+  margin-bottom: 20px;
+}
+
+.request-list-container {
+  margin-top: 20px;
+}
+
+.request-card {
+  margin-bottom: 10px;
+}
+
+.request-details {
+  margin-top: 20px;
+}
+
+.date-required,
+.reason-container {
+  margin-bottom: 15px;
+}
+
+.finalize-btn {
+  margin-top: 10px;
+}
+
+.finalize-modal .ant-modal-title {
+  background: #f60;
+  padding: 12px;
+  color: white;
+  font-weight: bold;
+}
+
+.finalize-modal .ant-modal-content {
+  border-radius: 8px;
+}

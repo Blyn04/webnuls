@@ -1,0 +1,102 @@
+/* src/styles/dashboard.css */
+.sidebar {
+  background-color: #001529;
+  height: 100vh;
+  color: white;
+  transition: all 0.3s;
+}
+
+.ant-layout-sider-trigger {
+    display: none !important;
+}
+
+/* Ensure modal appears on top */
+.ant-modal-root {
+  z-index: 1050 !important;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.user-profile:hover {
+  opacity: 0.8;
+  transition: 0.2s;
+}
+
+/* Logo Container - Flex to Align Button Next to Name */
+.logo-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+}
+
+/* Logo Styles */
+.logo {
+  color: white;
+  text-align: left;
+}
+
+.logo-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.logo-subtitle {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Toggle Icon */
+.toggle-icon {
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.toggle-icon:hover {
+  color: #1890ff;
+}
+
+/* Sidebar Menu */
+.ant-menu {
+  background-color: #001529;
+}
+
+/* Header Section */
+.header {
+  background-color: white;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* User Profile */
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Main Content */
+.content {
+  padding: 20px;
+  background-color: #f5f5f5;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
