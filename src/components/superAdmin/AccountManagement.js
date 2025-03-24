@@ -40,6 +40,7 @@ const AccountManagement = () => {
   const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
   const [password, setPassword] = useState("");
   const [actionType, setActionType] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [selectedAccountId, setSelectedAccountId] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -51,7 +52,6 @@ const AccountManagement = () => {
       setShowModal(true);
       sessionStorage.setItem("loginSuccess", "true");
 
-      // Clear loginSuccess from location.state after showing the modal
       const newState = { ...location.state };
       delete newState.loginSuccess;
       navigate(".", { replace: true, state: newState });
@@ -91,12 +91,14 @@ const AccountManagement = () => {
     try {
       const querySnapshot = await getDocs(collection(db, "super-admin"));
       if (!querySnapshot.empty) {
-        const adminData = querySnapshot.docs[0].data(); // Get first document
+        const adminData = querySnapshot.docs[0].data(); 
         setAdminCredentials(adminData);
+
       } else {
         console.error("No super admin credentials found.");
         message.error("Super admin credentials not found!");
       }
+
     } catch (error) {
       console.error("Error fetching super admin credentials:", error);
       message.error("Failed to load admin credentials.");
@@ -168,15 +170,18 @@ const AccountManagement = () => {
     if (adminCredentials && password === adminCredentials.password) {
       if (actionType === "edit") {
         const accountToEdit = accounts.find((acc) => acc.id === selectedAccountId);
-        showModalHandler(accountToEdit); // Open edit modal
+        showModalHandler(accountToEdit);
+
       } else if (actionType === "delete") {
-        handleDelete(selectedAccountId); // Delete account
+        handleDelete(selectedAccountId); 
       }
       message.success("Password confirmed!");
       setIsPasswordModalVisible(false);
       setPassword("");
+      setPasswordError("");
+
     } else {
-      message.error("Incorrect password. Please try again.");
+      setPasswordError("❗ Incorrect password. Please try again.");
     }
   };
 
@@ -218,17 +223,15 @@ const AccountManagement = () => {
       key: "actions",
       render: (text, record) => (
         <>
-          {/* Edit Button */}
           <Button
             type="link"
             icon={<EditOutlined />}
             onClick={() => confirmEdit(record)}
           />
           
-          {/* Popconfirm Before Password Modal for Delete */}
           <Popconfirm
             title="Are you sure you want to delete this account?"
-            onConfirm={() => confirmDelete(record.id)} // Open Password Modal
+            onConfirm={() => confirmDelete(record.id)} 
             okText="Yes"
             cancelText="No"
           >
@@ -336,19 +339,35 @@ const AccountManagement = () => {
           </Modal>
         </Content>
 
-        <Modal
+       <Modal
           title="Confirm Password"
           open={isPasswordModalVisible}
-          onCancel={() => setIsPasswordModalVisible(false)}
+          onCancel={() => {
+            setIsPasswordModalVisible(false);
+            setPasswordError(""); // Clear error on close
+            setPassword(""); // Clear input on close
+          }}
           onOk={handlePasswordConfirm}
           okText="Confirm"
         >
-          <p>Please enter your password to proceed:</p>
-          <Input.Password
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter Password"
-          />
+          <Form layout="vertical">
+            <Form.Item label="Enter your password to proceed:">
+              <Input.Password
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setPasswordError(""); // Clear error on typing
+                }}
+                placeholder="Enter Password"
+              />
+            </Form.Item>
+
+            {passwordError && (
+              <p style={{ color: "red", marginTop: "-8px", marginBottom: "15px" }}>
+                {passwordError}
+              </p>
+            )}
+          </Form>
         </Modal>
 
         <SuccessModal isVisible={showModal} onClose={closeModal} />
