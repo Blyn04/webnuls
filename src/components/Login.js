@@ -6,7 +6,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth, db } from "../backend/firebase/FirebaseConfig";
-import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, updateDoc, Timestamp } from "firebase/firestore";
 
 import "./styles/Login.css";
 
@@ -33,36 +33,107 @@ const Login = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  // const checkUserAndLogin = async () => {
+  //   try {
+  //     const { email, password } = formData;
+
+  //     // Check if admin
+  //     if (email === adminCredentials.email && password === adminCredentials.password) {
+  //       navigate("/accounts", { state: { loginSuccess: true, role: "super-admin" } });
+  //       return;
+  //     }
+
+  //     const usersRef = collection(db, "accounts");
+  //     const q = query(usersRef, where("email", "==", email));
+  //     const querySnapshot = await getDocs(q);
+
+  //     if (!querySnapshot.empty) {
+  //       const userDoc = querySnapshot.docs[0]; 
+  //       const userData = userDoc.data();
+
+  //       if (!userData.password) {
+  //         setIsNewUser(true);
+  //         return;
+  //       }
+
+  //       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  //       console.log("User logged in:", userCredential.user);
+  //       navigate("/dashboard", { state: { loginSuccess: true, role: userData.role || "user" } });
+
+  //     } else {
+  //       setError("User not found. Please contact admin.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during login:", error.message);
+  //     setError("Invalid email or password. Please try again.");
+  //   }
+  // };
+
   const checkUserAndLogin = async () => {
     try {
       const { email, password } = formData;
-
-      // Check if admin
-      if (email === adminCredentials.email && password === adminCredentials.password) {
-        navigate("/accounts", { state: { loginSuccess: true, role: "super-admin" } });
-        return;
-      }
-
       const usersRef = collection(db, "accounts");
       const q = query(usersRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
-
+  
       if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0]; 
+        const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
-
-        if (!userData.password) {
-          setIsNewUser(true);
+  
+        if (userData.isBlocked && userData.blockedUntil) {
+          const now = Timestamp.now().toMillis();
+          const blockedUntil = userData.blockedUntil.toMillis();
+        
+          // Check if the block time has passed
+          if (now >= blockedUntil) {
+            // Unblock the account after 1 minute
+            await updateDoc(userDoc.ref, {
+              isBlocked: false,
+              loginAttempts: 0,
+              blockedUntil: null, // Ensure this is reset to null
+            });
+            console.log("Account unblocked successfully.");
+          } else {
+            // Show remaining time if account is still blocked
+            const remainingTime = Math.ceil((blockedUntil - now) / 1000);
+            setError(`Account is blocked. Try again after ${remainingTime} seconds.`);
+            return;
+          }
+        }        
+  
+        if (userData.isBlocked) {
+          setError("Account is blocked. Please try again later.");
           return;
         }
 
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log("User logged in:", userCredential.user);
-        navigate("/dashboard", { state: { loginSuccess: true, role: userData.role || "user" } });
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          await updateDoc(userDoc.ref, { loginAttempts: 0 });
+          navigate("/dashboard", { state: { loginSuccess: true, role: userData.role || "user" } });
 
+        } catch (error) {
+          const newAttempts = (userData.loginAttempts || 0) + 1;
+
+          if (newAttempts >= 4) {
+            // const unblockTime = Timestamp.now().toMillis() + 30 * 60 * 1000; 
+            const unblockTime = Timestamp.now().toMillis() + 1 * 60 * 1000;
+            await updateDoc(userDoc.ref, {
+              isBlocked: true,
+              blockedUntil: Timestamp.fromMillis(unblockTime),
+            });
+
+            setError("Account blocked after 4 failed attempts. Try again after 30 minutes.");
+
+          } else {
+            await updateDoc(userDoc.ref, { loginAttempts: newAttempts });
+            setError(`Invalid password. ${4 - newAttempts} attempts remaining.`);
+          }
+        }
+  
       } else {
         setError("User not found. Please contact admin.");
       }
+
     } catch (error) {
       console.error("Error during login:", error.message);
       setError("Invalid email or password. Please try again.");
