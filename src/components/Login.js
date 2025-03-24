@@ -20,6 +20,7 @@ const Login = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [forgotPasswordError, setForgotPasswordError] = useState("");
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -104,6 +105,8 @@ const Login = () => {
   // };
 
   const checkUserAndLogin = async () => {
+    setIsLoading(true);
+
     try {
       const { email, password } = formData;
       const usersRef = collection(db, "accounts");
@@ -130,6 +133,7 @@ const Login = () => {
 
       if (!userData) {
         setError("User not found. Please contact admin.");
+        setIsLoading(false);
         return;
       }  
 
@@ -140,6 +144,7 @@ const Login = () => {
         if (now < blockedUntil) {
           const remainingTime = Math.ceil((blockedUntil - now) / 1000);
           setError(`Account is blocked. Try again after ${remainingTime} seconds.`);
+          setIsLoading(false);
           return;
 
         } else {
@@ -198,7 +203,10 @@ const Login = () => {
     } catch (error) {
       console.error("Error during login:", error.message);
       setError("Invalid email or password. Please try again.");
-    }
+
+    } finally {
+      setIsLoading(false); 
+    }  
   };  
 
   const handleRegisterPassword = async () => {
@@ -332,8 +340,8 @@ const Login = () => {
             </div>
           )}
 
-          <button type="submit" className="login-btn">
-            {isNewUser ? "Set Password" : "Login"}
+          <button type="submit" className="login-btn"  disabled={isLoading}>
+            {isLoading ? <div className="loader"></div> : isNewUser ? "Set Password" : "Login"}
           </button>
         </form>
 
