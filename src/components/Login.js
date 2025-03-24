@@ -7,7 +7,7 @@ import {
 } from "firebase/auth";
 import { auth, db } from "../backend/firebase/FirebaseConfig";
 import { collection, query, where, getDocs, doc, updateDoc, Timestamp } from "firebase/firestore";
-
+import bcrypt from "bcryptjs";
 import "./styles/Login.css";
 
 const Login = () => {
@@ -137,6 +137,12 @@ const Login = () => {
         return;
       }  
 
+      if (!userData.password) {
+        setIsNewUser(true); 
+        setIsLoading(false);
+        return;
+      }
+
       if (userData.isBlocked && userData.blockedUntil) {
         const now = Timestamp.now().toMillis();
         const blockedUntil = userData.blockedUntil.toMillis();
@@ -159,47 +165,50 @@ const Login = () => {
       }
 
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        await updateDoc(userDoc.ref, { loginAttempts: 0 });
-  
-        const role = isSuperAdmin ? "super-admin" : (userData.role || "user").toLowerCase();
+        if (userData.password === password) {
+          await updateDoc(userDoc.ref, { loginAttempts: 0 });
+          const role = isSuperAdmin ? "super-admin" : (userData.role || "user").toLowerCase();
+          
+          switch (role) {
+            case "super-admin":
+              navigate("/accounts", { state: { loginSuccess: true, role } });
+              break;
 
-        switch (role) {
-          case "super-admin":
-            navigate("/accounts", { state: { loginSuccess: true, role } });
-            break;
+            case "admin":
+              navigate("/dashboard", { state: { loginSuccess: true, role } });
+              break;
 
-          case "admin":
-            navigate("/dashboard", { state: { loginSuccess: true, role } });
-            break;
+            case "user":
+              navigate("/requisition", { state: { loginSuccess: true, role } });
+              break;
 
-          case "user":
-            navigate("/requisition", { state: { loginSuccess: true, role } });
-            break;
+            default:
+              setError("Unknown role. Please contact admin.");
+              break;
+          }
+        } else {
+          const newAttempts = (userData.loginAttempts || 0) + 1;
 
-          default:
-            setError("Unknown role. Please contact admin.");
-            break;
+          if (newAttempts >= 4) {
+            const unblockTime = Timestamp.now().toMillis() + 1 * 60 * 1000;
+            await updateDoc(userDoc.ref, {
+              isBlocked: true,
+              blockedUntil: Timestamp.fromMillis(unblockTime),
+            });
+
+            setError("Account blocked after 4 failed attempts. Try again after 30 minutes.");
+
+          } else {
+            await updateDoc(userDoc.ref, { loginAttempts: newAttempts });
+            setError(`Invalid password. ${4 - newAttempts} attempts remaining.`);
+          }
         }
 
       } catch (error) {
-        const newAttempts = (userData.loginAttempts || 0) + 1;
-  
-        if (newAttempts >= 4) {
-          const unblockTime = Timestamp.now().toMillis() + 1 * 60 * 1000; // 1 minute block time for testing
-          await updateDoc(userDoc.ref, {
-            isBlocked: true,
-            blockedUntil: Timestamp.fromMillis(unblockTime),
-          });
-  
-          setError("Account blocked after 4 failed attempts. Try again after 30 minutes.");
-          
-        } else {
-          await updateDoc(userDoc.ref, { loginAttempts: newAttempts });
-          setError(`Invalid password. ${4 - newAttempts} attempts remaining.`);
-        }
+        console.error("Error during login:", error.message);
+        setError("Invalid email or password. Please try again.");
       }
-
+      
     } catch (error) {
       console.error("Error during login:", error.message);
       setError("Invalid email or password. Please try again.");
@@ -217,18 +226,17 @@ const Login = () => {
 
     try {
       const { email, password } = formData;
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const usersRef = collection(db, "accounts");
       const q = query(usersRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0].ref; 
-
         await updateDoc(userDoc, { password });
 
-        console.log("Password set successfully for:", userCredential.user);
+        await signInWithEmailAndPassword(auth, email, password);
         navigate("/dashboard", { state: { loginSuccess: true, role: "user" } });
+        setIsNewUser(false);
         
       } else {
         setError("User record not found in Firestore.");
