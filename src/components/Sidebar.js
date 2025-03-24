@@ -34,7 +34,7 @@ const Sidebar = ({ setPageTitle }) => {
     const normalizedRole = state.role ? state.role.toLowerCase() : storedRole ? storedRole.toLowerCase() : "user";
 
     setRole(normalizedRole);
-    localStorage.setItem("role", normalizedRole); // Store role in localStorage
+    localStorage.setItem("role", normalizedRole);
 
     const path = location.pathname.replace(/\/$/, "");
     switch (path.toLowerCase()) {
@@ -204,11 +204,6 @@ const Sidebar = ({ setPageTitle }) => {
   ];
 
   const userMenuItems = [
-    {
-      key: "1",
-      icon: <DashboardOutlined />,
-      label: "Dashboard",
-    },
     {
       key: "8",
       icon: <FileDoneOutlined />,

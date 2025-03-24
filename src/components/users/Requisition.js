@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Layout,
   Input,
@@ -14,9 +14,11 @@ import {
   DeleteOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
+import { useLocation } from "react-router-dom";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/usersStyle/Requisition.css";
+import SuccessModal from "../customs/SuccessModal";
 
 const { Content } = Layout;
 
@@ -49,7 +51,19 @@ const Requisition = () => {
   const [reason, setReason] = useState("");
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
   const [isFinalizeVisible, setIsFinalizeVisible] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [pageTitle, setPageTitle] = useState("");
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.loginSuccess === true) {
+      setShowModal(true);
+    }
+  }, [location.state]);
+
+  const closeModal = () => {
+    setShowModal(false);
+  };
 
   const addToList = (item) => {
     const alreadyAdded = requestList.find((req) => req.id === item.id);
@@ -309,6 +323,8 @@ const Requisition = () => {
             </div>
           </Modal>
         </Content>
+
+        <SuccessModal isVisible={showModal} onClose={closeModal} />
       </Layout>
     </Layout>
   );

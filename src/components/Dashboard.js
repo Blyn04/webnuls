@@ -42,7 +42,6 @@ const Dashboard = () => {
   const closeModal = () => {
     setShowModal(false);
   };
-  
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
