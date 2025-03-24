@@ -45,6 +45,19 @@
   font-size: 14px;
 }
 
+/* Forgot Password Link */
+.forgot-password {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #007bff;
+  cursor: pointer;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
 /* Button */
 .login-btn {
   width: 100%;
@@ -91,16 +104,33 @@
   color: #333;
 }
 
-/* Modal Button */
-.modal-btn {
+/* Modal Input */
+.modal-input {
   width: 100%;
   padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+/* Modal Actions */
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Modal Button */
+.modal-btn {
+  width: 48%;
+  padding: 12px;
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 5px;
-  margin-top: 10px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .modal-btn:hover {
@@ -109,31 +139,18 @@
 
 /* Cancel Button */
 .modal-close-btn {
-  width: 100%;
-  padding: 10px;
+  width: 48%;
+  padding: 12px;
   background-color: #ccc;
   color: #333;
   border: none;
-  border-radius: 5px;
-  margin-top: 10px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .modal-close-btn:hover {
   background-color: #aaa;
-}
-
-/* Forgot Password Link */
-.forgot-password {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #007bff;
-  text-align: center;
-  cursor: pointer;
-}
-
-.forgot-password:hover {
-  text-decoration: underline;
 }
 
 /* Password Input Wrapper */
@@ -149,7 +166,8 @@
 
 .password-wrapper input {
   width: 100%;
-  padding-right: 40px; /* Space for the icon */
+  padding-right: 40px;
+  /* Space for the icon */
 }
 
 /* Toggle Password Icon */

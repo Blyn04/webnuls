@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth, db } from "../backend/firebase/FirebaseConfig";
 import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
@@ -15,6 +16,10 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [forgotPasswordError, setForgotPasswordError] = useState("");
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState("");
 
   const navigate = useNavigate();
 
@@ -38,13 +43,12 @@ const Login = () => {
         return;
       }
 
-      // Query Firestore for user with matching email
       const usersRef = collection(db, "accounts");
       const q = query(usersRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0]; // Get the first matching document
+        const userDoc = querySnapshot.docs[0]; 
         const userData = userDoc.data();
 
         if (!userData.password) {
@@ -52,7 +56,6 @@ const Login = () => {
           return;
         }
 
-        // User exists, attempt login with Firebase Auth
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         console.log("User logged in:", userCredential.user);
         navigate("/dashboard", { state: { loginSuccess: true, role: userData.role || "user" } });
@@ -75,18 +78,15 @@ const Login = () => {
     try {
       const { email, password } = formData;
 
-      // Create account in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-      // Query Firestore for the user's document
       const usersRef = collection(db, "accounts");
       const q = query(usersRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0].ref; // Reference to the Firestore document
+        const userDoc = querySnapshot.docs[0].ref; 
 
-        // Update Firestore document with password (not recommended for production)
         await updateDoc(userDoc, { password });
 
         console.log("Password set successfully for:", userCredential.user);
@@ -100,13 +100,60 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!forgotPasswordEmail) {
+      setForgotPasswordError("Please enter your email.");
+      return;
+    }
+  
+    try {
+      const usersRef = collection(db, "accounts");
+      const q = query(usersRef, where("email", "==", forgotPasswordEmail));
+      const querySnapshot = await getDocs(q);
+  
+      if (querySnapshot.empty) {
+        setForgotPasswordError("Email not found. Please check and try again.");
+        setForgotPasswordSuccess(""); // Clear success if email not found
+        return;
+      }
+
+      await sendPasswordResetEmail(auth, forgotPasswordEmail);
+  
+      setForgotPasswordSuccess(
+        "Password reset link sent! Please check your email."
+      );
+
+      setForgotPasswordError(""); 
+
+      setTimeout(() => {
+        setForgotPasswordEmail("");
+      }, 50);
+
+    } catch (error) {
+      console.error("Error sending reset email:", error.message);
+      setForgotPasswordError(
+        "Failed to send reset link. Please check the email."
+      );
+      setForgotPasswordSuccess("");
+
+      setTimeout(() => {
+        setForgotPasswordEmail("");
+      }, 50);
+    }
+  };  
+
   return (
     <div className="login-container">
       <div className="login-box">
         <h2 className="login-title">{isNewUser ? "Set Your Password" : "Login"}</h2>
         {error && <p className="error-message">{error}</p>}
 
-        <form onSubmit={(e) => { e.preventDefault(); isNewUser ? handleRegisterPassword() : checkUserAndLogin(); }}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            isNewUser ? handleRegisterPassword() : checkUserAndLogin();
+          }}
+        >
           <div className="form-group">
             <label>Email</label>
             <input
@@ -156,7 +203,46 @@ const Login = () => {
             {isNewUser ? "Set Password" : "Login"}
           </button>
         </form>
+
+        {!isNewUser && (
+          <p className="forgot-password-link" onClick={() => setIsForgotPasswordModalVisible(true)}>
+            Forgot Password?
+          </p>
+        )}
       </div>
+
+      {isForgotPasswordModalVisible && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Forgot Password</h3>
+            <p>Enter your email to receive a reset link.</p>
+            <input
+              type="email"
+              value={forgotPasswordEmail}
+              onChange={(e) => setForgotPasswordEmail(e.target.value)}
+              placeholder="Enter your email"
+              required
+            />
+            {forgotPasswordError && (
+              <p className="error-message">{forgotPasswordError}</p>
+            )}
+            {forgotPasswordSuccess && (
+              <p className="success-message">{forgotPasswordSuccess}</p>
+            )}
+            <div className="modal-actions">
+              <button onClick={handleForgotPassword} className="modal-btn">
+                Send Reset Link
+              </button>
+              <button
+                onClick={() => setIsForgotPasswordModalVisible(false)}
+                className="modal-cancel-btn"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
