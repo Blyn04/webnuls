@@ -1,6 +1,6 @@
 // src/components/admin/Inventory.js
 import React, { useState, useRef } from "react";
-import { Layout, Table, Input, Button, Select, Form, Row, Col, Space } from "antd";
+import { Layout, Table, Input, Button, Select, Form, Row, Col, Space, DatePicker } from "antd";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import { QRCodeCanvas } from "qrcode.react";
@@ -30,10 +30,20 @@ const Inventory = () => {
       return;
     }
 
+    const formattedEntryDate = values.entryDate
+    ? values.entryDate.format("YYYY-MM-DD")
+    : null;
+
+    const formattedExpiryDate = values.expiryDate
+    ? values.expiryDate.format("YYYY-MM-DD")
+    : null;
+
     const timestamp = new Date().toISOString();
     const data = JSON.stringify({
       id: itemId,
       name: itemName,
+      entryDate: formattedEntryDate,
+      expiryDate: formattedExpiryDate,
       timestamp,
       ...values,
     });
@@ -43,9 +53,11 @@ const Inventory = () => {
     const newItem = {
       id: count + 1,
       item: itemName,
-      ...values,
+      entryDate: formattedEntryDate,
+      expiryDate: formattedExpiryDate,
       qrCode: encryptedData,
       timestamp,
+      ...values,
     };
 
     setDataSource([...dataSource, newItem]);
@@ -107,6 +119,15 @@ const Inventory = () => {
     },
   ];
 
+  const disabledDate = (current) => {
+    return current && current < new Date().setHours(0, 0, 0, 0);
+  };  
+
+  const disabledExpiryDate = (current) => {
+    const entryDate = form.getFieldValue("entryDate");
+    return current && entryDate && current < entryDate.endOf("day");
+  };  
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sidebar setPageTitle={setPageTitle} />
@@ -135,7 +156,6 @@ const Inventory = () => {
             className="inventory-table"
           />
 
-          {/* QR Code and Inventory Form */}
           <div className="form-container">
             <h3>Add Item to Inventory with QR Code</h3>
 
@@ -161,15 +181,29 @@ const Inventory = () => {
                   <Form.Item
                     name="entryDate"
                     label="Date of Entry"
-                    rules={[{ required: true }]}
+                    rules={[{ required: true, message: "Please select a date of entry!" }]}
                   >
-                    <Input placeholder="YYYY-MM-DD" />
+                    <DatePicker
+                      format="YYYY-MM-DD"
+                      style={{ width: "100%" }}
+                      placeholder="Select Date of Entry"
+                      disabledDate={disabledDate}
+                    />
                   </Form.Item>
                 </Col>
 
                 <Col span={12}>
-                  <Form.Item name="expiryDate" label="Date of Expiry">
-                    <Input placeholder="YYYY-MM-DD" />
+                  <Form.Item
+                    name="expiryDate"
+                    label="Date of Expiry"
+                    rules={[{ required: true, message: "Please select a date of expiry!" }]}
+                  >
+                    <DatePicker
+                      format="YYYY-MM-DD"
+                      style={{ width: "100%" }}
+                      placeholder="Select Date of Expiry"
+                      disabledDate={disabledExpiryDate}
+                    />
                   </Form.Item>
                 </Col>
               </Row>
