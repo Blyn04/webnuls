@@ -9,6 +9,7 @@ const { Title, Text } = Typography;
 
 const PendingRequest = () => {
   const [pageTitle, setPageTitle] = useState("");
+  const [checkedItems, setCheckedItems] = useState({});
   const [requests, setRequests] = useState([
     {
       id: "Req0002",
@@ -45,28 +46,49 @@ const PendingRequest = () => {
   };
 
   const handleCancel = () => {
+    setCheckedItems({});
     setIsModalVisible(false);
     setSelectedRequest(null);
-  };
+  };  
 
   const handleApprove = () => {
+    const isChecked = Object.values(checkedItems).some((checked) => checked);
+  
+    if (!isChecked) {
+      Modal.warning({
+        title: "No Items Selected",
+        content: "Please select at least one item before approving.",
+      });
+      return;
+    }
+  
     if (selectedRequest) {
-      // Move selected request to approved list
       setApprovedRequests([...approvedRequests, selectedRequest]);
-      
-      // Remove from pending list
+  
       setRequests(requests.filter((req) => req.id !== selectedRequest.id));
-
+  
+      setCheckedItems({});
       setIsModalVisible(false);
       setSelectedRequest(null);
     }
-  };
+  };  
 
   const columns = [
     {
       title: "Check",
       dataIndex: "check",
-      render: (_, record) => <input type="checkbox" />,
+      render: (_, record, index) => (
+        <input
+          type="checkbox"
+          checked={checkedItems[`${record.id}-${index}`] || false}
+          onChange={(e) =>
+            setCheckedItems({
+              ...checkedItems,
+              [`${record.id}-${index}`]: e.target.checked,
+            })
+          }
+        />
+      ),
       width: 50,
     },
     {
@@ -82,6 +104,7 @@ const PendingRequest = () => {
       dataIndex: "quantity",
     },
   ];
+  
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -110,6 +133,7 @@ const PendingRequest = () => {
                         </span>
                       </Text>
                     </Col>
+
                     <Col>
                       <Space size="middle">
                         <Button
@@ -128,7 +152,9 @@ const PendingRequest = () => {
                       <Text type="secondary">
                         Requisition Date: {request.requisitionDate}
                       </Text>
+
                       <br />
+
                       <Text type="secondary">
                         Required Date: {request.requiredDate}
                       </Text>
@@ -152,6 +178,7 @@ const PendingRequest = () => {
                         {index + 1}. Requisition ID: {request.id}
                       </Text>
                     </Col>
+
                     <Col>
                       <a
                         href={`#`}
@@ -172,6 +199,7 @@ const PendingRequest = () => {
                 <Text strong style={{ color: "#fff" }}>
                   📄 Requisition Slip
                 </Text>
+
                 <span style={{ float: "right", fontStyle: "italic" }}>
                   Requisition ID: {selectedRequest?.id}
                 </span>
@@ -194,13 +222,18 @@ const PendingRequest = () => {
                 <Row gutter={[16, 16]}>
                   <Col span={12}>
                     <Text strong>Name:</Text> {selectedRequest.name}
+
                     <br />
+
                     <Text strong>Request Date:</Text>{" "}
                     {selectedRequest.requisitionDate}
+
                     <br />
+
                     <Text strong>Required Date:</Text>{" "}
                     {selectedRequest.requiredDate}
                   </Col>
+
                   <Col span={12}>
                     <Text strong>Reason of Request:</Text>
                     <p style={{ fontSize: "12px", marginTop: 5 }}>
@@ -214,6 +247,7 @@ const PendingRequest = () => {
                 <Title level={5} style={{ marginTop: 20 }}>
                   Requested Items:
                 </Title>
+                
                 <Table
                   dataSource={selectedRequest.items}
                   columns={columns}
