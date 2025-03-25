@@ -6,27 +6,29 @@ import "./styles/Dashboard.css";
 
 const { Header } = Layout;
 
-const AppHeader =  ({ pageTitle }) => {
-  const navigate = useNavigate(); 
+const AppHeader = ({ pageTitle }) => {
+  const navigate = useNavigate();
   const location = useLocation();
 
   const role = location.state?.role;
+  const userName = location.state?.name || "User";
 
   const goToProfile = () => {
-    navigate("/profile"); 
+    navigate("/profile");
   };
 
   return (
     <Header className="header">
-     <h2 className="header-title">{pageTitle}</h2>
+      <h2 className="header-title">{pageTitle}</h2>
 
-     {role !== "super-admin" && (
+      {role !== "super-admin" && (
         <div
           className="user-profile"
           onClick={goToProfile}
           style={{ cursor: "pointer" }}
         >
-          <span style={{ marginRight: 8 }}>Hi, Nathan!</span>
+
+          <span style={{ marginRight: 8 }}>Hi, {userName}!</span>
           <Avatar icon={<UserOutlined />} />
         </div>
       )}

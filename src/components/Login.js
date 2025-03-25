@@ -169,17 +169,19 @@ const Login = () => {
           await updateDoc(userDoc.ref, { loginAttempts: 0 });
           const role = isSuperAdmin ? "super-admin" : (userData.role || "user").toLowerCase();
           
+          const userName = userData.name || "User";
+
           switch (role) {
             case "super-admin":
-              navigate("/accounts", { state: { loginSuccess: true, role } });
+              navigate("/accounts", { state: { loginSuccess: true, role, name: userName } });
               break;
 
             case "admin":
-              navigate("/dashboard", { state: { loginSuccess: true, role } });
+              navigate("/dashboard", { state: { loginSuccess: true, role, name: userName } });
               break;
 
             case "user":
-              navigate("/requisition", { state: { loginSuccess: true, role } });
+              navigate("/requisition", { state: { loginSuccess: true, role, name: userName } });
               break;
 
             default:
