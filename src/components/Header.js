@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Layout, Avatar } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -10,8 +10,18 @@ const AppHeader = ({ pageTitle }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // ✅ Get role from location state
   const role = location.state?.role;
-  const userName = location.state?.name || "User";
+
+  // ✅ Get name from localStorage if available
+  const [userName, setUserName] = useState("User");
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("userName");
+    if (storedName) {
+      setUserName(storedName);
+    }
+  }, []);
 
   const goToProfile = () => {
     navigate("/profile");
@@ -27,7 +37,7 @@ const AppHeader = ({ pageTitle }) => {
           onClick={goToProfile}
           style={{ cursor: "pointer" }}
         >
-
+          {/* ✅ Correctly display user name */}
           <span style={{ marginRight: 8 }}>Hi, {userName}!</span>
           <Avatar icon={<UserOutlined />} />
         </div>

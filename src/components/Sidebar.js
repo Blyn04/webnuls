@@ -31,10 +31,18 @@ const Sidebar = ({ setPageTitle }) => {
   useEffect(() => {
     const state = location.state || {};
     const storedRole = localStorage.getItem("role");
+    const storedName = localStorage.getItem("userName");
     const normalizedRole = state.role ? state.role.toLowerCase() : storedRole ? storedRole.toLowerCase() : "user";
 
     setRole(normalizedRole);
     localStorage.setItem("role", normalizedRole);
+
+    if (state.name) {
+      localStorage.setItem("userName", state.name);
+      
+    } else if (storedName) {
+      localStorage.setItem("userName", storedName);
+    }
 
     const path = location.pathname.replace(/\/$/, "");
     switch (path.toLowerCase()) {

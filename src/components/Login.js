@@ -170,18 +170,19 @@ const Login = () => {
           const role = isSuperAdmin ? "super-admin" : (userData.role || "user").toLowerCase();
           
           const userName = userData.name || "User";
+          localStorage.setItem("userName", userName);
 
           switch (role) {
             case "super-admin":
-              navigate("/accounts", { state: { loginSuccess: true, role, name: userName } });
+              navigate("/accounts", { state: { loginSuccess: true, role } });
               break;
 
             case "admin":
-              navigate("/dashboard", { state: { loginSuccess: true, role, name: userName } });
+              navigate("/dashboard", { state: { loginSuccess: true, role } });
               break;
 
             case "user":
-              navigate("/requisition", { state: { loginSuccess: true, role, name: userName } });
+              navigate("/requisition", { state: { loginSuccess: true, role } });
               break;
 
             default:
