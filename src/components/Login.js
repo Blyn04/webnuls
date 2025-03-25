@@ -170,7 +170,10 @@ const Login = () => {
           const role = isSuperAdmin ? "super-admin" : (userData.role || "user").toLowerCase();
           
           const userName = userData.name || "User";
+          localStorage.setItem("userEmail", userData.email);
           localStorage.setItem("userName", userName);
+          localStorage.setItem("userDepartment", userData.department);
+          localStorage.setItem("userPosition", userData.role);
 
           switch (role) {
             case "super-admin":
