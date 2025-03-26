@@ -7,6 +7,7 @@ import {
   Card,
   Modal,
   DatePicker,
+  TimePicker,
   message,
 } from "antd";
 import {
@@ -23,13 +24,52 @@ import SuccessModal from "../customs/SuccessModal";
 const { Content } = Layout;
 
 const initialItems = [
-  { id: "SPL02", description: "Bondpaper", department: "MEDTECH" },
-  { id: "MED03", description: "Paracetamol", department: "NURSING" },
-  { id: "MED04", description: "Syringe", department: "MEDTECH" },
-  { id: "SPL03", description: "Pen", department: "NURSING" },
+  {
+    id: "CHM01",
+    description: "Hydrochloric Acid",
+    category: "Chemical",
+    quantity: 30,
+    labRoom: "Chemistry Lab 1",
+    status: "Available",
+    condition: "Good",
+    usageType: "Laboratory Experiment",
+    department: "MEDTECH",
+  },
+  {
+    id: "REG02",
+    description: "Phenolphthalein",
+    category: "Reagent",
+    quantity: 15,
+    labRoom: "Chemistry Lab 2",
+    status: "In Use",
+    condition: "Good",
+    usageType: "Research",
+    department: "NURSING",
+  },
+  {
+    id: "MAT03",
+    description: "Test Tubes",
+    category: "Materials",
+    quantity: 50,
+    labRoom: "Physics Lab 1",
+    status: "Out of Stock",
+    condition: "Needs Replacement",
+    usageType: "Community Extension",
+    department: "MEDTECH",
+  },
+  {
+    id: "EQP04",
+    description: "Microscope",
+    category: "Equipment",
+    quantity: 5,
+    labRoom: "Biology Lab 1",
+    status: "Available",
+    condition: "Good",
+    usageType: "Others",
+    department: "NURSING",
+  },
 ];
 
-// Table styles for finalize modal
 const tableHeaderStyle = {
   padding: "8px",
   borderBottom: "1px solid #ddd",
@@ -46,13 +86,19 @@ const tableCellStyle = {
 
 const Requisition = () => {
   const [items] = useState(initialItems);
+  const [filteredItems, setFilteredItems] = useState(initialItems);
   const [requestList, setRequestList] = useState([]);
   const [dateRequired, setDateRequired] = useState(null);
-  const [reason, setReason] = useState("");
+  const [timeFrom, setTimeFrom] = useState(null);
+  const [timeTo, setTimeTo] = useState(null);
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
   const [isFinalizeVisible, setIsFinalizeVisible] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [pageTitle, setPageTitle] = useState("");
+  const [program, setProgram] = useState("");
+  const [room, setRoom] = useState("");
+  const [reason, setReason] = useState("");
+  const [searchUsageType, setSearchUsageType] = useState("");
   const location = useLocation();
 
   useEffect(() => {
@@ -91,10 +137,22 @@ const Requisition = () => {
       message.error("Please select a date!");
       return;
     }
+
+    if (!program) {
+      message.error("Please select a program!");
+      return;
+    }
+
+    if (!room) {
+      message.error("Please enter the room!");
+      return;
+    }
+
     if (requestList.length === 0) {
       message.error("Please add items to the request list!");
       return;
     }
+
     setIsFinalizeVisible(true); 
   };
 
@@ -108,6 +166,76 @@ const Requisition = () => {
       title: "Item Description",
       dataIndex: "description",
       key: "description",
+    },
+    {
+      title: "Category",
+      dataIndex: "category",
+      key: "category",
+      filters: [
+        { text: "Chemical", value: "Chemical" },
+        { text: "Reagent", value: "Reagent" },
+        { text: "Materials", value: "Materials" },
+        { text: "Equipment", value: "Equipment" },
+      ],
+      onFilter: (value, record) => record.category === value,
+    },
+    {
+      title: "Qty",
+      dataIndex: "quantity",
+      key: "quantity",
+      render: (text) => <span>{text || "N/A"}</span>,
+    },
+    {
+      title: "Lab Room (Stock Room)",
+      dataIndex: "labRoom",
+      key: "labRoom",
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (text) => {
+        let color;
+        switch (text) {
+          case "Available":
+            color = "green";
+            break;
+
+          case "In Use":
+            color = "orange";
+            break;
+
+          case "Out of Stock":
+            color = "red";
+            break;
+            
+          default:
+            color = "grey";
+        }
+        return <span style={{ color, fontWeight: "bold" }}>{text}</span>;
+      },
+    },
+    {
+      title: "Condition",
+      dataIndex: "condition",
+      key: "condition",
+      render: (text) => (
+        <span style={{ color: text === "Good" ? "green" : "red" }}>
+          {text || "N/A"}
+        </span>
+      ),
+    },
+    {
+      title: "Usage Type",
+      dataIndex: "usageType",
+      key: "usageType",
+      filters: [
+        { text: "Laboratory Experiment", value: "Laboratory Experiment" },
+        { text: "Research", value: "Research" },
+        { text: "Community Extension", value: "Community Extension" },
+        { text: "Others", value: "Others" },
+      ],
+      onFilter: (value, record) => record.usageType === value,
     },
     {
       title: "Department",
@@ -148,17 +276,46 @@ const Requisition = () => {
         <AppHeader pageTitle={pageTitle} />
         
         <Content className="requisition-content">
-          <div className="requisition-header">
-            <h2>Requisition</h2>
+
+        <div className="requisition-header">
+          <h2>Requisition</h2>
+
+          <div style={{ display: "flex", gap: "10px" }}>
             <Input
               placeholder="Search"
               className="requisition-search"
               allowClear
             />
+            <select
+              value={searchUsageType}
+              onChange={(e) => {
+                const selectedType = e.target.value;
+                setSearchUsageType(selectedType);
+                if (selectedType === "") {
+                  setFilteredItems(initialItems);
+                } else {
+                  const filteredData = initialItems.filter((item) => item.usageType === selectedType);
+                  setFilteredItems(filteredData);
+                }
+              }}
+              style={{
+                width: "200px",
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid #ccc",
+              }}
+            >
+              <option value="">All Usage Types</option>
+              <option value="Laboratory Experiment">Laboratory Experiment</option>
+              <option value="Research">Research</option>
+              <option value="Community Extension">Community Extension</option>
+              <option value="Others">Others</option>
+            </select>
           </div>
+        </div>
 
           <Table
-            dataSource={items}
+            dataSource={filteredItems}
             columns={columns}
             rowKey="id"
             className="requisition-table"
@@ -209,14 +366,14 @@ const Requisition = () => {
           </div>
 
           <div className="request-details">
-            <div className="date-required">
-              <strong>Date Required:</strong>
+          <div className="date-required">
+            <strong>Date Required:</strong>
               <Button
                 type="primary"
                 icon={<CalendarOutlined />}
                 onClick={() => setIsCalendarVisible(true)}
               >
-                Calendar
+                Select Date
               </Button>
 
               {dateRequired && (
@@ -236,6 +393,100 @@ const Requisition = () => {
                   style={{ width: "100%" }}
                 />
               </Modal>
+            </div>
+
+            <div className="time-required" style={{ marginTop: "15px" }}>
+              <strong>Time Needed:</strong>
+
+              <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+                <TimePicker
+                  placeholder="From"
+                  onChange={(time, timeString) => {
+                    setTimeFrom(timeString);
+                    setTimeTo(null); 
+                  }}
+                  format="HH:mm" 
+                  use12Hours={false}
+                  style={{ width: "50%" }}
+                />
+
+                <TimePicker
+                  placeholder="To"
+                  onChange={(time, timeString) => setTimeTo(timeString)}
+                  format="HH:mm"
+                  use12Hours={false}
+                  disabled={!timeFrom}
+                  style={{ width: "50%" }}
+                  disabledHours={() => {
+                    if (!timeFrom) return [];
+                    const [startHour] = timeFrom.split(":").map(Number);
+                    return Array.from({ length: startHour }, (_, i) => i);
+                  }}
+                  disabledMinutes={(selectedHour) => {
+                    if (!timeFrom) return [];
+                    const [startHour, startMinute] = timeFrom.split(":").map(Number);
+                    if (selectedHour === startHour) {
+                      return Array.from({ length: startMinute }, (_, i) => i);
+                    }
+                    return [];
+                  }}
+                />
+              </div>
+
+              {timeFrom && timeTo && (
+                <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
+                  Time Needed: {timeFrom} - {timeTo}
+                </p>
+              )}
+            </div>
+
+            <div className="program-room-container">
+              <div className="program-container">
+                <strong>Program:</strong>
+                <select
+                  value={program}
+                  onChange={(e) => setProgram(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                    marginTop: "8px",
+                  }}
+                >
+                  <option value="">Select a Program</option>
+                  <option value="SAM - BSMT">SAM - BSMT</option>
+                  <option value="SAH - BSN">SAH - BSN</option>
+                  <option value="SHS">SHS</option>
+                </select>
+                {program === "" && (
+                  <p style={{ color: "red", marginTop: "5px" }}>
+                    Please select a program before finalizing.
+                  </p>
+                )}
+              </div>
+
+              <div className="room-container">
+                <strong>Room:</strong>
+                <Input
+                  type="text"
+                  value={room}
+                  onChange={(e) => setRoom(e.target.value)}
+                  placeholder="Enter room number"
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                    marginTop: "8px",
+                  }}
+                />
+                {room === "" && (
+                  <p style={{ color: "red", marginTop: "5px" }}>
+                    Please enter the room before finalizing.
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="reason-container">
@@ -285,6 +536,7 @@ const Requisition = () => {
                     <th style={tableHeaderStyle}>#</th>
                     <th style={tableHeaderStyle}>Item Description</th>
                     <th style={tableHeaderStyle}>Item ID</th>
+                    <th style={tableHeaderStyle}>Usage Type</th>
                     <th style={tableHeaderStyle}>Qty</th>
                     <th style={tableHeaderStyle}>Dept.</th>
                   </tr>
@@ -296,6 +548,7 @@ const Requisition = () => {
                       <td style={tableCellStyle}>{index + 1}.</td>
                       <td style={tableCellStyle}>{item.description}</td>
                       <td style={tableCellStyle}>{item.id}</td>
+                      <td style={tableCellStyle}>{item.usageType}</td>
                       <td style={tableCellStyle}>{item.quantity || "N/A"}</td>
                       <td
                         style={{
