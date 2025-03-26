@@ -5,7 +5,6 @@ import {
   Table,
   Button,
   Card,
-  List,
   Typography,
   Modal,
   message,
@@ -18,6 +17,7 @@ import "../styles/usersStyle/RequestList.css";
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
+// Sample Pending Requests Data
 const pendingRequests = [
   {
     id: "REQ002",
@@ -77,6 +77,7 @@ const pendingRequests = [
   },
 ];
 
+// Main Table Columns
 const columns = [
   {
     title: "Request ID",
@@ -105,15 +106,56 @@ const columns = [
   },
 ];
 
+// Requested Items Table Columns
+const itemColumns = [
+  {
+    title: "Item #",
+    key: "index",
+    render: (text, record, index) => <span>{index + 1}</span>,
+  },
+  {
+    title: "Item Name",
+    dataIndex: "description",
+    key: "description",
+  },
+  {
+    title: "Item ID",
+    dataIndex: "itemId",
+    key: "itemId",
+  },
+  {
+    title: "Qty",
+    dataIndex: "quantity",
+    key: "quantity",
+  },
+  {
+    title: "Department",
+    dataIndex: "department",
+    key: "department",
+    render: (department) => (
+      <span
+        style={{
+          color: department === "MEDTECH" ? "magenta" : "orange",
+          fontWeight: "bold",
+        }}
+      >
+        {department}
+      </span>
+    ),
+  },
+];
+
 const RequestList = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isCancelVisible, setIsCancelVisible] = useState(false);
   const [pageTitle, setPageTitle] = useState("");
 
+  // Handle Row Click to Show Details
   const handleRowClick = (record) => {
     setSelectedRequest(record);
   };
 
+  // Handle Cancel Request
   const handleCancelRequest = () => {
     message.success("Request successfully canceled!");
     setSelectedRequest(null);
@@ -136,93 +178,80 @@ const RequestList = () => {
 
           <div className="search-container">
             <Input
-                placeholder="Search requests..."
-                prefix={<SearchOutlined />}
-                className="pending-search"
-                allowClear
+              placeholder="Search requests..."
+              prefix={<SearchOutlined />}
+              className="pending-search"
+              allowClear
             />
           </div>
 
           <div className="pending-main">
+            {/* Main Table for Pending Requests */}
             <Table
-                columns={columns}
-                dataSource={pendingRequests}
-                rowKey="id"
-                onRow={(record) => ({
+              columns={columns}
+              dataSource={pendingRequests}
+              rowKey="id"
+              onRow={(record) => ({
                 onClick: () => handleRowClick(record),
-                })}
-                className="pending-table"
+              })}
+              className="pending-table"
             />
 
+            {/* Selected Request Details */}
             {selectedRequest && (
-                <Card
+              <Card
                 title={
-                    <div className="details-header">
+                  <div className="details-header">
                     <span>Details:</span>
                     <span className="req-id">
-                        <strong>ID:</strong> {selectedRequest.id}
+                      <strong>ID:</strong> {selectedRequest.id}
                     </span>
-                    </div>
+                  </div>
                 }
                 className="details-card"
-                >
+              >
                 <p>
-                    <strong>Requester:</strong> {selectedRequest.requester}
+                  <strong>Requester:</strong> {selectedRequest.requester}
                 </p>
                 <p>
-                    <strong>Requisition Date:</strong> {selectedRequest.dateRequested}
+                  <strong>Requisition Date:</strong>{" "}
+                  {selectedRequest.dateRequested}
                 </p>
                 <p>
-                    <strong>Date Required:</strong> {selectedRequest.dateRequired}
+                  <strong>Date Required:</strong> {selectedRequest.dateRequired}
                 </p>
 
                 <Title level={5}>Requested Items:</Title>
-                <List
-                    size="small"
-                    bordered
-                    dataSource={selectedRequest.items}
-                    renderItem={(item, index) => (
-                    <List.Item className="list-item">
-                        <span>
-                        {index + 1}. {item.description}
-                        </span>
-                        <span>
-                        <strong>Item ID:</strong> {item.itemId}
-                        </span>
-                        <span>
-                        <strong>Qty:</strong> {item.quantity}
-                        </span>
-                        <span
-                        style={{
-                            color:
-                            item.department === "MEDTECH" ? "magenta" : "orange",
-                            fontWeight: "bold",
-                        }}
-                        >
-                        {item.department}
-                        </span>
-                    </List.Item>
-                    )}
+                {/* Ant Design Table for Requested Items */}
+                <Table
+                  columns={itemColumns}
+                  dataSource={selectedRequest.items}
+                  rowKey={(record, index) => index}
+                  size="small"
+                  pagination={false}
+                  className="items-table"
                 />
+
                 <p style={{ marginTop: "15px" }}>
-                    <strong>Message:</strong>{" "}
-                    <em>{selectedRequest.message || "No message provided."}</em>
+                  <strong>Message:</strong>{" "}
+                  <em>{selectedRequest.message || "No message provided."}</em>
                 </p>
 
                 <Button
-                    type="primary"
-                    danger
-                    block
-                    icon={<CloseOutlined />}
-                    onClick={() => setIsCancelVisible(true)}
-                    className="cancel-btn"
+                  type="primary"
+                  danger
+                  block
+                  icon={<CloseOutlined />}
+                  onClick={() => setIsCancelVisible(true)}
+                  className="cancel-btn"
                 >
-                    Cancel Request
+                  Cancel Request
                 </Button>
-                </Card>
+              </Card>
             )}
-            </div>
+          </div>
 
+          {/* Modal for Confirming Request Cancellation */}
           <Modal
             title="Confirm Cancellation"
             open={isCancelVisible}

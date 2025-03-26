@@ -344,8 +344,8 @@ const AccountManagement = () => {
           open={isPasswordModalVisible}
           onCancel={() => {
             setIsPasswordModalVisible(false);
-            setPasswordError(""); // Clear error on close
-            setPassword(""); // Clear input on close
+            setPasswordError(""); 
+            setPassword(""); 
           }}
           onOk={handlePasswordConfirm}
           okText="Confirm"
@@ -356,7 +356,7 @@ const AccountManagement = () => {
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
-                  setPasswordError(""); // Clear error on typing
+                  setPasswordError(""); 
                 }}
                 placeholder="Enter Password"
               />

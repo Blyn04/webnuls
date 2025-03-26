@@ -43,32 +43,25 @@
 }
 
 .details-card {
-  width: 40%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-top: 4px solid #28a745;
+  margin-top: 20px;
+  border: 1px solid #ddd;
 }
 
 .details-header {
   display: flex;
   justify-content: space-between;
-  background-color: #28a745;
-  color: white;
-  padding: 10px;
-  font-size: 16px;
-  font-weight: bold;
+  align-items: center;
 }
 
 .req-id {
-  font-style: italic;
+  font-weight: bold;
+  color: green;
 }
 
-.list-item {
-  display: flex;
-  justify-content: space-between;
+.items-table {
+  margin-top: 15px;
 }
 
 .cancel-btn {
-  margin-top: 15px;
-  background-color: #ff4d4f;
-  border: none;
+  margin-top: 20px;
 }
