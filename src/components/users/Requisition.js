@@ -366,33 +366,33 @@ const Requisition = () => {
           </div>
 
           <div className="request-details">
-          <div className="date-required">
-            <strong>Date Required:</strong>
-              <Button
-                type="primary"
-                icon={<CalendarOutlined />}
-                onClick={() => setIsCalendarVisible(true)}
-              >
-                Select Date
-              </Button>
+            <div className="date-required">
+              <strong>Date Required:</strong>
+                <Button
+                  type="primary"
+                  icon={<CalendarOutlined />}
+                  onClick={() => setIsCalendarVisible(true)}
+                >
+                  Select Date
+                </Button>
 
-              {dateRequired && (
-                <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
-                  Selected Date: {dateRequired}
-                </p>
-              )}
+                {dateRequired && (
+                  <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
+                    Selected Date: {dateRequired}
+                  </p>
+                )}
 
-              <Modal
-                title="Select Date"
-                open={isCalendarVisible}
-                onCancel={() => setIsCalendarVisible(false)}
-                onOk={() => setIsCalendarVisible(false)}
-              >
-                <DatePicker
-                  onChange={(date, dateString) => setDateRequired(dateString)}
-                  style={{ width: "100%" }}
-                />
-              </Modal>
+                <Modal
+                  title="Select Date"
+                  open={isCalendarVisible}
+                  onCancel={() => setIsCalendarVisible(false)}
+                  onOk={() => setIsCalendarVisible(false)}
+                >
+                  <DatePicker
+                    onChange={(date, dateString) => setDateRequired(dateString)}
+                    style={{ width: "100%" }}
+                  />
+                </Modal>
             </div>
 
             <div className="time-required" style={{ marginTop: "15px" }}>
