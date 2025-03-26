@@ -14,6 +14,7 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false);
@@ -229,31 +230,36 @@ const Login = () => {
       setError("Passwords do not match.");
       return;
     }
-
+  
     try {
       const { email, password } = formData;
       const usersRef = collection(db, "accounts");
-      const q = query(usersRef, where("email", "==", email));
+      const q = query(usersRef, where("email", "==", email.trim().toLowerCase()));
       const querySnapshot = await getDocs(q);
-
+  
       if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0].ref; 
-        await updateDoc(userDoc, { password });
-
-        await signInWithEmailAndPassword(auth, email, password);
-        navigate("/dashboard", { state: { loginSuccess: true, role: "user" } });
-        setIsNewUser(false);
-        
+        const userDoc = querySnapshot.docs[0].ref;
+  
+        if (userDoc) {
+          console.log("Updating password for user:", userDoc.id);
+          await updateDoc(userDoc, { password });
+          console.log("Password updated successfully:", password);
+  
+          // ✅ Navigate to Dashboard without Firebase Auth
+          navigate("/dashboard", { state: { loginSuccess: true, role: "user" } });
+          setIsNewUser(false);
+        } else {
+          setError("Failed to update user record. Please contact admin.");
+        }
       } else {
         setError("User record not found in Firestore.");
       }
-
     } catch (error) {
-      console.error("Error setting password:", error.message);
+      console.error("Error updating password:", error.message);
       setError("Failed to set password. Try again.");
     }
   };
-
+  
   const handleForgotPassword = async () => {
     if (!forgotPasswordEmail) {
       setForgotPasswordError("Please enter your email.");
@@ -343,13 +349,19 @@ const Login = () => {
               <label>Confirm Password</label>
               <div className="password-wrapper">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showConfirmPassword ? "text" : "password"}
                   name="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   placeholder="Confirm your password"
                 />
+                <span
+                  className="toggle-password"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? "🔒" : "👁️"}
+                </span>
               </div>
             </div>
           )}
