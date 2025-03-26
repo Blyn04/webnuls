@@ -172,7 +172,7 @@ const RequestList = () => {
         <Content className="pending-content">
           <div className="pending-header">
             <Title level={3}>
-              <span className="icon-pending">⏳</span> Pending Requests
+              <span className="icon-pending">⏳</span> Requests List
             </Title>
           </div>
 
@@ -186,7 +186,6 @@ const RequestList = () => {
           </div>
 
           <div className="pending-main">
-            {/* Main Table for Pending Requests */}
             <Table
               columns={columns}
               dataSource={pendingRequests}
@@ -197,7 +196,6 @@ const RequestList = () => {
               className="pending-table"
             />
 
-            {/* Selected Request Details */}
             {selectedRequest && (
               <Card
                 title={
@@ -222,7 +220,7 @@ const RequestList = () => {
                 </p>
 
                 <Title level={5}>Requested Items:</Title>
-                {/* Ant Design Table for Requested Items */}
+
                 <Table
                   columns={itemColumns}
                   dataSource={selectedRequest.items}
@@ -251,7 +249,6 @@ const RequestList = () => {
             )}
           </div>
 
-          {/* Modal for Confirming Request Cancellation */}
           <Modal
             title="Confirm Cancellation"
             open={isCancelVisible}

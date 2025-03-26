@@ -184,6 +184,7 @@ const Requisition = () => {
                 <p>
                   <strong>Description:</strong> {item.description}
                 </p>
+
                 <p>
                   <strong>Department:</strong>{" "}
                   <span
@@ -195,6 +196,7 @@ const Requisition = () => {
                     {item.department}
                   </span>
                 </p>
+
                 <Input
                   placeholder="Enter quantity"
                   type="number"
@@ -216,6 +218,13 @@ const Requisition = () => {
               >
                 Calendar
               </Button>
+
+              {dateRequired && (
+                <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
+                  Selected Date: {dateRequired}
+                </p>
+              )}
+
               <Modal
                 title="Select Date"
                 open={isCalendarVisible}
@@ -280,6 +289,7 @@ const Requisition = () => {
                     <th style={tableHeaderStyle}>Dept.</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {requestList.map((item, index) => (
                     <tr key={item.id}>
@@ -303,6 +313,7 @@ const Requisition = () => {
               <h4>
                 <strong>Date Required:</strong> {dateRequired || "N/A"}
               </h4>
+
               <h4>
                 <strong>Message:</strong>{" "}
                 <em>{reason || "No message provided."}</em>
