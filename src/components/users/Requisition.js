@@ -94,6 +94,8 @@ const Requisition = () => {
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
   const [isFinalizeVisible, setIsFinalizeVisible] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [programError, setProgramError] = useState(false);
+  const [roomError, setRoomError] = useState(false);
   const [pageTitle, setPageTitle] = useState("");
   const [program, setProgram] = useState("");
   const [room, setRoom] = useState("");
@@ -133,27 +135,37 @@ const Requisition = () => {
   };
 
   const finalizeRequest = () => {
+    let isValid = true;
+
     if (!dateRequired) {
       message.error("Please select a date!");
-      return;
+      isValid = false;
     }
 
     if (!program) {
-      message.error("Please select a program!");
-      return;
+      setProgramError(true);
+      isValid = false;
+
+    } else {
+      setProgramError(false);
     }
 
     if (!room) {
-      message.error("Please enter the room!");
-      return;
+      setRoomError(true);
+      isValid = false;
+
+    } else {
+      setRoomError(false);
     }
 
     if (requestList.length === 0) {
       message.error("Please add items to the request list!");
-      return;
+      isValid = false;
     }
 
-    setIsFinalizeVisible(true); 
+    if (isValid) {
+      setIsFinalizeVisible(true);
+    }
   };
 
   const columns = [
@@ -459,11 +471,12 @@ const Requisition = () => {
                   <option value="SAH - BSN">SAH - BSN</option>
                   <option value="SHS">SHS</option>
                 </select>
-                {program === "" && (
-                  <p style={{ color: "red", marginTop: "5px" }}>
-                    Please select a program before finalizing.
-                  </p>
-                )}
+
+                {programError && (
+                    <p style={{ color: "red", marginTop: "5px" }}>
+                      Please select a program before finalizing.
+                    </p>
+                  )}
               </div>
 
               <div className="room-container">
@@ -481,7 +494,7 @@ const Requisition = () => {
                     marginTop: "8px",
                   }}
                 />
-                {room === "" && (
+                {roomError && (
                   <p style={{ color: "red", marginTop: "5px" }}>
                     Please enter the room before finalizing.
                   </p>
