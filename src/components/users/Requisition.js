@@ -290,7 +290,6 @@ const Requisition = () => {
         <Content className="requisition-content">
 
         <div className="requisition-header">
-          <h2>Requisition</h2>
 
           <div style={{ display: "flex", gap: "10px" }}>
             <Input
