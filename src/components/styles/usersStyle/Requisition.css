@@ -13,14 +13,6 @@
   width: 300px;
 }
 
-.requisition-table {
-  margin-bottom: 20px;
-}
-
-.request-list-container {
-  margin-top: 20px;
-}
-
 .request-card {
   margin-bottom: 10px;
 }
@@ -66,5 +58,50 @@
 .program-container,
 .room-container {
   flex: 1;
+}
+
+.requisition-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.table-request-container {
+  display: flex;
+  gap: 20px;
+}
+
+.table-container {
+  flex: 3;
+}
+
+.request-list-container {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 500px; 
+  padding-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.requisition-table {
+  overflow-y: auto; 
+  max-height: 400px; 
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+}
+
+.requisition-table .ant-table-container {
+  max-height: 400px; 
+  overflow-y: auto;
+}
+
+.requisition-table .ant-table-thead > tr > th {
+  position: sticky;
+  top: 0;
+  background: #f5f5f5;
+  z-index: 1;
 }
 

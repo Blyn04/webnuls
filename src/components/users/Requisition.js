@@ -283,144 +283,144 @@ const Requisition = () => {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sidebar setPageTitle={setPageTitle} />
-
+  
       <Layout className="site-layout">
         <AppHeader pageTitle={pageTitle} />
         
         <Content className="requisition-content">
-
-        <div className="requisition-header">
-
-          <div style={{ display: "flex", gap: "10px" }}>
-            <Input
-              placeholder="Search"
-              className="requisition-search"
-              allowClear
-            />
-            <select
-              value={searchUsageType}
-              onChange={(e) => {
-                const selectedType = e.target.value;
-                setSearchUsageType(selectedType);
-                if (selectedType === "") {
-                  setFilteredItems(initialItems);
-                } else {
-                  const filteredData = initialItems.filter((item) => item.usageType === selectedType);
-                  setFilteredItems(filteredData);
-                }
-              }}
-              style={{
-                width: "200px",
-                padding: "8px",
-                borderRadius: "4px",
-                border: "1px solid #ccc",
-              }}
-            >
-              <option value="">All Usage Types</option>
-              <option value="Laboratory Experiment">Laboratory Experiment</option>
-              <option value="Research">Research</option>
-              <option value="Community Extension">Community Extension</option>
-              <option value="Others">Others</option>
-            </select>
-          </div>
-        </div>
-
-          <Table
-            dataSource={filteredItems}
-            columns={columns}
-            rowKey="id"
-            className="requisition-table"
-          />
-
-          <div className="request-list-container">
-            <h3>Request List:</h3>
-            {requestList.map((item) => (
-              <Card
-                key={item.id}
-                className="request-card"
-                size="small"
-                title={`Item ID: ${item.id}`}
-                extra={
-                  <Button
-                    type="text"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => removeFromList(item.id)}
-                  />
-                }
+          <div className="requisition-header">
+            <div style={{ display: "flex", gap: "10px" }}>
+              <Input
+                placeholder="Search"
+                className="requisition-search"
+                allowClear
+              />
+              <select
+                value={searchUsageType}
+                onChange={(e) => {
+                  const selectedType = e.target.value;
+                  setSearchUsageType(selectedType);
+                  if (selectedType === "") {
+                    setFilteredItems(initialItems);
+                  } else {
+                    const filteredData = initialItems.filter((item) => item.usageType === selectedType);
+                    setFilteredItems(filteredData);
+                  }
+                }}
+                style={{
+                  width: "200px",
+                  padding: "8px",
+                  borderRadius: "4px",
+                  border: "1px solid #ccc",
+                }}
               >
-                <p>
-                  <strong>Description:</strong> {item.description}
-                </p>
-
-                <p>
-                  <strong>Department:</strong>{" "}
-                  <span
-                    style={{
-                      color: item.department === "MEDTECH" ? "magenta" : "orange",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {item.department}
-                  </span>
-                </p>
-
-                <Input
-                  placeholder="Enter quantity"
-                  type="number"
-                  min={1}
-                  value={item.quantity}
-                  onChange={(e) => updateQuantity(item.id, e.target.value)}
-                />
-              </Card>
-            ))}
+                <option value="">All Usage Types</option>
+                <option value="Laboratory Experiment">Laboratory Experiment</option>
+                <option value="Research">Research</option>
+                <option value="Community Extension">Community Extension</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
           </div>
 
+          <div className="table-request-container">
+            <Table
+              dataSource={filteredItems}
+              columns={columns}
+              rowKey="id"
+              className="requisition-table"
+            />
+  
+            <div className="request-list-container">
+              <h3>Request List:</h3>
+              {requestList.map((item) => (
+                <Card
+                  key={item.id}
+                  className="request-card"
+                  size="small"
+                  title={`Item ID: ${item.id}`}
+                  extra={
+                    <Button
+                      type="text"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => removeFromList(item.id)}
+                    />
+                  }
+                >
+                  <p>
+                    <strong>Description:</strong> {item.description}
+                  </p>
+  
+                  <p>
+                    <strong>Department:</strong>{" "}
+                    <span
+                      style={{
+                        color: item.department === "MEDTECH" ? "magenta" : "orange",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {item.department}
+                    </span>
+                  </p>
+  
+                  <Input
+                    placeholder="Enter quantity"
+                    type="number"
+                    min={1}
+                    value={item.quantity}
+                    onChange={(e) => updateQuantity(item.id, e.target.value)}
+                  />
+                </Card>
+              ))}
+            </div>
+          </div>
+ 
           <div className="request-details">
             <div className="date-required">
               <strong>Date Required:</strong>
-                <Button
-                  type="primary"
-                  icon={<CalendarOutlined />}
-                  onClick={() => setIsCalendarVisible(true)}
-                >
-                  Select Date
-                </Button>
-
-                {dateRequired && (
-                  <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
-                    Selected Date: {dateRequired}
-                  </p>
-                )}
-
-                <Modal
-                  title="Select Date"
-                  open={isCalendarVisible}
-                  onCancel={() => setIsCalendarVisible(false)}
-                  onOk={() => setIsCalendarVisible(false)}
-                >
-                  <DatePicker
-                    onChange={(date, dateString) => setDateRequired(dateString)}
-                    style={{ width: "100%" }}
-                  />
-                </Modal>
+              <Button
+                type="primary"
+                icon={<CalendarOutlined />}
+                onClick={() => setIsCalendarVisible(true)}
+              >
+                Select Date
+              </Button>
+  
+              {dateRequired && (
+                <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
+                  Selected Date: {dateRequired}
+                </p>
+              )}
+  
+              <Modal
+                title="Select Date"
+                open={isCalendarVisible}
+                onCancel={() => setIsCalendarVisible(false)}
+                onOk={() => setIsCalendarVisible(false)}
+              >
+                <DatePicker
+                  onChange={(date, dateString) => setDateRequired(dateString)}
+                  style={{ width: "100%" }}
+                />
+              </Modal>
             </div>
-
+  
             <div className="time-required" style={{ marginTop: "15px" }}>
               <strong>Time Needed:</strong>
-
+  
               <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
                 <TimePicker
                   placeholder="From"
                   onChange={(time, timeString) => {
                     setTimeFrom(timeString);
-                    setTimeTo(null); 
+                    setTimeTo(null);
                   }}
-                  format="HH:mm" 
+                  format="HH:mm"
                   use12Hours={false}
                   style={{ width: "50%" }}
                 />
-
+  
                 <TimePicker
                   placeholder="To"
                   onChange={(time, timeString) => setTimeTo(timeString)}
@@ -443,14 +443,14 @@ const Requisition = () => {
                   }}
                 />
               </div>
-
+  
               {timeFrom && timeTo && (
                 <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
                   Time Needed: {timeFrom} - {timeTo}
                 </p>
               )}
             </div>
-
+  
             <div className="program-room-container">
               <div className="program-container">
                 <strong>Program:</strong>
@@ -470,14 +470,14 @@ const Requisition = () => {
                   <option value="SAH - BSN">SAH - BSN</option>
                   <option value="SHS">SHS</option>
                 </select>
-
+  
                 {programError && (
-                    <p style={{ color: "red", marginTop: "5px" }}>
-                      Please select a program before finalizing.
-                    </p>
-                  )}
+                  <p style={{ color: "red", marginTop: "5px" }}>
+                    Please select a program before finalizing.
+                  </p>
+                )}
               </div>
-
+  
               <div className="room-container">
                 <strong>Room:</strong>
                 <Input
@@ -500,7 +500,7 @@ const Requisition = () => {
                 )}
               </div>
             </div>
-
+  
             <div className="reason-container">
               <strong>Reason of Request:</strong>
               <Input.TextArea
@@ -510,7 +510,7 @@ const Requisition = () => {
                 placeholder="Enter reason for request"
               />
             </div>
-
+  
             <Button
               type="primary"
               danger
@@ -521,7 +521,7 @@ const Requisition = () => {
               Finalize
             </Button>
           </div>
-
+  
           <Modal
             title={
               <div style={{ background: "#f60", padding: "12px", color: "#fff" }}>
@@ -553,7 +553,7 @@ const Requisition = () => {
                     <th style={tableHeaderStyle}>Dept.</th>
                   </tr>
                 </thead>
-
+  
                 <tbody>
                   {requestList.map((item, index) => (
                     <tr key={item.id}>
@@ -574,16 +574,20 @@ const Requisition = () => {
                   ))}
                 </tbody>
               </table>
-
+  
               <h4>
                 <strong>Date Required:</strong> {dateRequired || "N/A"}
               </h4>
 
               <h4>
+                <strong>Time Needed:</strong> {"N/A"}
+              </h4>
+  
+              <h4>
                 <strong>Message:</strong>{" "}
                 <em>{reason || "No message provided."}</em>
               </h4>
-
+  
               <Button
                 type="primary"
                 danger
@@ -599,11 +603,11 @@ const Requisition = () => {
             </div>
           </Modal>
         </Content>
-
+  
         <SuccessModal isVisible={showModal} onClose={closeModal} />
       </Layout>
     </Layout>
-  );
+  );  
 };
 
 export default Requisition;
