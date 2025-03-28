@@ -378,7 +378,7 @@ const Requisition = () => {
  
           <div className="request-details">
             <div className="date-time-container">
-              {/* Date Required Section */}
+
               <div className="date-required">
                 <strong>Date Required:</strong>
                 <Button
@@ -408,7 +408,6 @@ const Requisition = () => {
                 </Modal>
               </div>
 
-              {/* Time Needed Section */}
               <div className="time-required">
                 <strong>Time Needed:</strong>
                 <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
@@ -453,7 +452,6 @@ const Requisition = () => {
                 )}
               </div>
             </div>
-
   
             <div className="program-room-container">
               <div className="program-container">
@@ -584,7 +582,8 @@ const Requisition = () => {
               </h4>
 
               <h4>
-                <strong>Time Needed:</strong> {"N/A"}
+              <strong>Time Needed:</strong>{" "}
+              {timeFrom && timeTo ? `${timeFrom} - ${timeTo}` : "N/A"}
               </h4>
   
               <h4>
