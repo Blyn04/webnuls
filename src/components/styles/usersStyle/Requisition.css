@@ -105,3 +105,13 @@
   z-index: 1;
 }
 
+.date-time-container {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.date-required,
+.time-required {
+  flex: 1;
+}

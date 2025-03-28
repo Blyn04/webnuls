@@ -377,79 +377,83 @@ const Requisition = () => {
           </div>
  
           <div className="request-details">
-            <div className="date-required">
-              <strong>Date Required:</strong>
-              <Button
-                type="primary"
-                icon={<CalendarOutlined />}
-                onClick={() => setIsCalendarVisible(true)}
-              >
-                Select Date
-              </Button>
-  
-              {dateRequired && (
-                <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
-                  Selected Date: {dateRequired}
-                </p>
-              )}
-  
-              <Modal
-                title="Select Date"
-                open={isCalendarVisible}
-                onCancel={() => setIsCalendarVisible(false)}
-                onOk={() => setIsCalendarVisible(false)}
-              >
-                <DatePicker
-                  onChange={(date, dateString) => setDateRequired(dateString)}
-                  style={{ width: "100%" }}
-                />
-              </Modal>
-            </div>
-  
-            <div className="time-required" style={{ marginTop: "15px" }}>
-              <strong>Time Needed:</strong>
-  
-              <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
-                <TimePicker
-                  placeholder="From"
-                  onChange={(time, timeString) => {
-                    setTimeFrom(timeString);
-                    setTimeTo(null);
-                  }}
-                  format="HH:mm"
-                  use12Hours={false}
-                  style={{ width: "50%" }}
-                />
-  
-                <TimePicker
-                  placeholder="To"
-                  onChange={(time, timeString) => setTimeTo(timeString)}
-                  format="HH:mm"
-                  use12Hours={false}
-                  disabled={!timeFrom}
-                  style={{ width: "50%" }}
-                  disabledHours={() => {
-                    if (!timeFrom) return [];
-                    const [startHour] = timeFrom.split(":").map(Number);
-                    return Array.from({ length: startHour }, (_, i) => i);
-                  }}
-                  disabledMinutes={(selectedHour) => {
-                    if (!timeFrom) return [];
-                    const [startHour, startMinute] = timeFrom.split(":").map(Number);
-                    if (selectedHour === startHour) {
-                      return Array.from({ length: startMinute }, (_, i) => i);
-                    }
-                    return [];
-                  }}
-                />
+            <div className="date-time-container">
+              {/* Date Required Section */}
+              <div className="date-required">
+                <strong>Date Required:</strong>
+                <Button
+                  type="primary"
+                  icon={<CalendarOutlined />}
+                  onClick={() => setIsCalendarVisible(true)}
+                >
+                  Select Date
+                </Button>
+
+                {dateRequired && (
+                  <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
+                    Selected Date: {dateRequired}
+                  </p>
+                )}
+
+                <Modal
+                  title="Select Date"
+                  open={isCalendarVisible}
+                  onCancel={() => setIsCalendarVisible(false)}
+                  onOk={() => setIsCalendarVisible(false)}
+                >
+                  <DatePicker
+                    onChange={(date, dateString) => setDateRequired(dateString)}
+                    style={{ width: "100%" }}
+                  />
+                </Modal>
               </div>
-  
-              {timeFrom && timeTo && (
-                <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
-                  Time Needed: {timeFrom} - {timeTo}
-                </p>
-              )}
+
+              {/* Time Needed Section */}
+              <div className="time-required">
+                <strong>Time Needed:</strong>
+                <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+                  <TimePicker
+                    placeholder="From"
+                    onChange={(time, timeString) => {
+                      setTimeFrom(timeString);
+                      setTimeTo(null);
+                    }}
+                    format="HH:mm"
+                    use12Hours={false}
+                    style={{ width: "50%" }}
+                  />
+
+                  <TimePicker
+                    placeholder="To"
+                    onChange={(time, timeString) => setTimeTo(timeString)}
+                    format="HH:mm"
+                    use12Hours={false}
+                    disabled={!timeFrom}
+                    style={{ width: "50%" }}
+                    disabledHours={() => {
+                      if (!timeFrom) return [];
+                      const [startHour] = timeFrom.split(":").map(Number);
+                      return Array.from({ length: startHour }, (_, i) => i);
+                    }}
+                    disabledMinutes={(selectedHour) => {
+                      if (!timeFrom) return [];
+                      const [startHour, startMinute] = timeFrom.split(":").map(Number);
+                      if (selectedHour === startHour) {
+                        return Array.from({ length: startMinute }, (_, i) => i);
+                      }
+                      return [];
+                    }}
+                  />
+                </div>
+
+                {timeFrom && timeTo && (
+                  <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
+                    Time Needed: {timeFrom} - {timeTo}
+                  </p>
+                )}
+              </div>
             </div>
+
   
             <div className="program-room-container">
               <div className="program-container">
