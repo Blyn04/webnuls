@@ -17,7 +17,6 @@ import "../styles/usersStyle/RequestList.css";
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
-// Sample Pending Requests Data
 const pendingRequests = [
   {
     id: "REQ002",
@@ -25,21 +24,27 @@ const pendingRequests = [
     dateRequired: "2025-09-28",
     status: "PENDING",
     requester: "Henreizh Nathan H. Aruta",
+    timeNeeded: "08:00 AM - 12:00 PM",
+    courseCode: "MED101",
+    courseDescription: "Basic Medical Laboratory Science",
+    room: "Chemistry Lab 1",
     items: [
       {
         description: "Bond Paper",
         itemId: "SPL02",
         quantity: 20,
         department: "MEDTECH",
+        usageType: "Laboratory Experiment",
       },
       {
         description: "Paracetamol",
-        itemId: "SPL02",
+        itemId: "SPL03",
         quantity: 30,
         department: "NURSING",
+        usageType: "Research",
       },
     ],
-    message: "hello, may klase kami kc, we need these thx",
+    message: "Hello, may klase kami kc, we need these thx",
   },
   {
     id: "REQ003",
@@ -47,37 +52,30 @@ const pendingRequests = [
     dateRequired: "2025-09-28",
     status: "PENDING",
     requester: "Henreizh Nathan H. Aruta",
+    timeNeeded: "01:00 PM - 04:00 PM",
+    courseCode: "NRS202",
+    courseDescription: "Pharmacology and Nursing Care",
+    room: "Nursing Lab 2",
     items: [
       {
-        description: "Bond Paper",
-        itemId: "SPL02",
-        quantity: 20,
-        department: "MEDTECH",
-      },
-      {
-        description: "Paracetamol",
-        itemId: "SPL02",
-        quantity: 30,
-        department: "NURSING",
-      },
-      {
         description: "Syringe",
-        itemId: "SPL02",
+        itemId: "SPL04",
         quantity: 10,
         department: "MEDTECH",
+        usageType: "Community Extension",
       },
       {
         description: "Pen",
-        itemId: "SPL02",
+        itemId: "SPL05",
         quantity: 15,
         department: "NURSING",
+        usageType: "Others",
       },
     ],
-    message: "hello, may klase kami kc, we need these thx",
+    message: "Hello, need namin for training. Thanks!",
   },
 ];
 
-// Main Table Columns
 const columns = [
   {
     title: "Request ID",
@@ -106,7 +104,6 @@ const columns = [
   },
 ];
 
-// Requested Items Table Columns
 const itemColumns = [
   {
     title: "Item #",
@@ -143,6 +140,16 @@ const itemColumns = [
       </span>
     ),
   },
+  {
+    title: "Usage Type",
+    dataIndex: "usageType",
+    key: "usageType",
+    render: (usageType) => (
+      <span style={{ fontStyle: "italic", color: "#1890ff" }}>
+        {usageType}
+      </span>
+    ),
+  },
 ];
 
 const RequestList = () => {
@@ -150,12 +157,10 @@ const RequestList = () => {
   const [isCancelVisible, setIsCancelVisible] = useState(false);
   const [pageTitle, setPageTitle] = useState("");
 
-  // Handle Row Click to Show Details
   const handleRowClick = (record) => {
     setSelectedRequest(record);
   };
 
-  // Handle Cancel Request
   const handleCancelRequest = () => {
     message.success("Request successfully canceled!");
     setSelectedRequest(null);
@@ -218,6 +223,19 @@ const RequestList = () => {
                 <p>
                   <strong>Date Required:</strong> {selectedRequest.dateRequired}
                 </p>
+                <p>
+                  <strong>Time Needed:</strong> {selectedRequest.timeNeeded}
+                </p>
+                <p>
+                  <strong>Course Code:</strong> {selectedRequest.courseCode}
+                </p>
+                <p>
+                  <strong>Course Description:</strong>{" "}
+                  {selectedRequest.courseDescription}
+                </p>
+                <p>
+                  <strong>Room:</strong> {selectedRequest.room}
+                </p>
 
                 <Title level={5}>Requested Items:</Title>
 
@@ -238,12 +256,20 @@ const RequestList = () => {
                 <Button
                   type="primary"
                   danger
-                  block
                   icon={<CloseOutlined />}
                   onClick={() => setIsCancelVisible(true)}
                   className="cancel-btn"
                 >
                   Cancel Request
+                </Button>
+
+                <Button
+                  type="default"
+                  onClick={() => setSelectedRequest(null)}
+                  className="close-btn"
+                  style={{ marginLeft: "8px" }}
+                >
+                  Close
                 </Button>
               </Card>
             )}
