@@ -96,6 +96,11 @@ const Sidebar = ({ setPageTitle }) => {
         setPageTitle("Search Items");
         break;
 
+      case "/capex-request":
+        setSelectedKey("12");
+        setPageTitle("Capex Request");
+        break;
+
       default:
         setSelectedKey("1");
         setPageTitle("Dashboard");
@@ -161,6 +166,11 @@ const Sidebar = ({ setPageTitle }) => {
       case "11":
         navigate("/search-items");
         setPageTitle("Search Items");
+        break;
+
+      case "12":
+        navigate("/capex-request");
+        setPageTitle("Capex Request");
         break;
 
       default:
@@ -241,6 +251,11 @@ const Sidebar = ({ setPageTitle }) => {
       key: "11",
       icon: <ClockCircleOutlined />,
       label: "Search Items",
+    },
+    {
+      key: "12",
+      icon: <ClockCircleOutlined />,
+      label: "Capex Request",
     },
     {
       key: "6",

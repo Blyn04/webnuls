@@ -10,10 +10,8 @@ const AppHeader = ({ pageTitle }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Get role from location state
   const role = location.state?.role;
 
-  // ✅ Get name from localStorage if available
   const [userName, setUserName] = useState("User");
 
   useEffect(() => {
@@ -37,7 +35,7 @@ const AppHeader = ({ pageTitle }) => {
           onClick={goToProfile}
           style={{ cursor: "pointer" }}
         >
-          {/* ✅ Correctly display user name */}
+
           <span style={{ marginRight: 8 }}>Hi, {userName}!</span>
           <Avatar icon={<UserOutlined />} />
         </div>

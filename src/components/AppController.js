@@ -11,6 +11,7 @@ import Requisition from './users/Requisition';
 import RequestList from './users/RequestList';
 import ActivityLog from './users/ActivityLog';
 import SearchItems from './users/SearchItems';
+import CapexRequest from './users/CapexRequest';
 
 const AppController = () => {
     
@@ -29,6 +30,7 @@ const AppController = () => {
                 <Route path="/request-list" element={<RequestList />} />
                 <Route path="/activity-log" element={<ActivityLog />} />
                 <Route path="/search-items" element={<SearchItems />} />
+                <Route path="/capex-request" element={<CapexRequest />} />
             </Routes>
         </BrowserRouter>
     )
