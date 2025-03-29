@@ -15,6 +15,7 @@ import {
   DeleteOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
+import moment from "moment";
 import { useLocation } from "react-router-dom";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
@@ -379,34 +380,22 @@ const Requisition = () => {
           <div className="request-details">
             <div className="date-time-container">
 
-              <div className="date-required">
-                <strong>Date Required:</strong>
-                <Button
-                  type="primary"
-                  icon={<CalendarOutlined />}
-                  onClick={() => setIsCalendarVisible(true)}
-                >
-                  Select Date
-                </Button>
-
-                {dateRequired && (
-                  <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
-                    Selected Date: {dateRequired}
-                  </p>
-                )}
-
-                <Modal
-                  title="Select Date"
-                  open={isCalendarVisible}
-                  onCancel={() => setIsCalendarVisible(false)}
-                  onOk={() => setIsCalendarVisible(false)}
-                >
-                  <DatePicker
-                    onChange={(date, dateString) => setDateRequired(dateString)}
-                    style={{ width: "100%" }}
-                  />
-                </Modal>
-              </div>
+            <div className="date-required">
+              <strong>Date Required:</strong>
+              <DatePicker
+                onChange={(date, dateString) => setDateRequired(dateString)}
+                disabledDate={(current) => current && current < moment().startOf("day")}
+                style={{
+                  width: "100%",
+                  marginTop: "8px",
+                }}
+              />
+              {dateRequired && (
+                <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
+                  Selected Date: {dateRequired}
+                </p>
+              )}
+            </div>
 
               <div className="time-required">
                 <strong>Time Needed:</strong>
