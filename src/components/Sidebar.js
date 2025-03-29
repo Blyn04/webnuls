@@ -22,11 +22,25 @@ const { Sider } = Layout;
 
 const Sidebar = ({ setPageTitle }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedKey, setSelectedKey] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [role, setRole] = useState("");
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      if (window.innerWidth > 768) {
+        setMobileOpen(false); // Reset mobile open when switching back to desktop
+      }
+    };
+  
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const state = location.state || {};
@@ -109,7 +123,11 @@ const Sidebar = ({ setPageTitle }) => {
   }, [location.pathname, setPageTitle]);
 
   const toggleSidebar = () => {
-    setCollapsed(!collapsed);
+    if (isMobile) {
+      setMobileOpen(!mobileOpen);
+    } else {
+      setCollapsed(!collapsed);
+    }
   };
 
   const handleMenuClick = (e) => {
@@ -175,6 +193,10 @@ const Sidebar = ({ setPageTitle }) => {
 
       default:
         break;
+    }
+
+    if (isMobile) {
+      setMobileOpen(false);
     }
   };
 
@@ -273,44 +295,69 @@ const Sidebar = ({ setPageTitle }) => {
       : userMenuItems;
 
   return (
-    <Sider
-      collapsible
-      collapsed={collapsed}
-      width={220}
-      className="sidebar"
-      trigger={null}
-    >
-      <div className="logo-container" onClick={toggleSidebar}>
-        <div className="logo">
-          {!collapsed ? (
-            <>
-              <h3 className="logo-title">NU MOA</h3>
-              <p className="logo-subtitle">Laboratory System</p>
-            </>
+    <>
+      {isMobile && mobileOpen && (
+        <div className="sidebar-overlay" onClick={() => setMobileOpen(false)} />
+      )}
+
+      <Sider
+        collapsible
+        collapsed={isMobile ? !mobileOpen : collapsed}
+        width={220}
+        collapsedWidth={isMobile ? 80 : 80} 
+        className={`${
+          isMobile
+            ? `sidebar-modal ${mobileOpen ? "open" : ""}`
+            : "sidebar"
+        }`}
+        trigger={null}
+        style={{
+          position: isMobile ? "fixed" : "relative",
+          height: "100vh",
+          zIndex: isMobile ? 1000 : "auto",
+        }}
+      >
+      <div
+          className={`logo-container ${collapsed && !isMobile ? "collapsed" : ""}`}
+          onClick={isMobile ? () => setMobileOpen(!mobileOpen) : toggleSidebar}
+        >
+          <div className="logo">
+            {!collapsed || isMobile ? (
+              <>
+                <h3 className="logo-title">NU MOA</h3>
+                <p className="logo-subtitle">Laboratory System</p>
+              </>
+            ) : (
+              <h3 className="logo-title">NU</h3>
+            )}
+          </div>
+
+          {collapsed && !isMobile ? (
+            <div className="toggle-icon toggle-center">
+              <MenuUnfoldOutlined />
+            </div>
           ) : (
-            <h3 className="logo-title">NU</h3>
+            <div className="toggle-icon toggle-right">
+              <MenuFoldOutlined />
+            </div>
           )}
         </div>
 
-        <div className="toggle-icon">
-          {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-        </div>
-      </div>
-
-      <Menu
-        theme="dark"
-        mode="vertical"
-        selectedKeys={[selectedKey]}
-        onClick={handleMenuClick}
-        items={menuItems}
-      />
+        <Menu
+          theme="dark"
+          mode="vertical"
+          selectedKeys={[selectedKey]}
+          onClick={handleMenuClick}
+          items={menuItems}
+        />
+      </Sider>
 
       <CustomModal
-        visible={showModal}
-        onConfirm={handleSignOut}
-        onCancel={() => setShowModal(false)}
+      visible={showModal}
+      onConfirm={handleSignOut}
+      onCancel={() => setShowModal(false)}
       />
-    </Sider>
+    </>
   );
 };
 

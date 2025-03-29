@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Layout, Avatar } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
-import "./styles/Dashboard.css";
+import "./styles/Header.css";
 
 const { Header } = Layout;
 
@@ -11,14 +11,21 @@ const AppHeader = ({ pageTitle }) => {
   const location = useLocation();
 
   const role = location.state?.role;
-
   const [userName, setUserName] = useState("User");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
     if (storedName) {
       setUserName(storedName);
     }
+
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const goToProfile = () => {
@@ -26,17 +33,17 @@ const AppHeader = ({ pageTitle }) => {
   };
 
   return (
-    <Header className="header">
-      <h2 className="header-title">{pageTitle}</h2>
+    <Header className={`header ${isMobile ? "header-mobile" : ""}`}>
+      <h2 className={`header-title ${isMobile ? "title-mobile" : ""}`}>
+        {pageTitle}
+      </h2>
 
       {role !== "super-admin" && (
         <div
-          className="user-profile"
+          className={`user-profile ${isMobile ? "profile-mobile" : ""}`}
           onClick={goToProfile}
-          style={{ cursor: "pointer" }}
         >
-
-          <span style={{ marginRight: 8 }}>Hi, {userName}!</span>
+          {!isMobile && <span style={{ marginRight: 8 }}>Hi, {userName}!</span>}
           <Avatar icon={<UserOutlined />} />
         </div>
       )}

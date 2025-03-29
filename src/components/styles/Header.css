@@ -1,0 +1,63 @@
+.header {
+  background-color: white;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Header Title */
+.header-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+/* User Profile */
+.user-profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 8px;
+}
+
+/* Avatar and Name Hover Effect */
+.user-profile:hover {
+  opacity: 0.8;
+  transition: 0.2s;
+}
+
+/* Avatar Styles */
+.user-profile .ant-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+}
+
+/* Mobile Header Adjustments */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 12px;
+    height: 56px;
+  }
+
+  .header-title {
+    font-size: 18px;
+  }
+
+  .user-profile {
+    gap: 6px;
+  }
+
+  .user-profile span {
+    font-size: 14px;
+  }
+
+  .user-profile .ant-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+}

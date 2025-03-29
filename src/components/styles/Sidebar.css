@@ -1,77 +1,94 @@
-.ant-modal-content {
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.ant-modal-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-#root {
-  height: 100vh;
-  overflow: auto;
-}
-
-.ant-layout-sider-trigger {
-  background-color: #001529;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.ant-layout-sider-collapsed .ant-layout-sider-trigger { 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 12px 0;
-}
-
-.ant-layout-sider-trigger svg {
-  font-size: 20px;
-  color: #fff;
-  transition: all 0.3s ease;
-}
-
-.ant-layout-sider-trigger:hover {
-  background-color: #1890ff;
-}
-
-.ant-layout-sider-collapsed .ant-layout-sider-trigger svg {
-  transform: rotate(180deg); 
-}
-
-/* Sidebar container */
+/* General Sidebar Styles */
 .sidebar {
   height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: #001529;
+  transition: all 0.3s ease;
 }
 
-/* Logo container */
+/* Sidebar Modal for Mobile */
+.sidebar-modal {
+  position: fixed;
+  top: 0;
+  left: -220px;
+  width: 220px;
+  height: 100vh;
+  background-color: #001529;
+  transition: left 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+/* Show Sidebar when Mobile is Open */
+.sidebar-modal.open {
+  left: 0;
+}
+
+/* Overlay for Mobile when Sidebar is Open */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Collapsed Sidebar Styles */
+.ant-layout-sider-collapsed .logo-subtitle {
+  display: none;
+}
+
+/* Sidebar Modal and Overlay Mobile Behavior */
+@media (max-width: 768px) {
+  .ant-layout-sider {
+    position: fixed;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
+    width: 80px; /* Collapsed width */
+    transition: all 0.3s ease;
+  }
+
+  .sidebar-modal {
+    display: block;
+    width: 80px;
+    left: 0;
+  }
+
+  .sidebar-modal.open {
+    width: 220px;
+    left: 0;
+  }
+}
+
+/* Hide Sidebar on Mobile when Collapsed */
+@media (max-width: 768px) {
+  .sidebar {
+    display: block;
+    width: 80px;
+    transition: all 0.3s ease;
+  }
+
+  .sidebar-modal {
+    display: block;
+    left: 0;
+  }
+
+  .sidebar-modal.open {
+    width: 220px;
+    left: 0;
+  }
+}
+
+/* Logo & Toggle Icon */
 .logo-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
 }
 
-/* Collapsed state: Stack logo and toggle vertically */
-.ant-layout-sider-collapsed .logo-container {
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding-top: 10px;
-}
-
-/* Logo title and subtitle */
 .logo-title {
   color: white;
   font-size: 18px;
@@ -79,31 +96,61 @@ body {
   margin: 0;
 }
 
-/* Hide subtitle when collapsed */
 .logo-subtitle {
   color: #b0c4de;
   font-size: 12px;
+  margin-top: 4px;
 }
 
-.ant-layout-sider-collapsed .logo-subtitle {
-  display: none;
-}
-
-/* Toggle button next to title when not collapsed */
 .toggle-icon {
   font-size: 18px;
-  color: #fff;
+  color: white;
   cursor: pointer;
   transition: all 0.3s;
 }
 
-/* Collapsed: Move toggle button under "NU" */
-.ant-layout-sider-collapsed .toggle-icon {
+.logo-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logo-container.collapsed {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-top: 10px;
+}
+
+.logo-title {
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.logo-subtitle {
+  color: #b0c4de;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.toggle-icon {
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.toggle-icon.toggle-center {
   margin-top: 8px;
   font-size: 20px;
 }
 
-/* Expanded: Keep toggle icon next to the logo */
-.ant-layout-sider:not(.ant-layout-sider-collapsed) .toggle-icon {
+.toggle-icon.toggle-right {
   margin-left: 10px;
 }

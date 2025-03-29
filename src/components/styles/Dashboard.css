@@ -70,33 +70,3 @@
 .ant-menu {
   background-color: #001529;
 }
-
-/* Header Section */
-.header {
-  background-color: white;
-  padding: 0 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-/* User Profile */
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Main Content */
-.content {
-  padding: 20px;
-  background-color: #f5f5f5;
-}
-
-.header-title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-  margin: 0;
-}
