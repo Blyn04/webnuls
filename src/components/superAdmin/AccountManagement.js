@@ -7,6 +7,7 @@ import {
   Form,
   Input,
   Select,
+  Tag,
   Popconfirm,
   message,
 } from "antd";
@@ -216,7 +217,11 @@ const AccountManagement = () => {
     {
       title: "Role",
       dataIndex: "role",
-      key: "role",
+      render: (role) => (
+        <Tag color={role === "Admin1" ? "volcano" : role === "Admin2" ? "geekblue" : "green"}>
+          {role.toLowerCase()}
+        </Tag>
+      ),
     },
     {
       title: "Actions",
@@ -331,8 +336,9 @@ const AccountManagement = () => {
                 rules={[{ required: true, message: "Please select a role" }]}
               >
                 <Select placeholder="Select Role">
-                  <Option value="Admin">Admin</Option>
-                  <Option value="User">User</Option>
+                <Option value="Admin1">Admin1</Option>
+                <Option value="Admin2">Admin2</Option>
+                <Option value="User">User</Option>
                 </Select>
               </Form.Item>
             </Form>

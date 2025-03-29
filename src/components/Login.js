@@ -93,13 +93,15 @@ const Login = () => {
       }
 
       try {
-        // if (userData.password === password) {
-
         const passwordMatch = userData.password === password || (await signInWithEmailAndPassword(auth, email, password).then(() => true).catch(() => false));
 
           if (passwordMatch) {
           await updateDoc(userDoc.ref, { loginAttempts: 0 });
-          const role = isSuperAdmin ? "super-admin" : (userData.role || "user").toLowerCase();
+          let role = isSuperAdmin ? "super-admin" : (userData.role || "user").toLowerCase();
+
+          if (role === "admin1" || role === "admin2") {
+            role = "admin";
+          }
           
           const userName = userData.name || "User";
           localStorage.setItem("userEmail", userData.email);
