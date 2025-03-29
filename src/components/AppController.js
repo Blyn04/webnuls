@@ -10,6 +10,7 @@ import AccountManagement from './superAdmin/AccountManagement';
 import Requisition from './users/Requisition';
 import RequestList from './users/RequestList';
 import ActivityLog from './users/ActivityLog';
+import SearchItems from './users/SearchItems';
 
 const AppController = () => {
     
@@ -27,6 +28,7 @@ const AppController = () => {
                 <Route path="/requisition" element={<Requisition />} />
                 <Route path="/request-list" element={<RequestList />} />
                 <Route path="/activity-log" element={<ActivityLog />} />
+                <Route path="/search-items" element={<SearchItems />} />
             </Routes>
         </BrowserRouter>
     )

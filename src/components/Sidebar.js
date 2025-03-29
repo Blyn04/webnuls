@@ -91,6 +91,11 @@ const Sidebar = ({ setPageTitle }) => {
         setPageTitle("Activity Log");
         break;
 
+      case "/search-items":
+        setSelectedKey("11");
+        setPageTitle("Search Items");
+        break;
+
       default:
         setSelectedKey("1");
         setPageTitle("Dashboard");
@@ -151,6 +156,11 @@ const Sidebar = ({ setPageTitle }) => {
       case "10":
         navigate("/activity-log");
         setPageTitle("Activity Log");
+        break;
+
+      case "11":
+        navigate("/search-items");
+        setPageTitle("Search Items");
         break;
 
       default:
@@ -226,6 +236,11 @@ const Sidebar = ({ setPageTitle }) => {
       key: "10",
       icon: <ClockCircleOutlined />,
       label: "Activity Log",
+    },
+    {
+      key: "11",
+      icon: <ClockCircleOutlined />,
+      label: "Search Items",
     },
     {
       key: "6",
