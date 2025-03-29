@@ -20,3 +20,90 @@ body {
   height: 100vh;
   overflow: auto;
 }
+
+.ant-layout-sider-trigger {
+  background-color: #001529;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ant-layout-sider-collapsed .ant-layout-sider-trigger { 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.ant-layout-sider-trigger svg {
+  font-size: 20px;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.ant-layout-sider-trigger:hover {
+  background-color: #1890ff;
+}
+
+.ant-layout-sider-collapsed .ant-layout-sider-trigger svg {
+  transform: rotate(180deg); 
+}
+
+/* Sidebar container */
+.sidebar {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #001529;
+}
+
+/* Logo container */
+.logo-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+}
+
+/* Collapsed state: Stack logo and toggle vertically */
+.ant-layout-sider-collapsed .logo-container {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-top: 10px;
+}
+
+/* Logo title and subtitle */
+.logo-title {
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Hide subtitle when collapsed */
+.logo-subtitle {
+  color: #b0c4de;
+  font-size: 12px;
+}
+
+.ant-layout-sider-collapsed .logo-subtitle {
+  display: none;
+}
+
+/* Toggle button next to title when not collapsed */
+.toggle-icon {
+  font-size: 18px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+/* Collapsed: Move toggle button under "NU" */
+.ant-layout-sider-collapsed .toggle-icon {
+  margin-top: 8px;
+  font-size: 20px;
+}
+
+/* Expanded: Keep toggle icon next to the logo */
+.ant-layout-sider:not(.ant-layout-sider-collapsed) .toggle-icon {
+  margin-left: 10px;
+}

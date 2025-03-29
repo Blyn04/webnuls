@@ -291,11 +291,10 @@ const Sidebar = ({ setPageTitle }) => {
             <h3 className="logo-title">NU</h3>
           )}
         </div>
-        {collapsed ? (
-          <MenuUnfoldOutlined className="toggle-icon" />
-        ) : (
-          <MenuFoldOutlined className="toggle-icon" />
-        )}
+
+        <div className="toggle-icon">
+          {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+        </div>
       </div>
 
       <Menu
