@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Layout, Row, Col, Card, Button, Typography, Space, Modal, Table } from "antd";
+import { Layout, Row, Col, Card, Button, Typography, Space, Modal, Table, notification } from "antd";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/PendingRequest.css";
@@ -10,6 +10,10 @@ const { Title, Text } = Typography;
 const PendingRequest = () => {
   const [pageTitle, setPageTitle] = useState("");
   const [checkedItems, setCheckedItems] = useState({});
+  const [approvedRequests, setApprovedRequests] = useState([]);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
   const [requests, setRequests] = useState([
     {
       id: "Req0002",
@@ -19,10 +23,18 @@ const PendingRequest = () => {
       department: "Medical Technology",
       reason:
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      room: "Lab 203",
+      courseCode: "MEDTECH101",
+      courseDescription: "Introduction to Medical Technology",
+      timeNeeded: "9:00 AM - 12:00 PM",
       items: [
-        { id: "Med02", description: "Syringe", quantity: "24 pieces" },
-        { id: "Med02", description: "Syringe", quantity: "24 pieces" },
-        { id: "Med02", description: "Syringe", quantity: "24 pieces" },
+        {
+          id: "Med02",
+          description: "Syringe",
+          quantity: "24 pieces",
+          category: "Equipment",
+          itemCondition: "New",
+        },
       ],
     },
     {
@@ -32,13 +44,21 @@ const PendingRequest = () => {
       requiredDate: "Oct. 7, 2025",
       department: "Nursing",
       reason: "For training purposes in laboratory simulations.",
-      items: [{ id: "Med03", description: "Gauze", quantity: "10 packs" }],
+      room: "Lab 105",
+      courseCode: "NURS102",
+      courseDescription: "Advanced Nursing Procedures",
+      timeNeeded: "1:00 PM - 4:00 PM",
+      items: [
+        {
+          id: "Med03",
+          description: "Gauze",
+          quantity: "10 packs",
+          category: "Supplies",
+          itemCondition: "Good",
+        },
+      ],
     },
   ]);
-
-  const [approvedRequests, setApprovedRequests] = useState([]);
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
@@ -64,14 +84,36 @@ const PendingRequest = () => {
   
     if (selectedRequest) {
       setApprovedRequests([...approvedRequests, selectedRequest]);
-  
       setRequests(requests.filter((req) => req.id !== selectedRequest.id));
-  
       setCheckedItems({});
       setIsModalVisible(false);
       setSelectedRequest(null);
     }
   };  
+
+  const handleReturn = () => {
+    if (selectedRequest) {
+      setRequests([...requests, selectedRequest]);
+      setApprovedRequests(
+        approvedRequests.filter((req) => req.id !== selectedRequest.id)
+      );
+      
+      setIsModalVisible(false);
+      setSelectedRequest(null);
+  
+      setTimeout(() => {
+        notification.success({
+          message: "Request Returned",
+          description: `Request ID ${selectedRequest.id} has been returned to the requestor.`,
+          duration: 3,
+        });
+      }, 100);
+    }
+  };  
+
+  const handlePrint = () => {
+    window.print(); 
+  };
 
   const columns = [
     {
@@ -103,6 +145,14 @@ const PendingRequest = () => {
       title: "Quantity",
       dataIndex: "quantity",
     },
+    {
+      title: "Category",
+      dataIndex: "category",
+    },
+    {
+      title: "Item Condition",
+      dataIndex: "itemCondition",
+    },
   ];
   
 
@@ -114,13 +164,12 @@ const PendingRequest = () => {
         <AppHeader pageTitle={pageTitle} />
 
         <Content style={{ margin: "20px" }}>
-          <Title level={2} style={{ marginBottom: 20 }}>
-            📋 Pending Requests
-          </Title>
 
           <Row gutter={24}>
             <Col span={16}>
+
               <Title level={4}>List of Requests</Title>
+              
               {requests.map((request, index) => (
                 <Card key={request.id} className="request-card">
                   <Row justify="space-between" align="middle">
@@ -147,8 +196,18 @@ const PendingRequest = () => {
                     </Col>
                   </Row>
 
-                  <Row justify="end" style={{ marginTop: 8 }}>
-                    <Col>
+                  <Row style={{ marginTop: 8 }}>
+                    <Col span={18} style={{ textAlign: "left" }}>
+                      <Text type="secondary">
+                        Room: {request.room} | Course Code: {request.courseCode}
+                      </Text>
+                      <br />
+                      <Text type="secondary">
+                        Course: {request.courseDescription}
+                      </Text>
+                    </Col>
+
+                    <Col style={{ textAlign: "right" }}>
                       <Text type="secondary">
                         Requisition Date: {request.requisitionDate}
                       </Text>
@@ -209,9 +268,18 @@ const PendingRequest = () => {
             onCancel={handleCancel}
             width={800}
             footer={[
+              <Button key="print" onClick={handlePrint}>
+                Print
+              </Button>,
+
+              <Button key="return" type="default" onClick={handleReturn}>
+                Return
+              </Button>,
+
               <Button key="cancel" onClick={handleCancel}>
                 Cancel
               </Button>,
+
               <Button key="approve" type="primary" onClick={handleApprove}>
                 Approve
               </Button>,
@@ -232,6 +300,11 @@ const PendingRequest = () => {
 
                     <Text strong>Required Date:</Text>{" "}
                     {selectedRequest.requiredDate}
+
+                    <br />
+
+                    <Text strong>Time Needed:</Text>{" "}
+                    {selectedRequest.timeNeeded}
                   </Col>
 
                   <Col span={12}>
@@ -239,6 +312,23 @@ const PendingRequest = () => {
                     <p style={{ fontSize: "12px", marginTop: 5 }}>
                       {selectedRequest.reason}
                     </p>
+                   
+                    <br />
+
+                    <Text strong>Room:</Text> {selectedRequest.room}
+
+                    <br />
+
+                    <Text strong>Course Code:</Text>{" "}
+                    {selectedRequest.courseCode}
+
+                    <br />
+
+                    <Text strong>Course Description:</Text>{" "}
+                    {selectedRequest.courseDescription}
+
+                    <br />
+
                     <Text strong>Department:</Text>{" "}
                     {selectedRequest.department}
                   </Col>
