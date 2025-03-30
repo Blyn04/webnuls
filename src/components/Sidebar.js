@@ -34,7 +34,7 @@ const Sidebar = ({ setPageTitle }) => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
       if (window.innerWidth > 768) {
-        setMobileOpen(false); // Reset mobile open when switching back to desktop
+        setMobileOpen(false); 
       }
     };
   
@@ -115,6 +115,11 @@ const Sidebar = ({ setPageTitle }) => {
         setPageTitle("Capex Request");
         break;
 
+      case "/return-items":
+        setSelectedKey("13");
+        setPageTitle("Return Items");
+        break;
+
       default:
         setSelectedKey("1");
         setPageTitle("Dashboard");
@@ -189,6 +194,11 @@ const Sidebar = ({ setPageTitle }) => {
       case "12":
         navigate("/capex-request");
         setPageTitle("Capex Request");
+        break;
+
+      case "13":
+        navigate("/return-items");
+        setPageTitle("Return Items");
         break;
 
       default:
@@ -278,6 +288,11 @@ const Sidebar = ({ setPageTitle }) => {
       key: "12",
       icon: <ClockCircleOutlined />,
       label: "Capex Request",
+    },
+    {
+      key: "13",
+      icon: <ClockCircleOutlined />,
+      label: "Return Items",
     },
     {
       key: "6",
