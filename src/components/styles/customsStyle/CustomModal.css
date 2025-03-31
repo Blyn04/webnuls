@@ -49,11 +49,15 @@
   font-size: 14px;
   border-radius: 8px;
   transition: background-color 0.3s ease;
-  min-width: 140px; /* Ensures both buttons have the same width */
+  min-width: 140px; 
   text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.signout-btn {
+  margin-top: 21px;
 }
 
 .cancel-btn {

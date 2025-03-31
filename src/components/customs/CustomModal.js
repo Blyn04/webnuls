@@ -13,7 +13,7 @@ const CustomModal = ({ visible, onConfirm, onCancel }) => {
 
         <div className="new-modal-actions">
           <div style={{ display: "flex", gap: "12px" }}>
-            <Button type="primary" danger onClick={onConfirm} className="new-modal-btn">
+            <Button type="primary" danger onClick={onConfirm} className="new-modal-btn signout-btn">
               Yes, Sign Out
             </Button>
             
