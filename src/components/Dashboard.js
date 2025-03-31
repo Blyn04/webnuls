@@ -74,7 +74,7 @@ const Dashboard = () => {
           </Row>
 
           <Row gutter={[16, 16]}>          
-            <Col span={16}>
+            <Col span={15}>
               <Card title="Sales Statistics" bordered>
                 <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={salesData}>
@@ -87,7 +87,7 @@ const Dashboard = () => {
               </Card>
             </Col>
 
-            <Col span={8}>
+            <Col span={9}>
               <Card title="Top Selling Items" bordered>
                 <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
