@@ -1,66 +1,73 @@
+/* Profile Content */
 .profile-content {
-  padding: 50px 20px;
+  padding: 40px 20px;
   margin: 0 auto;
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: auto;
+  min-height: 90vh;
+  background-color: #f5f5f5;
 }
 
+/* Main Card Design */
 .ant-card {
   width: 100%;
-  max-width: 1000px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  max-width: 600px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
 }
 
-.ant-upload-select {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 12px;
+.ant-card:hover {
+  transform: translateY(-3px);
 }
 
-.profile-container {
-  max-width: 500px;
-  margin: 40px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
+/* Avatar Container */
+.avatar-container {
   text-align: center;
   margin-bottom: 20px;
 }
 
-label {
-  display: block;
+.avatar-container .ant-avatar {
+  border: 2px solid #1890ff;
+  transition: all 0.3s ease;
+}
+
+.avatar-container .ant-avatar:hover {
+  transform: scale(1.05);
+}
+
+/* Upload Button Under Avatar */
+.upload-btn {
   margin-top: 10px;
-  font-weight: bold;
-}
-
-.input-field {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.update-btn {
-  width: 100%;
-  padding: 10px 15px;
-  background-color: #4caf50;
+  padding: 8px 12px;
+  background-color: #1890ff;
   color: white;
-  border: none;
   border-radius: 5px;
-  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.update-btn:hover {
-  background-color: #45a049;
+.upload-btn:hover {
+  background-color: #40a9ff;
+}
+
+/* Profile Summary */
+.profile-summary {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+/* Responsive Design for Mobile */
+@media (max-width: 768px) {
+  .profile-content {
+    padding: 20px 10px;
+  }
+
+  .ant-card {
+    max-width: 100%;
+  }
 }

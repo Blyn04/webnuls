@@ -96,48 +96,53 @@ const Profile = () => {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sidebar setPageTitle={setPageTitle} />
+
       <Layout className="site-layout">
         <AppHeader className="profile-header" pageTitle={"Profile"} />
+
         <Content className="profile-content">
           <Row justify="center" align="middle" style={{ width: "100%" }}>
             <Col xs={24} sm={18} md={12} lg={8}>
               <Card
                 title="User Profile"
                 bordered={false}
-                style={{ width: "100%", maxWidth: "500px" }}
+                style={{ width: "100%", maxWidth: "600px" }}
               >
-                <div style={{ textAlign: "center", marginBottom: 20 }}>
-                  {/* ✅ Profile Image Upload Enabled */}
-                  <Upload
-                    name="profileImage"
-                    listType="picture"
-                    showUploadList={false}
-                    beforeUpload={() => false}
-                    onChange={handleImageUpload}
-                  >
-                    {imageUrl ? (
-                      <Avatar src={imageUrl} size={100} />
-                    ) : (
-                      <Avatar icon={<UserOutlined />} size={100} />
-                    )}
-                    <Button
-                      icon={<UploadOutlined />}
-                      style={{ marginTop: 10 }}
+                  <div style={{ textAlign: "center", marginBottom: 20 }}>
+          
+                    <Upload
+                      name="profileImage"
+                      listType="picture"
+                      showUploadList={false}
+                      beforeUpload={() => false}
+                      onChange={handleImageUpload}
                     >
-                      Change Profile Picture
-                    </Button>
-                  </Upload>
+                      {imageUrl ? (
+                        <Avatar src={imageUrl} size={100} />
+                      ) : (
+                        <Avatar icon={<UserOutlined />} size={100} />
+                      )}
+                    </Upload>
 
-                  <Title level={5} style={{ marginTop: 10 }}>
-                    {formData?.name || "No Name Available"}
-                  </Title>
-                  <Text type="secondary">
-                    {formData?.email || "No Email Available"}
-                  </Text>
+                    <div style={{ marginTop: 10 }}>
+                      <Button
+                        icon={<UploadOutlined />}
+                        className="upload-btn"
+                      >
+                        Change Profile Picture
+                      </Button>
+                    </div>
+
+                    <Title level={5} style={{ marginTop: 10 }}>
+                      {formData?.name || "No Name Available"}
+                    </Title>
+
+                    <Text type="secondary">
+                      {formData?.email || "No Email Available"}
+                    </Text>
                 </div>
               </Card>
 
-              {/* ✅ Profile Summary Section */}
               {formData && (
                 <Card
                   title="Profile Summary"
