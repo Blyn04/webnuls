@@ -131,6 +131,7 @@ const Login = () => {
               setError("Unknown role. Please contact admin.");
               break;
           }
+
         } else {
           const newAttempts = (userData.loginAttempts || 0) + 1;
 
@@ -176,27 +177,43 @@ const Login = () => {
       const querySnapshot = await getDocs(q);
   
       if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0].ref;
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data(); // ✅ Fetch user data
+        const role = (userData.role || "user").toLowerCase(); // ✅ Get role
+        const normalizedRole = role === "admin1" || role === "admin2" ? "admin" : role; // ✅ Normalize admin roles
   
-        if (userDoc) {
-          console.log("Updating password for user:", userDoc.id);
-          await updateDoc(userDoc, { password });
-          console.log("Password updated successfully:", password);
+        console.log("Updating password for user:", userDoc.id);
+        await updateDoc(userDoc.ref, { password });
   
-          // ✅ Navigate to Dashboard without Firebase Auth
-          navigate("/dashboard", { state: { loginSuccess: true, role: "user" } });
-          setIsNewUser(false);
-        } else {
-          setError("Failed to update user record. Please contact admin.");
+        // ✅ Navigate to rightful page based on role
+        switch (normalizedRole) {
+          case "super-admin":
+            navigate("/accounts", { state: { loginSuccess: true, role: "super-admin" } });
+            break;
+          case "admin":
+            navigate("/dashboard", { state: { loginSuccess: true, role: "admin" } });
+            break;
+          case "user":
+            navigate("/requisition", { state: { loginSuccess: true, role: "user" } });
+            break;
+          default:
+            setError("Unknown role. Please contact admin.");
+            return;
         }
+  
+        setIsNewUser(false); // ✅ Mark as registered
+        console.log("Password updated successfully and navigated to:", normalizedRole);
+        
       } else {
         setError("User record not found in Firestore.");
       }
+  
     } catch (error) {
       console.error("Error updating password:", error.message);
       setError("Failed to set password. Try again.");
     }
   };
+  
   
   const handleForgotPassword = async () => {
     if (!forgotPasswordEmail) {
