@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Layout, Card, Col, Row, Modal, Button, message, notification  } from "antd";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { useLocation } from "react-router-dom";
@@ -32,12 +33,17 @@ const Dashboard = () => {
   const [pageTitle, setPageTitle] = useState("");
   const [showModal, setShowModal] = useState(false);
   const location = useLocation();
-
+  const navigate = useNavigate();
+  
   useEffect(() => {
     if (location.state?.loginSuccess === true) {
       setShowModal(true);
+  
+      const newState = { ...location.state };
+      delete newState.loginSuccess;
+      navigate(location.pathname, { replace: true, state: newState });
     }
-  }, [location.state]);
+  }, [location.state, navigate]);
 
   const closeModal = () => {
     setShowModal(false);
@@ -53,9 +59,8 @@ const Dashboard = () => {
 
         <Content className="content">
           <Row gutter={[16, 16]}>
-
-            <Col span={12}>
-              <Card title="Sales Overview" bordered>
+            <Col span={10}>
+              <Card title="Sales Overview">
                 <p>Annual Sales: £12,458</p>
                 <p>Annual Profit: £8,248</p>
                 <p>Daily Sales: £880</p>
@@ -63,8 +68,8 @@ const Dashboard = () => {
               </Card>
             </Col>
 
-            <Col span={12}>
-              <Card title="Purchase Overview" bordered>
+            <Col span={10}>
+              <Card title="Purchase Overview" bordered style={{ height: "100%" }}>
                 <p>No. of Purchases: 46</p>
                 <p>Cancelled Orders: 05</p>
                 <p>Purchase Amount: £828</p>
@@ -73,9 +78,9 @@ const Dashboard = () => {
             </Col>
           </Row>
 
-          <Row gutter={[16, 16]}>          
-            <Col span={15}>
-              <Card title="Sales Statistics" bordered>
+          <Row gutter={[16, 16]}>
+            <Col span={10}>
+              <Card title="Sales Statistics" bordered style={{ height: "100%", width: "100%" }}>
                 <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={salesData}>
                     <XAxis dataKey="name" />
@@ -87,8 +92,8 @@ const Dashboard = () => {
               </Card>
             </Col>
 
-            <Col span={9}>
-              <Card title="Top Selling Items" bordered>
+            <Col span={8}>
+              <Card title="Top Selling Items" bordered style={{ height: "100%" }}>
                 <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
                     <Pie data={pieData} dataKey="value" outerRadius={80} label>
