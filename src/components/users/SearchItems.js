@@ -18,7 +18,6 @@ const { Content } = Layout;
 const { Title } = Typography;
 const { Option } = Select;
 
-// ✅ Initial data for the items
 const itemData = [
   {
     key: "1",
@@ -62,7 +61,6 @@ const itemData = [
   },
 ];
 
-// ✅ Define columns for the table
 const columns = [
   {
     title: "Item Description",
@@ -93,12 +91,15 @@ const columns = [
         case "Available":
           color = "green";
           break;
+
         case "Out of Stock":
           color = "red";
           break;
+
         case "In Use":
           color = "orange";
           break;
+          
         default:
           color = "blue";
       }
@@ -135,7 +136,6 @@ const SearchItems = () => {
   const [searchText, setSearchText] = useState("");
   const [pageTitle, setPageTitle] = useState("Search Items");
 
-  // ✅ Handle search for item description
   const handleSearch = (value) => {
     const filteredItems = itemData.filter((item) =>
       item.description.toLowerCase().includes(value.toLowerCase())
@@ -145,11 +145,9 @@ const SearchItems = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      {/* ✅ Sidebar setup like RequestList */}
       <Sidebar setPageTitle={setPageTitle} />
 
       <Layout className="site-layout">
-        {/* ✅ AppHeader setup like RequestList */}
         <AppHeader pageTitle={pageTitle} />
 
         <Content className="search-content">

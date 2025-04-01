@@ -34,3 +34,68 @@
 .add-btn {
   margin-top: 10px;
 }
+
+.inventory-table {
+  background-color: white;
+  border-radius: 8px;
+}
+
+.inventory-table .ant-table-thead th:nth-child(1), 
+.inventory-table .ant-table-tbody td:nth-child(1) {
+  width: 20px;
+}
+
+.inventory-table .ant-table-thead th:nth-child(2), 
+.inventory-table .ant-table-tbody td:nth-child(2) {
+  width: 200px; 
+}
+
+.inventory-table .ant-table-thead th:nth-child(3), 
+.inventory-table .ant-table-tbody td:nth-child(3) {
+  width: 100px; 
+}
+
+.inventory-table .ant-table-thead th:nth-child(4), 
+.inventory-table .ant-table-tbody td:nth-child(4) {
+  width: 100px; 
+}
+
+.inventory-table .ant-table-thead th:nth-child(5), 
+.inventory-table .ant-table-tbody td:nth-child(5) {
+  width: 80px; 
+}
+
+.inventory-table .ant-table-thead th:nth-child(6), 
+.inventory-table .ant-table-tbody td:nth-child(6) {
+  width: 100px; 
+}
+
+.inventory-table .ant-table-thead th:nth-child(7), 
+.inventory-table .ant-table-tbody td:nth-child(7) {
+  width: 150px; 
+}
+
+.inventory-table .ant-table-thead th:nth-child(8), 
+.inventory-table .ant-table-tbody td:nth-child(8) {
+  width: 150px; 
+}
+
+.inventory-table .ant-table-thead th:nth-child(9), 
+.inventory-table .ant-table-tbody td:nth-child(9) {
+  width: 50px; 
+}
+
+.inventory-table .ant-table-thead th:nth-child(10), 
+.inventory-table .ant-table-tbody td:nth-child(10) {
+  width: 50px; 
+}
+
+.inventory-table .ant-table-thead th:nth-child(11), 
+.inventory-table .ant-table-tbody td:nth-child(11) {
+  width: 120px; 
+}
+
+.inventory-table .ant-table-thead th:nth-child(12), 
+.inventory-table .ant-table-tbody td:nth-child(12) {
+  width: 150px; 
+}

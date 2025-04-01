@@ -47,9 +47,9 @@ const Inventory = () => {
     const formattedEntryDate = values.entryDate
       ? values.entryDate.format("YYYY-MM-DD")
       : "N/A";
-    const formattedExpiryDate = values.expiryDate
-      ? values.expiryDate.format("YYYY-MM-DD")
-      : "N/A";
+    const formattedExpiryDate = values.type === "Fixed" 
+      ? "N/A" : (values.expiryDate 
+      ? values.expiryDate.format("YYYY-MM-DD") : "N/A");
 
     const timestamp = new Date().toISOString();
     const data = JSON.stringify({
@@ -155,7 +155,7 @@ const Inventory = () => {
   };
 
   const columns = [
-    { title: "ID", dataIndex: "id", key: "id", width: 50 },
+    { title: "ID", dataIndex: "id", key: "id" },
     { title: "Item Description", dataIndex: "item", key: "item" },
     { title: "Category", dataIndex: "category", key: "category" },
     { title: "Department", dataIndex: "department", key: "department" },
@@ -195,13 +195,11 @@ const Inventory = () => {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
-        <Space>
+        <Space direction="vertical" size="small">
           <Button type="primary" onClick={() => printQRCode(record)}>
             Print PDF
           </Button>
-          <Button type="default" onClick={() => downloadQRCode(record)}>
-            Download PNG
-          </Button>
+
           <Button type="link" onClick={() => editItem(record)}>
             Edit
           </Button>
@@ -266,6 +264,24 @@ const Inventory = () => {
             </Space>
 
             <Form layout="vertical" form={form} onFinish={handleAdd}>
+
+              <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item name="type" label="Item Type" placeholder="Select Item Type">
+                      <Select>
+                        <Option value="Fixed">Fixed</Option>
+                        <Option value="Consumable">Consumable</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={12}>
+                    <Form.Item name="quantity" label="Quantity">
+                      <Input placeholder="Enter quantity" />
+                    </Form.Item>
+                  </Col>
+              </Row>
+
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
@@ -338,23 +354,6 @@ const Inventory = () => {
                     ]}
                   >
                     <Input placeholder="Enter Lab/Stock Room" />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item name="type" label="Item Type" initialValue="Fixed">
-                    <Select>
-                      <Option value="Fixed">Fixed</Option>
-                      <Option value="Consumable">Consumable</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-
-                <Col span={12}>
-                  <Form.Item name="quantity" label="Quantity">
-                    <Input placeholder="Enter quantity" />
                   </Form.Item>
                 </Col>
               </Row>
