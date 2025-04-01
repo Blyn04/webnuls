@@ -37,6 +37,7 @@ const Inventory = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const qrRefs = useRef({});
   const [pageTitle, setPageTitle] = useState("");
+  const [itemType, setItemType] = useState("");
 
   const handleAdd = (values) => {
     if (!itemName || !itemId) {
@@ -268,7 +269,7 @@ const Inventory = () => {
               <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item name="type" label="Item Type" placeholder="Select Item Type">
-                      <Select>
+                      <Select onChange={value => setItemType(value)}>
                         <Option value="Fixed">Fixed</Option>
                         <Option value="Consumable">Consumable</Option>
                       </Select>
@@ -309,7 +310,7 @@ const Inventory = () => {
                     label="Date of Expiry"
                     rules={[
                       {
-                        required: true,
+                        required: false,
                         message: "Please select a date of expiry!",
                       },
                     ]}
@@ -319,6 +320,7 @@ const Inventory = () => {
                       style={{ width: "100%" }}
                       placeholder="Select Date of Expiry"
                       disabledDate={disabledExpiryDate}
+                      disabled={itemType === "Fixed"}
                     />
                   </Form.Item>
                 </Col>
@@ -412,6 +414,7 @@ const Inventory = () => {
                       style={{ width: "100%" }}
                       placeholder="Select Date of Expiry"
                       disabledDate={disabledExpiryDate}
+                      disabled={itemType === "Fixed"} 
                     />
                   </Form.Item>
                 </Col>
@@ -454,7 +457,7 @@ const Inventory = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item name="type" label="Item Type">
-                    <Select>
+                    <Select onChange={value => setItemType(value)}>
                       <Option value="Fixed">Fixed</Option>
                       <Option value="Consumable">Consumable</Option>
                     </Select>
