@@ -26,6 +26,7 @@ import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/superAdminStyle/AccountManagement.css";
 import SuccessModal from "../customs/SuccessModal"; 
+import NotificationModal from "../customs/NotifcationModal";
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -45,6 +46,9 @@ const AccountManagement = () => {
   const [selectedAccountId, setSelectedAccountId] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const [modalMessage, setModalMessage] = useState("");
+  const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+
 
   useEffect(() => {
     const loginSuccessFlag = sessionStorage.getItem("loginSuccess");
@@ -134,6 +138,19 @@ const AccountManagement = () => {
   };
 
   const handleSave = async (values) => {
+    const isDuplicate = accounts.some(
+      (acc) =>
+        acc.id !== (editingAccount?.id || null) &&
+        (acc.name.toLowerCase() === values.name.toLowerCase() ||
+          acc.email.toLowerCase() === values.email.toLowerCase())
+    );
+  
+    if (isDuplicate) {
+      setModalMessage("An account with the same name or email already exists!");
+      setIsNotificationVisible(true);
+      return;
+    }
+
     if (editingAccount) {
       try {
         const accountRef = doc(db, "accounts", editingAccount.id);
@@ -144,7 +161,8 @@ const AccountManagement = () => {
         );
 
         setAccounts(updatedAccounts);
-        message.success("Account updated successfully!");
+        setModalMessage("Account updated successfully!");
+        setIsNotificationVisible(true);
 
       } catch (error) {
         console.error("Error updating account:", error);
@@ -157,11 +175,13 @@ const AccountManagement = () => {
         const newAccount = { ...values, id: docRef.id };
   
         setAccounts([...accounts, newAccount]);
-        message.success("Account added successfully!");
+        setModalMessage("Account added successfully!");
+        setIsNotificationVisible(true);
 
       } catch (error) {
         console.error("Error adding account:", error);
-        message.error("Failed to add account.");
+        setModalMessage("Failed to update account.");
+        setIsNotificationVisible(true);
       }
     }
   
@@ -389,6 +409,11 @@ const AccountManagement = () => {
             )}
           </Form>
         </Modal>
+
+        <NotificationModal  
+          isVisible={isNotificationVisible}
+          onClose={() => setIsNotificationVisible(false)}
+          message={modalMessage}/>
 
         <SuccessModal isVisible={showModal} onClose={closeModal} />
       </Layout>

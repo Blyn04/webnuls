@@ -53,6 +53,7 @@ const Inventory = () => {
       ? values.expiryDate.format("YYYY-MM-DD") : "N/A");
 
     const timestamp = new Date().toISOString();
+    
     const data = JSON.stringify({
       id: itemId,
       name: itemName,
