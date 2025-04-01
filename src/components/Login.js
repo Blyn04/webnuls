@@ -178,30 +178,38 @@ const Login = () => {
   
       if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0];
-        const userData = userDoc.data(); // ✅ Fetch user data
-        const role = (userData.role || "user").toLowerCase(); // ✅ Get role
-        const normalizedRole = role === "admin1" || role === "admin2" ? "admin" : role; // ✅ Normalize admin roles
+        const userData = userDoc.data(); 
+        const role = (userData.role || "user").toLowerCase(); 
+        const normalizedRole = role === "admin1" || role === "admin2" ? "admin" : role; 
   
         console.log("Updating password for user:", userDoc.id);
         await updateDoc(userDoc.ref, { password });
   
-        // ✅ Navigate to rightful page based on role
+        const userName = userData.name || "User";
+        localStorage.setItem("userEmail", userData.email);
+        localStorage.setItem("userName", userName);
+        localStorage.setItem("userDepartment", userData.department || "Unknown");
+        localStorage.setItem("userPosition", userData.role || "User");
+  
         switch (normalizedRole) {
           case "super-admin":
             navigate("/accounts", { state: { loginSuccess: true, role: "super-admin" } });
             break;
+
           case "admin":
             navigate("/dashboard", { state: { loginSuccess: true, role: "admin" } });
             break;
+
           case "user":
             navigate("/requisition", { state: { loginSuccess: true, role: "user" } });
             break;
+            
           default:
             setError("Unknown role. Please contact admin.");
             return;
         }
   
-        setIsNewUser(false); // ✅ Mark as registered
+        setIsNewUser(false);
         console.log("Password updated successfully and navigated to:", normalizedRole);
         
       } else {
@@ -212,8 +220,7 @@ const Login = () => {
       console.error("Error updating password:", error.message);
       setError("Failed to set password. Try again.");
     }
-  };
-  
+  };  
   
   const handleForgotPassword = async () => {
     if (!forgotPasswordEmail) {
