@@ -16,7 +16,7 @@ import {
   CalendarOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/usersStyle/Requisition.css";
@@ -103,12 +103,37 @@ const Requisition = () => {
   const [reason, setReason] = useState("");
   const [searchUsageType, setSearchUsageType] = useState("");
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (location.state?.loginSuccess === true) {
       setShowModal(true);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    const handleBackButton = (event) => {
+      event.preventDefault();
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handleBackButton);
+
+    return () => {
+      window.removeEventListener("popstate", handleBackButton);
+    };
+  }, []);
+  
+  useEffect(() => {
+    if (location.state?.loginSuccess === true) {
+      sessionStorage.setItem("isLoggedIn", "true");
+  
+      const newState = { ...location.state };
+      delete newState.loginSuccess;
+      navigate(location.pathname, { replace: true, state: newState });
+    }
+  }, [location.state, navigate]);  
 
   const closeModal = () => {
     setShowModal(false);

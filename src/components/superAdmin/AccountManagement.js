@@ -83,6 +83,20 @@ const AccountManagement = () => {
     fetchAdminCredentials();
   }, []);
 
+  useEffect(() => {
+    const handleBackButton = (event) => {
+      event.preventDefault();
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handleBackButton);
+
+    return () => {
+      window.removeEventListener("popstate", handleBackButton);
+    };
+  }, []); 
+
   const closeModal = () => {
     setShowModal(false);
     sessionStorage.removeItem("loginSuccess");
