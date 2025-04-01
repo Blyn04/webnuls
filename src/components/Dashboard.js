@@ -36,15 +36,38 @@ const Dashboard = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    if (location.state?.loginSuccess === true) {
-      setShowModal(true);
+    const handleBackButton = (event) => {
+      event.preventDefault(); 
+      navigate("/", { replace: true }); 
+    };
   
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handleBackButton);
+  
+    return () => {
+      window.removeEventListener("popstate", handleBackButton);
+    };
+  }, [navigate]);  
+  
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+  
+    if (!isLoggedIn) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
+  
+  useEffect(() => {
+    if (location.state?.loginSuccess === true) {
+      sessionStorage.setItem("isLoggedIn", "true"); 
+      setShowModal(true);
+
       const newState = { ...location.state };
       delete newState.loginSuccess;
       navigate(location.pathname, { replace: true, state: newState });
     }
   }, [location.state, navigate]);
-
+    
   const closeModal = () => {
     setShowModal(false);
   };
