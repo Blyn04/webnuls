@@ -193,7 +193,8 @@ const AccountManagement = () => {
       await deleteDoc(doc(db, "accounts", id));
       const updatedAccounts = accounts.filter((acc) => acc.id !== id);
       setAccounts(updatedAccounts);
-      message.success("Account deleted successfully!");
+      setModalMessage("Account deleted successfully!");
+      setIsNotificationVisible(true);
 
     } catch (error) {
       console.error("Error deleting account:", error);
