@@ -59,6 +59,13 @@ const Sidebar = ({ setPageTitle }) => {
     }
 
     const path = location.pathname.replace(/\/$/, "");
+    
+    if (path.toLowerCase() === "/profile") {
+      setSelectedKey("");
+      setPageTitle("Profile");
+      return;
+    }
+
     switch (path.toLowerCase()) {
       case "/dashboard":
         setSelectedKey("1");
