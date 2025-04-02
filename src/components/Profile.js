@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Layout,
   Card,
@@ -23,7 +23,8 @@ import {
   getDocs,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "../backend/firebase/FirebaseConfig";
+import { db, storage } from "../backend/firebase/FirebaseConfig";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import "./styles/Profile.css";
 
 const { Content } = Layout;
@@ -34,6 +35,9 @@ const Profile = () => {
   const [imageUrl, setImageUrl] = useState(null);
   const [pageTitle, setPageTitle] = useState("Profile");
   const [userDocRef, setUserDocRef] = useState(null);
+
+  // Create a ref for the Upload component
+  const fileInputRef = useRef();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -71,25 +75,39 @@ const Profile = () => {
     fetchUserData();
   }, []);
 
-  // ✅ Handle Image Upload
   const handleImageUpload = async (info) => {
     if (info.file.status === "done") {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const uploadedImageUrl = reader.result;
-        setImageUrl(uploadedImageUrl);
+      const file = info.file.originFileObj;
 
-        if (userDocRef) {
+      const storageRef = ref(storage, `profileImages/${file.name}`);
+
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log("Upload is " + progress + "% done");
+        },
+        (error) => {
+          console.error("Error uploading image:", error);
+          message.error("Failed to upload image.");
+        },
+        async () => {
           try {
-            await updateDoc(userDocRef, { profileImage: uploadedImageUrl });
-            message.success("Profile image updated successfully!");
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setImageUrl(downloadURL);
+
+            if (userDocRef) {
+              await updateDoc(userDocRef, { profileImage: downloadURL });
+              message.success("Profile image updated successfully!");
+            }
           } catch (error) {
-            console.error("Error updating profile image:", error);
+            console.error("Error fetching download URL:", error);
             message.error("Failed to update profile image.");
           }
         }
-      };
-      reader.readAsDataURL(info.file.originFileObj);
+      );
     }
   };
 
@@ -108,38 +126,55 @@ const Profile = () => {
                 bordered={false}
                 style={{ width: "100%", maxWidth: "600px" }}
               >
-                  <div style={{ textAlign: "center", marginBottom: 20 }}>
-          
-                    <Upload
-                      name="profileImage"
-                      listType="picture"
-                      showUploadList={false}
-                      beforeUpload={() => false}
-                      onChange={handleImageUpload}
+                <div style={{ textAlign: "center", marginBottom: 20 }}>
+                  <Upload
+                    name="profileImage"
+                    listType="picture"
+                    showUploadList={false}
+                    beforeUpload={() => false}
+                    onChange={handleImageUpload}
+                  >
+                    {imageUrl ? (
+                      <Avatar src={imageUrl} size={100} />
+                    ) : (
+                      <Avatar icon={<UserOutlined />} size={100} />
+                    )}
+                  </Upload>
+
+                  <div style={{ marginTop: 10 }}>
+                    <Button
+                      icon={<UploadOutlined />}
+                      className="upload-btn"
+                      onClick={() => fileInputRef.current.click()} // Trigger the file input click
                     >
-                      {imageUrl ? (
-                        <Avatar src={imageUrl} size={100} />
-                      ) : (
-                        <Avatar icon={<UserOutlined />} size={100} />
-                      )}
-                    </Upload>
+                      Change Profile Picture
+                    </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      style={{ display: "none" }} // Hide the input element
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const fileInfo = {
+                            file: {
+                              status: "done",
+                              originFileObj: file,
+                            },
+                          };
+                          handleImageUpload(fileInfo);
+                        }
+                      }}
+                    />
+                  </div>
 
-                    <div style={{ marginTop: 10 }}>
-                      <Button
-                        icon={<UploadOutlined />}
-                        className="upload-btn"
-                      >
-                        Change Profile Picture
-                      </Button>
-                    </div>
+                  <Title level={5} style={{ marginTop: 10 }}>
+                    {formData?.name || "No Name Available"}
+                  </Title>
 
-                    <Title level={5} style={{ marginTop: 10 }}>
-                      {formData?.name || "No Name Available"}
-                    </Title>
-
-                    <Text type="secondary">
-                      {formData?.email || "No Email Available"}
-                    </Text>
+                  <Text type="secondary">
+                    {formData?.email || "No Email Available"}
+                  </Text>
                 </div>
               </Card>
 
