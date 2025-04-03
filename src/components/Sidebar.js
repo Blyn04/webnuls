@@ -15,8 +15,6 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
-import { auth } from "../backend/firebase/FirebaseConfig";
-import { signOut } from "firebase/auth";
 import CustomModal from "./customs/CustomModal";
 import "./styles/Sidebar.css";
 
@@ -219,14 +217,9 @@ const Sidebar = ({ setPageTitle }) => {
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);  // 🔥 Sign out from Firebase Authentication
-      localStorage.clear(); // 🔥 Clear localStorage
-      navigate("/", { replace: true }); // Redirect to Login
-    } catch (error) {
-      console.error("Logout failed:", error.message);
-    }
+  const handleSignOut = () => {
+    localStorage.clear();
+    navigate("/", { replace: true });
   };
 
   const superAdminMenuItems = [

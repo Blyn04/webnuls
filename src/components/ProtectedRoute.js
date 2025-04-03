@@ -1,15 +1,28 @@
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../backend/firebase/FirebaseConfig";
 
 const ProtectedRoute = ({ element }) => {
-  const isAuthenticated = localStorage.getItem("userEmail");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  if (!isAuthenticated || !auth.currentUser) { // Check both localStorage & Firebase
-    console.log("Auth Check Failed - Redirecting to Login");
-    return <Navigate to="/" replace />;
-  }
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user && localStorage.getItem("userEmail")) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+      setIsLoading(false);
+    });
 
-  return element;
+    return () => unsubscribe(); // Cleanup on unmount
+  }, []);
+
+  if (isLoading) return <p>Loading...</p>; // Prevent redirecting before checking auth
+
+  return isAuthenticated ? element : <Navigate to="/" replace />;
 };
 
 export default ProtectedRoute;
