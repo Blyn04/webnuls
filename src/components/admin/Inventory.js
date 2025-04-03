@@ -269,8 +269,16 @@ const Inventory = () => {
 
               <Row gutter={16}>
                   <Col span={12}>
-                    <Form.Item name="type" label="Item Type" placeholder="Select Item Type">
-                      <Select onChange={value => setItemType(value)}>
+                    <Form.Item 
+                      name="type" 
+                      label="Item Type" 
+                      rules={[
+                        {
+                        required: true,
+                        message: "Please select Item Type!",
+                        },
+                      ]}>
+                      <Select onChange={value => setItemType(value)} placeholder="Select Item Type">
                         <Option value="Fixed">Fixed</Option>
                         <Option value="Consumable">Consumable</Option>
                       </Select>
@@ -278,7 +286,15 @@ const Inventory = () => {
                   </Col>
 
                   <Col span={12}>
-                    <Form.Item name="quantity" label="Quantity">
+                    <Form.Item 
+                      name="quantity" 
+                      label="Quantity" 
+                      rules={[
+                      {
+                        required: true,
+                        message: "Please enter Quantity!",
+                      },
+                    ]}>
                       <Input placeholder="Enter quantity" />
                     </Form.Item>
                   </Col>
