@@ -1,3 +1,4 @@
+/* Default header styles */
 .header {
   background-color: white;
   padding: 0 20px;
@@ -7,7 +8,6 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
-/* Header Title */
 .header-title {
   font-size: 20px;
   font-weight: bold;
@@ -23,19 +23,18 @@
   gap: 8px;
 }
 
-/* Avatar and Name Hover Effect */
 .user-profile:hover {
   opacity: 0.8;
   transition: 0.2s;
 }
 
-/* Avatar Styles */
 .user-profile .ant-avatar {
   width: 40px;
   height: 40px;
   font-size: 18px;
 }
 
+/* Header layout */
 .header {
   display: flex;
   justify-content: space-between;
@@ -81,5 +80,31 @@
     height: 32px;
     font-size: 16px;
   }
-  
+}
+
+/* For very small screens, adjust layout further */
+@media (max-width: 408px) {
+  .header {
+    padding: 0 8px;
+    height: 48px;
+
+  }
+
+  .header-title {
+    font-size: 16px;
+  }
+
+  .user-profile {
+    gap: 4px;
+  }
+
+  .user-profile span {
+    font-size: 12px;
+  }
+
+  .user-profile .ant-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
 }

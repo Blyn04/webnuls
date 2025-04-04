@@ -41,7 +41,7 @@ const LayoutMain = () => {
   } = theme.useToken();
 
   const [collapsed, setCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 408);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,8 +52,8 @@ const LayoutMain = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-      if (window.innerWidth > 768) {
+      setIsMobile(window.innerWidth <= 408);
+      if (window.innerWidth > 408) {
         setMobileOpen(false); 
       }
     };
@@ -350,13 +350,17 @@ const handleMenuClick = (e) => {
 
   return (
     <Layout>
-      <Sider
+<Sider
         trigger={null}
         collapsible
         collapsed={collapsed}
-        collapsedWidth={isMobile ? 0 : undefined}  // Fully collapse on mobile
-        width={200}  // Adjust this as needed
-        className={isMobile && !mobileOpen ? 'mobile-collapsed' : ''} // Apply a class when sidebar is collapsed on mobile
+        collapsedWidth={isMobile ? 0 : undefined} 
+        width={200}  
+        className={isMobile && !mobileOpen ? 'mobile-collapsed' : ''} 
+        style={{ 
+          width: mobileOpen ? '200px' : (collapsed && !isMobile ? '80px' : '200px'),
+          transition: 'width 0.3s' // Smooth transition
+        }}
       >
         <div className="demo-logo-vertical" />
 

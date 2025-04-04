@@ -67,7 +67,7 @@ const AppHeader = ({ pageTitle, onToggleSidebar, isSidebarCollapsed }) => {
 
   const role = location.state?.role || localStorage.getItem("role");
   const [userName, setUserName] = useState("User");
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 408);
 
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
@@ -76,7 +76,7 @@ const AppHeader = ({ pageTitle, onToggleSidebar, isSidebarCollapsed }) => {
     }
 
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setIsMobile(window.innerWidth <= 408);
     };
 
     window.addEventListener("resize", handleResize);
