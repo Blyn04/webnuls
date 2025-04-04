@@ -112,7 +112,8 @@ const Profile = () => {
   };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout >
+      {/* style={{ minHeight: "50vh" }} */}
       <Layout className="site-layout">
         <Content className="profile-content">
           <Row justify="center" align="middle" style={{ width: "100%" }}>

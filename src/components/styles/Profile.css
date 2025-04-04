@@ -5,7 +5,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 90vh;
   background-color: #f5f5f5;
 }
 
@@ -35,7 +34,10 @@
   transform: scale(1.05);
 }
 
-/* Upload Button Under Avatar */
+.site-layout {
+  height: 831px;
+}
+
 .upload-btn {
   margin-top: 10px;
   padding: 8px 12px;
@@ -49,7 +51,6 @@
   background-color: #40a9ff;
 }
 
-/* Profile Summary */
 .profile-summary {
   margin-top: 20px;
   padding: 20px;
@@ -58,7 +59,6 @@
   border-radius: 8px;
 }
 
-/* Responsive Design for Mobile */
 @media (max-width: 768px) {
   .profile-content {
     padding: 20px 10px;
