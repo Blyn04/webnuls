@@ -36,7 +36,6 @@ const Profile = () => {
   const [pageTitle, setPageTitle] = useState("Profile");
   const [userDocRef, setUserDocRef] = useState(null);
 
-  // Create a ref for the Upload component
   const fileInputRef = useRef();
 
   useEffect(() => {
@@ -64,9 +63,11 @@ const Profile = () => {
           if (userData.profileImage) {
             setImageUrl(userData.profileImage);
           }
+
         } else {
           console.error("No user data found.");
         }
+
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -78,9 +79,7 @@ const Profile = () => {
   const handleImageUpload = async (info) => {
     if (info.file.status === "done") {
       const file = info.file.originFileObj;
-
       const storageRef = ref(storage, `profileImages/${file.name}`);
-
       const uploadTask = uploadBytesResumable(storageRef, file);
 
       uploadTask.on(
@@ -95,13 +94,14 @@ const Profile = () => {
         },
         async () => {
           try {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref());
             setImageUrl(downloadURL);
 
             if (userDocRef) {
               await updateDoc(userDocRef, { profileImage: downloadURL });
               message.success("Profile image updated successfully!");
             }
+
           } catch (error) {
             console.error("Error fetching download URL:", error);
             message.error("Failed to update profile image.");
@@ -113,11 +113,7 @@ const Profile = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar setPageTitle={setPageTitle} />
-
       <Layout className="site-layout">
-        <AppHeader className="profile-header" pageTitle={"Profile"} />
-
         <Content className="profile-content">
           <Row justify="center" align="middle" style={{ width: "100%" }}>
             <Col xs={24} sm={18} md={12} lg={8}>
@@ -145,14 +141,14 @@ const Profile = () => {
                     <Button
                       icon={<UploadOutlined />}
                       className="upload-btn"
-                      onClick={() => fileInputRef.current.click()} // Trigger the file input click
+                      onClick={() => fileInputRef.current.click()} 
                     >
                       Change Profile Picture
                     </Button>
                     <input
                       ref={fileInputRef}
                       type="file"
-                      style={{ display: "none" }} // Hide the input element
+                      style={{ display: "none" }} 
                       onChange={(e) => {
                         const file = e.target.files[0];
                         if (file) {

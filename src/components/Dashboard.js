@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Layout, Card, Col, Row, Modal, Button, message, notification  } from "antd";
+import { Layout, Card, Col, Row, Modal, Button, message, notification } from "antd";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
@@ -10,6 +10,7 @@ import SuccessModal from "./customs/SuccessModal";
 
 const { Content } = Layout;
 
+// Placeholder data for requests and borrowed statistics
 const salesData = [
   { name: "Apr", value: 4400 },
   { name: "May", value: 6200 },
@@ -23,7 +24,7 @@ const pieData = [
   { name: "Dairy/Frozen", value: 25 },
   { name: "Meat/Bread", value: 20 },
   { name: "Snacks", value: 15 },
-  { name: "Drinks", value: 20 },  
+  { name: "Drinks", value: 20 },
   { name: "Fruits", value: 20 },
 ];
 
@@ -34,6 +35,18 @@ const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const [pendingRequests, setPendingRequests] = useState(8);
+  const [lowStockItems, setLowStockItems] = useState(["Item A", "Item B", "Item C"]);
+  const [borrowedStats, setBorrowedStats] = useState({
+    totalBorrowed: 120,
+    totalUsers: 50,
+  });
+  const [topBorrowedItems, setTopBorrowedItems] = useState([
+    { name: "Item X", borrowedCount: 35 },
+    { name: "Item Y", borrowedCount: 30 },
+    { name: "Item Z", borrowedCount: 25 },
+  ]);
 
   useEffect(() => {
     const handleBackButton = (event) => {
@@ -48,17 +61,17 @@ const Dashboard = () => {
       window.removeEventListener("popstate", handleBackButton);
     };
   }, []);
-  
+
   useEffect(() => {
     if (location.state?.loginSuccess === true) {
       sessionStorage.setItem("isLoggedIn", "true");
       setShowModal(true);
-  
+
       const newState = { ...location.state };
       delete newState.loginSuccess;
       navigate(location.pathname, { replace: true, state: newState });
     }
-  }, [location.state, navigate]);  
+  }, [location.state, navigate]);
 
   const closeModal = () => {
     setShowModal(false);
@@ -66,32 +79,36 @@ const Dashboard = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-
       <Layout>
         <Content className="content">
           <Row gutter={[16, 16]}>
-            <Col span={10}>
-              <Card title="Sales Overview">
-                <p>Annual Sales: £12,458</p>
-                <p>Annual Profit: £8,248</p>
-                <p>Daily Sales: £880</p>
-                <p>Daily Profit: £11,578</p>
+            <Col span={6}>
+              <Card title="Pending Requests">
+                <p>{pendingRequests} Pending</p>
               </Card>
             </Col>
 
-            <Col span={10}>
-              <Card title="Purchase Overview" bordered style={{ height: "100%" }}>
-                <p>No. of Purchases: 46</p>
-                <p>Cancelled Orders: 05</p>
-                <p>Purchase Amount: £828</p>
-                <p>Returns: 08</p>
+            <Col span={6}>
+              <Card title="Low Stock Items">
+                <ul>
+                  {lowStockItems.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
+              </Card>
+            </Col>
+
+            <Col span={12}>
+              <Card title="Borrowed Stats">
+                <p>Total Borrowed: {borrowedStats.totalBorrowed}</p>
+                <p>Total Users: {borrowedStats.totalUsers}</p>
               </Card>
             </Col>
           </Row>
 
           <Row gutter={[16, 16]}>
-            <Col span={10}>
-              <Card title="Sales Statistics" bordered style={{ height: "100%", width: "100%" }}>
+            <Col span={12}>
+              <Card title="Sales Statistics">
                 <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={salesData}>
                     <XAxis dataKey="name" />
@@ -103,12 +120,12 @@ const Dashboard = () => {
               </Card>
             </Col>
 
-            <Col span={8}>
-              <Card title="Top Selling Items" bordered style={{ height: "100%" }}>
+            <Col span={12}>
+              <Card title="Top Borrowed Items">
                 <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
-                    <Pie data={pieData} dataKey="value" outerRadius={80} label>
-                      {pieData.map((entry, index) => (
+                    <Pie data={topBorrowedItems} dataKey="borrowedCount" outerRadius={80} label>
+                      {topBorrowedItems.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -122,6 +139,7 @@ const Dashboard = () => {
         <SuccessModal isVisible={showModal} onClose={closeModal} />
       </Layout>
     </Layout>
+
   );
 };
 

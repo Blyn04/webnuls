@@ -84,7 +84,7 @@ const AppHeader = ({ pageTitle, onToggleSidebar, isSidebarCollapsed }) => {
   }, []);
 
   const goToProfile = () => {
-    navigate("/profile");
+    navigate("/main/profile");
   };
 
   return (
