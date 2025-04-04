@@ -32,6 +32,7 @@ import CapexRequest from './users/CapexRequest';
 import ReturnItems from './users/ReturnItems';
 import CustomModal from "./customs/CustomModal";
 import AppHeader from './Header';
+
 const { Header, Sider, Content } = Layout;
 
 const LayoutMain = () => {
@@ -349,7 +350,14 @@ const handleMenuClick = (e) => {
 
   return (
     <Layout>
-      <Sider trigger={null} collapsible collapsed={collapsed}>
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        collapsedWidth={isMobile ? 0 : undefined}  // Fully collapse on mobile
+        width={200}  // Adjust this as needed
+        className={isMobile && !mobileOpen ? 'mobile-collapsed' : ''} // Apply a class when sidebar is collapsed on mobile
+      >
         <div className="demo-logo-vertical" />
 
         <div className="logo">
@@ -359,7 +367,7 @@ const handleMenuClick = (e) => {
                 <p className="logo-subtitle">Laboratory System</p>
               </>
             ) : (
-              <h3 className="logo-title">NU</h3>
+              <h3 className="logo-title">NU MOA</h3>
             )}
           </div>
 
@@ -376,13 +384,7 @@ const handleMenuClick = (e) => {
       <Layout>
         <AppHeader
         pageTitle={pageTitle}
-        onToggleSidebar={() => {
-            if (isMobile) {
-            setMobileOpen(!mobileOpen);
-            } else {
-            setCollapsed(!collapsed);
-            }
-        }}
+        onToggleSidebar={toggleSidebar}
         isSidebarCollapsed={collapsed}
         />
 
