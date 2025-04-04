@@ -13,6 +13,7 @@ import ActivityLog from './users/ActivityLog';
 import SearchItems from './users/SearchItems';
 import CapexRequest from './users/CapexRequest';
 import ReturnItems from './users/ReturnItems';
+import LayoutMain from './LayoutMain';
 
 const AppController = () => {
     
@@ -33,6 +34,7 @@ const AppController = () => {
                 <Route path="/search-items" element={<SearchItems />} />
                 <Route path="/capex-request" element={<CapexRequest />} />
                 <Route path="/return-items" element={<ReturnItems />} />
+                <Route path="/main/*" element={<LayoutMain />} />
             </Routes>
         </BrowserRouter>
     )

@@ -169,11 +169,8 @@ const RequestList = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar setPageTitle={setPageTitle} />
 
-      <Layout className="site-layout">
-        <AppHeader pageTitle={pageTitle} />
-
+      <Layout className="site-layout">   
         <Content className="pending-content">
           <div className="pending-header">
             <Title level={3}>

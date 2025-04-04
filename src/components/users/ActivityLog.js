@@ -71,11 +71,8 @@ const ActivityLog = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar setPageTitle={setPageTitle} />
 
-      <Layout className="site-layout">
-        <AppHeader pageTitle={pageTitle} />
-        
+      <Layout className="site-layout"> 
         <Content className="activity-content">
           <div className="activity-header">
             <Title level={3}>

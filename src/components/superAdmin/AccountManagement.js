@@ -288,11 +288,8 @@ const AccountManagement = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar setPageTitle={setPageTitle} />
 
       <Layout className="site-layout">
-        <AppHeader pageTitle={pageTitle} />
-
         <Content className="account-content">
           <div className="account-header">
             <h2>Account Management</h2> 

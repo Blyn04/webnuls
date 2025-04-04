@@ -221,11 +221,8 @@ const Inventory = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar setPageTitle={setPageTitle} />
 
       <Layout>
-        <AppHeader pageTitle={pageTitle} />
-
         <Content className="content inventory-container">
           <div className="inventory-header">
             <Input.Search

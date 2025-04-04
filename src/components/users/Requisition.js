@@ -308,11 +308,8 @@ const Requisition = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar setPageTitle={setPageTitle} />
-  
+
       <Layout className="site-layout">
-        <AppHeader pageTitle={pageTitle} />
-        
         <Content className="requisition-content">
           <div className="requisition-header">
             <div style={{ display: "flex", gap: "10px" }}>

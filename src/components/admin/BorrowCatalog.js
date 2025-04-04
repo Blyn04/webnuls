@@ -106,17 +106,10 @@ const BorrowCatalog = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar setPageTitle={setPageTitle} />
 
       <Layout>
-        <AppHeader pageTitle={pageTitle} />
-        
         <Content style={{ margin: "20px" }}>
-          <Title level={2} style={{ marginBottom: 20 }}>
-            📚 Borrow Catalog
-          </Title>
 
-          {/* Search Bar */}
           <Row justify="space-between" style={{ marginBottom: 16 }}>
             <Col span={8}>
               <Search
@@ -133,7 +126,6 @@ const BorrowCatalog = () => {
             </Col>
           </Row>
 
-          {/* Catalog Table */}
           <Table
             dataSource={filteredCatalog}
             columns={columns}
@@ -142,7 +134,6 @@ const BorrowCatalog = () => {
             pagination={{ pageSize: 5 }}
           />
 
-          {/* Modal for Request Details */}
           <Modal
             title={
               <div style={{ background: "#4CAF50", padding: "12px", color: "#fff" }}>

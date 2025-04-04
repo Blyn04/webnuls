@@ -127,15 +127,9 @@ const History = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar setPageTitle={setPageTitle} />
 
       <Layout>
-        <AppHeader pageTitle={pageTitle} />
-        
         <Content style={{ margin: "20px" }}>
-          <Title level={2} style={{ marginBottom: 20 }}>
-            📜 History
-          </Title>
           <Table
             dataSource={historyData}
             columns={columns}
@@ -144,8 +138,7 @@ const History = () => {
             pagination={{ pageSize: 5 }}
           />
         </Content>
-
-        {/* Modal for Request Details */}
+               
         <Modal
           title="📄 Requisition Slip"
           visible={modalVisible}

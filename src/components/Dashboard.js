@@ -66,12 +66,8 @@ const Dashboard = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      
-      <Sidebar setPageTitle={setPageTitle} />
 
       <Layout>
-        <AppHeader pageTitle={pageTitle}  role={location.state?.role} />
-
         <Content className="content">
           <Row gutter={[16, 16]}>
             <Col span={10}>

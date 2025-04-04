@@ -173,18 +173,12 @@ const CapexRequest = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      {/* ✅ Sidebar from SearchItems.js */}
-      <Sidebar setPageTitle={setPageTitle} />
 
       <Layout className="site-layout">
-        {/* ✅ AppHeader from SearchItems.js */}
-        <AppHeader pageTitle={pageTitle} />
-
         <Content className="capex-content">
           <div className="capex-header">
             <h2>CAPEX Request for Materials</h2>
 
-            {/* ✅ New Button */}
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -194,7 +188,6 @@ const CapexRequest = () => {
             </Button>
           </div>
 
-          {/* ✅ Table */}
           <Table
             dataSource={dataSource}
             columns={columns}
@@ -204,14 +197,12 @@ const CapexRequest = () => {
             className="capex-table"
           />
 
-          {/* ✅ Total Price */}
           <div className="total-price-container">
             <h3>
               Total Price: <span>₱{totalPrice.toLocaleString()}</span>
             </h3>
           </div>
 
-          {/* ✅ Submit/Cancel Buttons */}
           <div className="button-group">
             <Button
               type="primary"
@@ -231,7 +222,6 @@ const CapexRequest = () => {
             </Button>
           </div>
 
-          {/* ✅ Modal for Add/Edit */}
           <Modal
             title={editingRow ? "Edit Item" : "Add New Item"}
             open={isModalVisible}

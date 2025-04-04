@@ -116,15 +116,15 @@ const Login = () => {
 
           switch (role) {
             case "super-admin":
-              navigate("/accounts", { state: { loginSuccess: true, role } });
+              navigate("/main/accounts", { state: { loginSuccess: true, role } });
               break;
 
             case "admin":
-              navigate("/dashboard", { state: { loginSuccess: true, role } });
+              navigate("/main/dashboard", { state: { loginSuccess: true, role } });
               break;
 
             case "user":
-              navigate("/requisition", { state: { loginSuccess: true, role } });
+              navigate("/main/requisition", { state: { loginSuccess: true, role } });
               break;
 
             default:
@@ -193,15 +193,15 @@ const Login = () => {
   
         switch (normalizedRole) {
           case "super-admin":
-            navigate("/accounts", { state: { loginSuccess: true, role: "super-admin" } });
+            navigate("/main/accounts", { state: { loginSuccess: true, role: "super-admin" } });
             break;
 
           case "admin":
-            navigate("/dashboard", { state: { loginSuccess: true, role: "admin" } });
+            navigate("/main/dashboard", { state: { loginSuccess: true, role: "admin" } });
             break;
 
           case "user":
-            navigate("/requisition", { state: { loginSuccess: true, role: "user" } });
+            navigate("/main/requisition", { state: { loginSuccess: true, role: "user" } });
             break;
             
           default:

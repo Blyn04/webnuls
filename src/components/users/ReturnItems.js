@@ -158,11 +158,8 @@ const ReturnItems = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar setPageTitle={setPageTitle} />
 
       <Layout>
-        <AppHeader pageTitle={pageTitle} />
-
         <Content style={{ margin: "20px" }}>
 
           <Row gutter={24}>

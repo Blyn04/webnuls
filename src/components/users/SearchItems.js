@@ -145,11 +145,8 @@ const SearchItems = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar setPageTitle={setPageTitle} />
-
+      
       <Layout className="site-layout">
-        <AppHeader pageTitle={pageTitle} />
-
         <Content className="search-content">
           <div className="pending-header">
             <Title level={3}>
