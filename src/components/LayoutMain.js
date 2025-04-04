@@ -350,39 +350,38 @@ const handleMenuClick = (e) => {
 
   return (
     <Layout>
-<Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        collapsedWidth={isMobile ? 0 : undefined} 
-        width={200}  
-        className={isMobile && !mobileOpen ? 'mobile-collapsed' : ''} 
-        style={{ 
-          width: mobileOpen ? '200px' : (collapsed && !isMobile ? '80px' : '200px'),
-          transition: 'width 0.3s' // Smooth transition
-        }}
-      >
-        <div className="demo-logo-vertical" />
+      <Sider
+          trigger={null}
+          collapsible
+          collapsed={collapsed}
+          collapsedWidth={isMobile ? 0 : undefined} 
+          width={200}  
+          className={isMobile && !mobileOpen ? 'mobile-collapsed' : ''} 
+          style={{ 
+            width: mobileOpen ? '200px' : (collapsed && !isMobile ? '80px' : '200px'),
+          }}
+        > 
+          <div className="demo-logo-vertical" />
 
-        <div className="logo">
-            {!collapsed || isMobile ? (
-              <>
+          <div className="logo">
+              {!collapsed || isMobile ? (
+                <>
+                  <h3 className="logo-title">NU MOA</h3>
+                  <p className="logo-subtitle">Laboratory System</p>
+                </>
+              ) : (
                 <h3 className="logo-title">NU MOA</h3>
-                <p className="logo-subtitle">Laboratory System</p>
-              </>
-            ) : (
-              <h3 className="logo-title">NU MOA</h3>
-            )}
-          </div>
+              )}
+            </div>
 
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          onClick={handleMenuClick}
-          items={menuItems}
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[location.pathname]}
+            onClick={handleMenuClick}
+            items={menuItems}
 
-        />
+          />
       </Sider>
 
       <Layout>
