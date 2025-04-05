@@ -5,21 +5,15 @@ const SuccessModal = ({ isVisible, onClose }) => {
   return (
     <Modal
       title="Login Successful"
-      open={isVisible}
+      visible={isVisible}
       onCancel={onClose}
       footer={[
         <Button key="close" type="primary" onClick={onClose}>
           OK
         </Button>,
       ]}
-      centered
-      className="success-modal"
-      width="90%" 
-      maxWidth={400} 
     >
-      <p style={{ fontSize: "16px", textAlign: "center" }}>
-        Login Successful!!
-      </p>
+      <p>Login Successful!!</p>
     </Modal>
   );
 };
