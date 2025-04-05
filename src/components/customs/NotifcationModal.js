@@ -9,8 +9,9 @@ const NotificationModal = ({ isVisible, onClose, message }) => {
       onCancel={onClose}
       footer={null}
       centered
+      className="notification-modal"
     >
-      <p style={{ fontSize: "16px", textAlign: "center" }}>{message}</p>
+      <p className="notification-message">{message}</p>
     </Modal>
   );
 };
