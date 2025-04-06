@@ -23,6 +23,7 @@ import CryptoJS from "crypto-js";
 import CONFIG from "../../config";
 import "../styles/adminStyle/Inventory.css";
 import DeleteModal from "../customs/DeleteModal";
+import NotificationModal from "../customs/NotifcationModal";
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -42,6 +43,8 @@ const Inventory = () => {
   const [itemType, setItemType] = useState("");
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
   const db = getFirestore();
 
   useEffect(() => {
@@ -81,14 +84,22 @@ const Inventory = () => {
       alert("Please enter both Item Name and Department!");
       return;
     }
-    
-    // Generate itemId based on department and count
+
+    const isDuplicate = dataSource.some(
+      (item) => item.item.toLowerCase() === itemName.trim().toLowerCase()
+    );
+  
+    if (isDuplicate) {
+      setNotificationMessage("An item with the same description already exists in the inventory.");
+      setIsNotificationVisible(true);
+      return;
+    }
+
     const departmentPrefix = values.department.replace(/\s+/g, "").toUpperCase();
     const deptItems = dataSource.filter(item => item.department === values.department);
     const departmentCount = deptItems.length + 1;
     const generatedItemId = `${departmentPrefix}${departmentCount.toString().padStart(2, "0")}`;
-    setItemId(generatedItemId); // update state for visibility if needed
-
+    setItemId(generatedItemId); 
   
     const entryDate = values.entryDate ? values.entryDate.toDate() : null; 
 
@@ -580,6 +591,12 @@ const Inventory = () => {
                 prev.filter((item) => item.itemId !== deletedItemId)
               );
             }}
+          />
+
+          <NotificationModal
+            isVisible={isNotificationVisible}
+            onClose={() => setIsNotificationVisible(false)}
+            message={notificationMessage}
           />
         </Content>
       </Layout>
