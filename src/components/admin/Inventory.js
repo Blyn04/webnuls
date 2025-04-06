@@ -18,7 +18,7 @@ import AppHeader from "../Header";
 import { QRCodeCanvas } from "qrcode.react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { getFirestore, collection, addDoc, Timestamp } from "firebase/firestore";
+import { getFirestore, collection, addDoc, Timestamp, getDocs } from "firebase/firestore";
 import CryptoJS from "crypto-js";
 import CONFIG from "../../config";
 import "../styles/adminStyle/Inventory.css";
@@ -41,64 +41,54 @@ const Inventory = () => {
   const [itemType, setItemType] = useState("");
   const db = getFirestore();
 
-  // const handleAdd = (values) => {
-  //   if (!itemName || !itemId) {
-  //     alert("Please enter both Item Name and ID for QR Code!");
-  //     return;
-  //   }
-
-  //   const formattedEntryDate = values.entryDate
-  //     ? values.entryDate.format("YYYY-MM-DD")
-  //     : "N/A";
-  //   const formattedExpiryDate = values.type === "Fixed" 
-  //     ? "N/A" : (values.expiryDate 
-  //     ? values.expiryDate.format("YYYY-MM-DD") : "N/A");
-
-  //   const timestamp = new Date().toISOString();
-    
-  //   const data = JSON.stringify({
-  //     id: itemId,
-  //     name: itemName,
-  //     entryDate: formattedEntryDate,
-  //     expiryDate: formattedExpiryDate,
-  //     timestamp,
-  //     category: values.category,
-  //     labRoom: values.labRoom,
-  //     status: "Available",
-  //     condition: "Good",
-  //     ...values,
-  //   });
-
-  //   const encryptedData = CryptoJS.AES.encrypt(data, SECRET_KEY).toString();
-
-  //   const newItem = {
-  //     id: count + 1,
-  //     item: itemName,
-  //     entryDate: formattedEntryDate,
-  //     expiryDate: formattedExpiryDate,
-  //     qrCode: encryptedData,
-  //     timestamp,
-  //     category: values.category,
-  //     labRoom: values.labRoom,
-  //     status: "Available",
-  //     condition: "Good",
-  //     ...values,
-  //   };
-
-  //   setDataSource([...dataSource, newItem]);
-  //   setCount(count + 1);
-  //   form.resetFields();
-  //   setItemName("");
-  //   setItemId("");
-  // };
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "inventory"));
+        const items = snapshot.docs.map((doc, index) => {
+          const data = doc.data();
+  
+          return {
+            id: index + 1,
+            itemId: data.itemId,
+            item: data.itemName,
+            entryDate: data.entryDate
+              ? new Date(data.entryDate.seconds * 1000).toISOString().split("T")[0]
+              : "N/A",
+            expiryDate: data.expiryDate
+              ? new Date(data.expiryDate.seconds * 1000).toISOString().split("T")[0]
+              : "N/A",
+            qrCode: data.qrCode,
+            ...data,
+          };
+        });
+  
+        setDataSource(items);
+        setCount(items.length);
+      } catch (error) {
+        console.error("Error fetching inventory:", error);
+      }
+    };
+  
+    fetchInventory();
+  }, []);  
 
   const handleAdd = async (values) => {
-    if (!itemName || !itemId) {
-      alert("Please enter both Item Name and ID for QR Code!");
+    if (!itemName || !values.department) {
+      alert("Please enter both Item Name and Department!");
       return;
     }
+    
+    // Generate itemId based on department and count
+    const departmentPrefix = values.department.replace(/\s+/g, "").toUpperCase();
+    const deptItems = dataSource.filter(item => item.department === values.department);
+    const departmentCount = deptItems.length + 1;
+    const generatedItemId = `${departmentPrefix}${departmentCount.toString().padStart(2, "0")}`;
+    setItemId(generatedItemId); // update state for visibility if needed
+
   
-    const entryDate = values.entryDate ? values.entryDate.toDate() : null; // Moment to JS Date
+    const entryDate = values.entryDate ? values.entryDate.toDate() : null; 
+
     const expiryDate =
       values.type === "Fixed"
         ? null
@@ -106,10 +96,10 @@ const Inventory = () => {
         ? values.expiryDate.toDate()
         : null;
   
-    const timestamp = new Date(); // Current time
+    const timestamp = new Date();
   
     const inventoryItem = {
-      itemId,
+      itemId: generatedItemId,
       itemName,
       entryDate,
       expiryDate,
@@ -123,7 +113,6 @@ const Inventory = () => {
       condition: "Good",
     };
   
-    // Encrypt for QR
     const encryptedData = CryptoJS.AES.encrypt(
       JSON.stringify(inventoryItem),
       SECRET_KEY
@@ -131,6 +120,7 @@ const Inventory = () => {
   
     const newItem = {
       id: count + 1,
+      itemId: generatedItemId,
       item: itemName,
       entryDate: entryDate ? entryDate.toISOString().split("T")[0] : "N/A",
       expiryDate: expiryDate ? expiryDate.toISOString().split("T")[0] : "N/A",
@@ -221,7 +211,7 @@ const Inventory = () => {
   };
 
   const columns = [
-    { title: "ID", dataIndex: "id", key: "id" },
+    { title: "Item ID", dataIndex: "itemId", key: "itemId" },
     { title: "Item Description", dataIndex: "item", key: "item" },
     { title: "Category", dataIndex: "category", key: "category" },
     { title: "Department", dataIndex: "department", key: "department" },
@@ -302,7 +292,7 @@ const Inventory = () => {
           <Table
             dataSource={dataSource}
             columns={columns}
-            rowKey={(record) => record.id}
+            rowKey={(record) => record.itemId}
             bordered
             className="inventory-table"
           />
@@ -316,13 +306,6 @@ const Inventory = () => {
                 value={itemName}
                 onChange={(e) => setItemName(e.target.value)}
                 style={{ width: "200px" }}
-              />
-
-              <Input
-                placeholder="Enter Item ID"
-                value={itemId}
-                onChange={(e) => setItemId(e.target.value)}
-                style={{ width: "150px" }}
               />
             </Space>
 
