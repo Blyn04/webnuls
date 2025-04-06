@@ -18,7 +18,7 @@ import AppHeader from "../Header";
 import { QRCodeCanvas } from "qrcode.react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { getFirestore, collection, addDoc, Timestamp, getDocs } from "firebase/firestore";
+import { getFirestore, collection, addDoc, Timestamp, getDocs, updateDoc, doc } from "firebase/firestore";
 import CryptoJS from "crypto-js";
 import CONFIG from "../../config";
 import "../styles/adminStyle/Inventory.css";
@@ -47,23 +47,29 @@ const Inventory = () => {
   const [notificationMessage, setNotificationMessage] = useState("");
   const db = getFirestore();
 
+  
   useEffect(() => {
     const fetchInventory = async () => {
       try {
         const snapshot = await getDocs(collection(db, "inventory"));
+        console.log(snapshot);
         const items = snapshot.docs.map((doc, index) => {
           const data = doc.data();
+
+          const entryDate = data.entryDate && data.entryDate.seconds
+          ? new Date(data.entryDate.seconds * 1000).toISOString().split("T")[0]
+          : "N/A";
+
+        const expiryDate = data.expiryDate && data.expiryDate.seconds
+          ? new Date(data.expiryDate.seconds * 1000).toISOString().split("T")[0]
+          : "N/A";
   
           return {
             id: index + 1,
             itemId: data.itemId,
             item: data.itemName,
-            entryDate: data.entryDate
-              ? new Date(data.entryDate.seconds * 1000).toISOString().split("T")[0]
-              : "N/A",
-            expiryDate: data.expiryDate
-              ? new Date(data.expiryDate.seconds * 1000).toISOString().split("T")[0]
-              : "N/A",
+            entryDate,
+            expiryDate,
             qrCode: data.qrCode,
             ...data,
           };
@@ -71,6 +77,7 @@ const Inventory = () => {
   
         setDataSource(items);
         setCount(items.length);
+
       } catch (error) {
         console.error("Error fetching inventory:", error);
       }
@@ -153,6 +160,7 @@ const Inventory = () => {
       form.resetFields();
       setItemName("");
       setItemId("");
+
     } catch (error) {
       console.error("Error adding document to Firestore:", error);
     }
@@ -175,14 +183,15 @@ const Inventory = () => {
     setIsEditModalVisible(true);
   };
 
-  const updateItem = (values) => {
+  const updateItem = async (values) => {
     const updatedEntryDate = values.entryDate
       ? values.entryDate.format("YYYY-MM-DD")
       : "N/A";
+  
     const updatedExpiryDate = values.expiryDate
       ? values.expiryDate.format("YYYY-MM-DD")
       : "N/A";
-
+  
     const updatedItem = {
       ...editingItem,
       entryDate: updatedEntryDate,
@@ -195,14 +204,43 @@ const Inventory = () => {
       status: values.status,
       condition: values.condition,
     };
+  
+    try {
+      const snapshot = await getDocs(collection(db, "inventory"));
+  
+      snapshot.forEach(async (docItem) => {
+        const data = docItem.data();
+        if (data.itemId === editingItem.itemId) {
+          const itemRef = doc(db, "inventory", docItem.id); 
+          await updateDoc(itemRef, {
+            entryDate: updatedEntryDate,
+            expiryDate: updatedExpiryDate,
+            category: values.category,
+            labRoom: values.labRoom,
+            quantity: values.quantity,
+            department: values.department,
+            type: values.type,
+            status: values.status,
+            condition: values.condition,
+          });
+  
+          setIsNotificationVisible(true);
+          setNotificationMessage('Item updated successfully!');
 
-    setDataSource((prevData) =>
-      prevData.map((item) => (item.id === editingItem.id ? updatedItem : item))
-    );
-
-    setIsEditModalVisible(false);
-    setEditingItem(null);
-    form.resetFields();
+          setDataSource((prevData) =>
+            prevData.map((item) =>
+              item.id === editingItem.id ? updatedItem : item
+            )
+          );
+  
+          setIsEditModalVisible(false);
+          setEditingItem(null);
+          form.resetFields();
+        }
+      });
+    } catch (error) {
+      console.error("Error updating document in Firestore:", error);
+    }
   };
 
   const printQRCode = (record) => {
@@ -488,7 +526,6 @@ const Inventory = () => {
                     label="Date of Expiry"
                     rules={[
                       {
-                        required: true,
                         message: "Please select a date of expiry!",
                       },
                     ]}
