@@ -47,7 +47,6 @@ const Inventory = () => {
   const [notificationMessage, setNotificationMessage] = useState("");
   const db = getFirestore();
 
-  
   useEffect(() => {
     const fetchInventory = async () => {
       try {
@@ -55,14 +54,15 @@ const Inventory = () => {
         console.log(snapshot);
         const items = snapshot.docs.map((doc, index) => {
           const data = doc.data();
-
-          const entryDate = data.entryDate && data.entryDate.seconds
-          ? new Date(data.entryDate.seconds * 1000).toISOString().split("T")[0]
-          : "N/A";
-
-        const expiryDate = data.expiryDate && data.expiryDate.seconds
-          ? new Date(data.expiryDate.seconds * 1000).toISOString().split("T")[0]
-          : "N/A";
+  
+          // Properly convert Firestore Timestamp to Date
+          const entryDate = data.entryDate && data.entryDate instanceof Timestamp
+            ? data.entryDate.toDate()  // Convert Firestore Timestamp to Date
+            : null;
+  
+          const expiryDate = data.expiryDate && data.expiryDate instanceof Timestamp
+            ? data.expiryDate.toDate()
+            : null;
   
           return {
             id: index + 1,
@@ -75,16 +75,15 @@ const Inventory = () => {
           };
         });
   
-        setDataSource(items);
+        setDataSource(items);  // Ensure this state is being updated correctly
         setCount(items.length);
-
       } catch (error) {
         console.error("Error fetching inventory:", error);
       }
     };
   
     fetchInventory();
-  }, []);  
+  }, []);
 
   const handleAdd = async (values) => {
     if (!itemName || !values.department) {
@@ -279,19 +278,20 @@ const Inventory = () => {
       dataIndex: "entryDate",
       key: "entryDate",
       render: (date) =>
-        date && date !== "N/A"
-          ? new Date(date).toLocaleDateString("en-CA")
-          : "N/A",
+        date && date instanceof Date && !isNaN(date.getTime())  // Ensure it's a valid Date object
+          ? date.toLocaleDateString("en-CA") // Format as "YYYY-MM-DD"
+          : "N/A",  // Show "N/A" if it's invalid
     },
     {
       title: "Expiry Date",
       dataIndex: "expiryDate",
       key: "expiryDate",
       render: (date) =>
-        date && date !== "N/A"
-          ? new Date(date).toLocaleDateString("en-CA")
+        date && date instanceof Date && !isNaN(date.getTime())  // Ensure it's a valid Date object
+          ? date.toLocaleDateString("en-CA")
           : "N/A",
     },
+    
     { title: "Status", dataIndex: "status", key: "status" },
     { title: "Condition", dataIndex: "condition", key: "condition" },
     {
