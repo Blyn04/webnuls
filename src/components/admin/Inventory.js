@@ -18,6 +18,7 @@ import AppHeader from "../Header";
 import { QRCodeCanvas } from "qrcode.react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { getFirestore, collection, addDoc, Timestamp } from "firebase/firestore";
 import CryptoJS from "crypto-js";
 import CONFIG from "../../config";
 import "../styles/adminStyle/Inventory.css";
@@ -38,56 +39,119 @@ const Inventory = () => {
   const qrRefs = useRef({});
   const [pageTitle, setPageTitle] = useState("");
   const [itemType, setItemType] = useState("");
+  const db = getFirestore();
 
-  const handleAdd = (values) => {
+  // const handleAdd = (values) => {
+  //   if (!itemName || !itemId) {
+  //     alert("Please enter both Item Name and ID for QR Code!");
+  //     return;
+  //   }
+
+  //   const formattedEntryDate = values.entryDate
+  //     ? values.entryDate.format("YYYY-MM-DD")
+  //     : "N/A";
+  //   const formattedExpiryDate = values.type === "Fixed" 
+  //     ? "N/A" : (values.expiryDate 
+  //     ? values.expiryDate.format("YYYY-MM-DD") : "N/A");
+
+  //   const timestamp = new Date().toISOString();
+    
+  //   const data = JSON.stringify({
+  //     id: itemId,
+  //     name: itemName,
+  //     entryDate: formattedEntryDate,
+  //     expiryDate: formattedExpiryDate,
+  //     timestamp,
+  //     category: values.category,
+  //     labRoom: values.labRoom,
+  //     status: "Available",
+  //     condition: "Good",
+  //     ...values,
+  //   });
+
+  //   const encryptedData = CryptoJS.AES.encrypt(data, SECRET_KEY).toString();
+
+  //   const newItem = {
+  //     id: count + 1,
+  //     item: itemName,
+  //     entryDate: formattedEntryDate,
+  //     expiryDate: formattedExpiryDate,
+  //     qrCode: encryptedData,
+  //     timestamp,
+  //     category: values.category,
+  //     labRoom: values.labRoom,
+  //     status: "Available",
+  //     condition: "Good",
+  //     ...values,
+  //   };
+
+  //   setDataSource([...dataSource, newItem]);
+  //   setCount(count + 1);
+  //   form.resetFields();
+  //   setItemName("");
+  //   setItemId("");
+  // };
+
+  const handleAdd = async (values) => {
     if (!itemName || !itemId) {
       alert("Please enter both Item Name and ID for QR Code!");
       return;
     }
-
-    const formattedEntryDate = values.entryDate
-      ? values.entryDate.format("YYYY-MM-DD")
-      : "N/A";
-    const formattedExpiryDate = values.type === "Fixed" 
-      ? "N/A" : (values.expiryDate 
-      ? values.expiryDate.format("YYYY-MM-DD") : "N/A");
-
-    const timestamp = new Date().toISOString();
-    
-    const data = JSON.stringify({
-      id: itemId,
-      name: itemName,
-      entryDate: formattedEntryDate,
-      expiryDate: formattedExpiryDate,
+  
+    const entryDate = values.entryDate ? values.entryDate.toDate() : null; // Moment to JS Date
+    const expiryDate =
+      values.type === "Fixed"
+        ? null
+        : values.expiryDate
+        ? values.expiryDate.toDate()
+        : null;
+  
+    const timestamp = new Date(); // Current time
+  
+    const inventoryItem = {
+      itemId,
+      itemName,
+      entryDate,
+      expiryDate,
       timestamp,
       category: values.category,
       labRoom: values.labRoom,
+      quantity: values.quantity,
+      department: values.department,
+      type: values.type,
       status: "Available",
       condition: "Good",
-      ...values,
-    });
-
-    const encryptedData = CryptoJS.AES.encrypt(data, SECRET_KEY).toString();
-
+    };
+  
+    // Encrypt for QR
+    const encryptedData = CryptoJS.AES.encrypt(
+      JSON.stringify(inventoryItem),
+      SECRET_KEY
+    ).toString();
+  
     const newItem = {
       id: count + 1,
       item: itemName,
-      entryDate: formattedEntryDate,
-      expiryDate: formattedExpiryDate,
+      entryDate: entryDate ? entryDate.toISOString().split("T")[0] : "N/A",
+      expiryDate: expiryDate ? expiryDate.toISOString().split("T")[0] : "N/A",
       qrCode: encryptedData,
-      timestamp,
-      category: values.category,
-      labRoom: values.labRoom,
-      status: "Available",
-      condition: "Good",
-      ...values,
+      ...inventoryItem,
     };
-
-    setDataSource([...dataSource, newItem]);
-    setCount(count + 1);
-    form.resetFields();
-    setItemName("");
-    setItemId("");
+  
+    try {
+      await addDoc(collection(db, "inventory"), {
+        ...inventoryItem,
+        qrCode: encryptedData,
+      });
+  
+      setDataSource([...dataSource, newItem]);
+      setCount(count + 1);
+      form.resetFields();
+      setItemName("");
+      setItemId("");
+    } catch (error) {
+      console.error("Error adding document to Firestore:", error);
+    }
   };
 
   const editItem = (record) => {
