@@ -32,6 +32,7 @@ import CapexRequest from './users/CapexRequest';
 import ReturnItems from './users/ReturnItems';
 import CustomModal from "./customs/CustomModal";
 import AppHeader from './Header';
+import ProtectedRoute from './ProtectedRoute';
 
 const { Header, Sider, Content } = Layout;
 
@@ -400,21 +401,21 @@ const handleMenuClick = (e) => {
             borderRadius: borderRadiusLG,
           }}
         >
-            <Routes>
-                <Route path="/dashboard" element={<Dashboard/>} />
-                <Route path="/inventory" element={<Inventory />} />
-                <Route path="/pending-request" element={<PendingRequest />} />
-                <Route path="/borrow-catalog" element={<BorrowCatalog />} />
-                <Route path="/history" element={<History />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/accounts" element={<AccountManagement />} />
-                <Route path="/requisition" element={<Requisition />} />
-                <Route path="/request-list" element={<RequestList />} />
-                <Route path="/activity-log" element={<ActivityLog />} />
-                <Route path="/search-items" element={<SearchItems />} />
-                <Route path="/capex-request" element={<CapexRequest />} />
-                <Route path="/return-items" element={<ReturnItems />} />
-            </Routes>
+          <Routes>
+            <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
+            <Route path="/inventory" element={<ProtectedRoute element={<Inventory />} />} />
+            <Route path="/pending-request" element={<ProtectedRoute element={<PendingRequest />} />} />
+            <Route path="/borrow-catalog" element={<ProtectedRoute element={<BorrowCatalog />} />} />
+            <Route path="/history" element={<ProtectedRoute element={<History />} />} />
+            <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
+            <Route path="/accounts" element={<ProtectedRoute element={<AccountManagement />} />} />
+            <Route path="/requisition" element={<ProtectedRoute element={<Requisition />} />} />
+            <Route path="/request-list" element={<ProtectedRoute element={<RequestList />} />} />
+            <Route path="/activity-log" element={<ProtectedRoute element={<ActivityLog />} />} />
+            <Route path="/search-items" element={<ProtectedRoute element={<SearchItems />} />} />
+            <Route path="/capex-request" element={<ProtectedRoute element={<CapexRequest />} />} />
+            <Route path="/return-items" element={<ProtectedRoute element={<ReturnItems />} />} />
+          </Routes>
         </Content>
         
         <CustomModal
