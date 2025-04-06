@@ -55,9 +55,8 @@ const Inventory = () => {
         const items = snapshot.docs.map((doc, index) => {
           const data = doc.data();
   
-          // Properly convert Firestore Timestamp to Date
           const entryDate = data.entryDate && data.entryDate instanceof Timestamp
-            ? data.entryDate.toDate()  // Convert Firestore Timestamp to Date
+            ? data.entryDate.toDate() 
             : null;
   
           const expiryDate = data.expiryDate && data.expiryDate instanceof Timestamp
@@ -75,8 +74,9 @@ const Inventory = () => {
           };
         });
   
-        setDataSource(items);  // Ensure this state is being updated correctly
+        setDataSource(items);  
         setCount(items.length);
+
       } catch (error) {
         console.error("Error fetching inventory:", error);
       }
@@ -278,16 +278,16 @@ const Inventory = () => {
       dataIndex: "entryDate",
       key: "entryDate",
       render: (date) =>
-        date && date instanceof Date && !isNaN(date.getTime())  // Ensure it's a valid Date object
-          ? date.toLocaleDateString("en-CA") // Format as "YYYY-MM-DD"
-          : "N/A",  // Show "N/A" if it's invalid
+        date && date instanceof Date && !isNaN(date.getTime()) 
+          ? date.toLocaleDateString("en-CA") 
+          : "N/A",  
     },
     {
       title: "Expiry Date",
       dataIndex: "expiryDate",
       key: "expiryDate",
       render: (date) =>
-        date && date instanceof Date && !isNaN(date.getTime())  // Ensure it's a valid Date object
+        date && date instanceof Date && !isNaN(date.getTime())  
           ? date.toLocaleDateString("en-CA")
           : "N/A",
     },
@@ -361,16 +361,25 @@ const Inventory = () => {
           <div className="form-container">
             <h3>Add Item to Inventory with QR Code</h3>
 
-            <Space style={{ marginBottom: "20px" }}>
-              <Input
-                placeholder="Enter Item Name"
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-                style={{ width: "200px" }}
-              />
-            </Space>
-
             <Form layout="vertical" form={form} onFinish={handleAdd}>
+              <Space style={{ marginBottom: "20px" }}>
+                    <Form.Item 
+                        name="Item Name" 
+                        label="Item Name" 
+                        rules={[
+                        {
+                          required: true,
+                          message: "Please enter Item Name!",
+                        },
+                      ]}>
+                        <Input
+                          placeholder="Enter Item Name"
+                          value={itemName}
+                          onChange={(e) => setItemName(e.target.value)}
+                          style={{ width: "200px" }}
+                        />
+                    </Form.Item>
+              </Space>
 
               <Row gutter={16}>
                   <Col span={12}>
