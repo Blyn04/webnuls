@@ -22,6 +22,7 @@ import { getFirestore, collection, addDoc, Timestamp, getDocs } from "firebase/f
 import CryptoJS from "crypto-js";
 import CONFIG from "../../config";
 import "../styles/adminStyle/Inventory.css";
+import DeleteModal from "../customs/DeleteModal";
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -39,6 +40,8 @@ const Inventory = () => {
   const qrRefs = useRef({});
   const [pageTitle, setPageTitle] = useState("");
   const [itemType, setItemType] = useState("");
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
   const db = getFirestore();
 
   useEffect(() => {
@@ -210,6 +213,11 @@ const Inventory = () => {
     });
   };
 
+  const handleDelete = (record) => {
+    setItemToDelete(record);
+    setDeleteModalVisible(true);
+  };  
+
   const columns = [
     { title: "Item ID", dataIndex: "itemId", key: "itemId" },
     { title: "Item Description", dataIndex: "item", key: "item" },
@@ -258,6 +266,10 @@ const Inventory = () => {
 
           <Button type="link" onClick={() => editItem(record)}>
             Edit
+          </Button>
+
+          <Button type="text" danger onClick={() => handleDelete(record)}>
+            Delete
           </Button>
         </Space>
       ),
@@ -555,6 +567,20 @@ const Inventory = () => {
               </Row>
             </Form>
           </Modal>
+
+          <DeleteModal
+            visible={deleteModalVisible}
+            onClose={() => {
+              setDeleteModalVisible(false);
+              setItemToDelete(null);
+            }}
+            item={itemToDelete}
+            onDeleteSuccess={(deletedItemId) => {
+              setDataSource((prev) =>
+                prev.filter((item) => item.itemId !== deletedItemId)
+              );
+            }}
+          />
         </Content>
       </Layout>
     </Layout>
