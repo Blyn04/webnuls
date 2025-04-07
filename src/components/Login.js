@@ -118,6 +118,8 @@ const Login = () => {
           }
           
           const userName = userData.name || "User";
+          const userId = userDoc.id;
+          localStorage.setItem("userId", userId);
           localStorage.setItem("userEmail", userData.email);
           localStorage.setItem("userName", userName);
           localStorage.setItem("userDepartment", userData.department);

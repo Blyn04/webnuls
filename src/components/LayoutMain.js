@@ -164,82 +164,7 @@ const LayoutMain = () => {
     }
   };
 
-//   const handleMenuClick = (e) => {
-//     switch (e.key) {
-//       case "1":
-//         navigate("/main/dashboard");
-//         setPageTitle("Dashboard");
-//         break;
-
-//       case "2":
-//         navigate("/main/inventory");
-//         setPageTitle("Inventory");
-//         break;
-
-//       case "3":
-//         navigate("/main/pending-request");
-//         setPageTitle("Pending Requests");
-//         break;
-
-//       case "4":
-//         navigate("/main/borrow-catalog");
-//         setPageTitle("Borrow Catalog");
-//         break;
-
-//       case "5":
-//         navigate("/main/history");
-//         setPageTitle("History");
-//         break;
-
-//       case "6":
-//         setShowModal(true);
-//         break;
-
-//       case "7":
-//         navigate("/main/accounts");
-//         setPageTitle("Accounts");
-//         break;
-
-//       case "8":
-//         navigate("/main/requisition");
-//         setPageTitle("Requisition");
-//         break;
-
-//       case "9":
-//         navigate("/main/request-list");
-//         setPageTitle("Request List");
-//         break;
-
-//       case "10":
-//         navigate("/main/activity-log");
-//         setPageTitle("Activity Log");
-//         break;
-
-//       case "11":
-//         navigate("/main/search-items");
-//         setPageTitle("Search Items");
-//         break;
-
-//       case "12":
-//         navigate("/main/capex-request");
-//         setPageTitle("Capex Request");
-//         break;
-
-//       case "13":
-//         navigate("/main/return-items");
-//         setPageTitle("Return Items");
-//         break;
-
-//       default:
-//         break;
-//     }
-
-//     if (isMobile) {
-//       setMobileOpen(false);
-//     }
-//   };
-
-const handleMenuClick = (e) => {
+  const handleMenuClick = (e) => {
     if (e.key === "logout") {
       setShowModal(true);
 
@@ -251,7 +176,13 @@ const handleMenuClick = (e) => {
   };  
 
   const handleSignOut = () => {
-    localStorage.clear();
+    // localStorage.clear();
+    // navigate("/", { replace: true });
+    localStorage.removeItem("userId");  
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userDepartment");
+    localStorage.removeItem("userPosition");
     navigate("/", { replace: true });
   };
 

@@ -17,7 +17,8 @@ import {
 } from "@ant-design/icons";
 import moment from "moment";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getFirestore, collection, addDoc, Timestamp, getDocs, updateDoc, doc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, Timestamp, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { getAuth } from 'firebase/auth';
 import { db } from "../../backend/firebase/FirebaseConfig";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
@@ -25,53 +26,6 @@ import "../styles/usersStyle/Requisition.css";
 import SuccessModal from "../customs/SuccessModal";
 
 const { Content } = Layout;
-
-const initialItems = [
-  {
-    id: "CHM01",
-    description: "Hydrochloric Acid",
-    category: "Chemical",
-    quantity: 30,
-    labRoom: "Chemistry Lab 1",
-    status: "Available",
-    condition: "Good",
-    usageType: "Laboratory Experiment",
-    department: "MEDTECH",
-  },
-  {
-    id: "REG02",
-    description: "Phenolphthalein",
-    category: "Reagent",
-    quantity: 15,
-    labRoom: "Chemistry Lab 2",
-    status: "In Use",
-    condition: "Good",
-    usageType: "Research",
-    department: "NURSING",
-  },
-  {
-    id: "MAT03",
-    description: "Test Tubes",
-    category: "Materials",
-    quantity: 50,
-    labRoom: "Physics Lab 1",
-    status: "Out of Stock",
-    condition: "Needs Replacement",
-    usageType: "Community Extension",
-    department: "MEDTECH",
-  },
-  {
-    id: "EQP04",
-    description: "Microscope",
-    category: "Equipment",
-    quantity: 5,
-    labRoom: "Biology Lab 1",
-    status: "Available",
-    condition: "Good",
-    usageType: "Others",
-    department: "NURSING",
-  },
-];
 
 const tableHeaderStyle = {
   padding: "8px",
@@ -106,6 +60,36 @@ const Requisition = () => {
   const [filteredItems, setFilteredItems] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
+  const auth = getAuth();
+
+  useEffect(() => {
+    const storedRequestList = JSON.parse(localStorage.getItem('requestList'));
+    if (storedRequestList) {
+      setRequestList(storedRequestList);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchRequestList = async () => {
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        try {
+          const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+          const querySnapshot = await getDocs(tempRequestRef);
+          const tempRequestList = querySnapshot.docs.map((doc) => doc.data());
+  
+          setRequestList(tempRequestList);
+
+          localStorage.setItem("requestList", JSON.stringify(tempRequestList));
+  
+        } catch (error) {
+          console.error("Error fetching request list:", error);
+        }
+      }
+    };
+  
+    fetchRequestList();
+  }, []);  
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -118,6 +102,7 @@ const Requisition = () => {
   
         setItems(itemList);
         setFilteredItems(itemList);
+
       } catch (error) {
         console.error("Error fetching inventory:", error);
       }
@@ -160,60 +145,152 @@ const Requisition = () => {
     setShowModal(false);
   };
 
-  const addToList = (item) => {
+  const addToList = async (item) => {
     const alreadyAdded = requestList.find((req) => req.id === item.id);
     if (alreadyAdded) {
       message.warning("Item already added!");
+
     } else {
-      setRequestList([...requestList, { ...item, quantity: "" }]);
+      const updatedRequestList = [...requestList, { ...item, quantity: "" }];
+      setRequestList(updatedRequestList);
+
+      localStorage.setItem('requestList', JSON.stringify(updatedRequestList));
+
+      const userId = localStorage.getItem("userId");
+
+      if (userId) {
+        try {
+          const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+
+          await addDoc(tempRequestRef, {
+            ...item,
+            timestamp: Timestamp.fromDate(new Date()), 
+          });
+
+          message.success("Item added to temporary list.");
+
+        } catch (error) {
+          console.error("Error adding item to temporary list:", error);
+          message.error("Failed to add item to temporary list.");
+        }
+      }
     }
   };
 
-  const removeFromList = (id) => {
+  const removeFromList = async (id) => {
+    // Filter out the item from the local requestList
     const updatedList = requestList.filter((item) => item.id !== id);
     setRequestList(updatedList);
-  };
+  
+    // Update the localStorage with the new requestList
+    localStorage.setItem('requestList', JSON.stringify(updatedList));
+  
+    // Remove the item from Firestore
+    const userId = localStorage.getItem("userId"); // Get the logged-in userId
+    if (userId) {
+      try {
+        // Reference to the Firestore collection for the user's temporary requests
+        const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+  
+        // Find the document ID of the item you want to delete
+        const querySnapshot = await getDocs(tempRequestRef);
+        const docToDelete = querySnapshot.docs.find(doc => doc.data().id === id);
+  
+        if (docToDelete) {
+          // If the document is found, delete it from Firestore
+          await deleteDoc(docToDelete.ref);
+          message.success("Item removed from the list.");
+        } else {
+          message.warning("Item not found in Firestore.");
+        }
+      } catch (error) {
+        console.error("Error removing item from Firestore:", error);
+        message.error("Failed to remove item from Firestore.");
+      }
+    }
+  };  
 
   const updateQuantity = (id, value) => {
     const updatedList = requestList.map((item) =>
       item.id === id ? { ...item, quantity: value } : item
     );
+
     setRequestList(updatedList);
+    localStorage.setItem('requestList', JSON.stringify(updatedList)); 
   };
+  
 
-  const finalizeRequest = () => {
+  const finalizeRequest = async () => {
     let isValid = true;
-
+  
     if (!dateRequired) {
       message.error("Please select a date!");
       isValid = false;
     }
-
+  
     if (!program) {
       setProgramError(true);
       isValid = false;
-
     } else {
       setProgramError(false);
     }
-
+  
     if (!room) {
       setRoomError(true);
       isValid = false;
-
     } else {
       setRoomError(false);
     }
-
+  
     if (requestList.length === 0) {
       message.error("Please add items to the request list!");
       isValid = false;
     }
-
+  
     if (isValid) {
-      setIsFinalizeVisible(true);
+      try {
+        const userId = localStorage.getItem("userId");
+  
+        if (userId) {
+          const userRequestRef = collection(db, "accounts", userId, "userRequests");
+          const requestData = {
+            dateRequired,
+            timeFrom,
+            timeTo,
+            program,
+            room,
+            reason,
+            requestList,
+            timestamp: Timestamp.fromDate(new Date()), 
+          };
+ 
+          await addDoc(userRequestRef, requestData);
+
+          const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+
+          const querySnapshot = await getDocs(tempRequestRef);
+  
+          querySnapshot.forEach(async (docSnapshot) => {
+            const itemData = docSnapshot.data();
+  
+            await addDoc(userRequestRef, itemData);
+ 
+            await deleteDoc(doc(db, "accounts", userId, "temporaryRequests", docSnapshot.id));
+          });
+  
+          message.success("Requisition sent successfully!");
+          setIsFinalizeVisible(false);
+
+        } else {
+          message.error("User is not logged in.");
+        }
+
+      } catch (error) {
+        console.error("Error finalizing the requisition:", error);
+        message.error("Failed to send requisition. Please try again.");
+      }
     }
-  };
+  };  
 
   const columns = [
     {
@@ -345,7 +422,7 @@ const Requisition = () => {
                   const selectedType = e.target.value;
                   setSearchUsageType(selectedType);
                   if (selectedType === "") {
-                    setFilteredItems(initialItems);
+                    setFilteredItems(items);
 
                   } else {
                     const filteredData = items.filter((item) => item.usageType === selectedType);
@@ -383,7 +460,7 @@ const Requisition = () => {
                   key={item.id}
                   className="request-card"
                   size="small"
-                  title={`Item ID: ${item.id}`}
+                  title={`Item ID: ${item.itemId}`}
                   extra={
                     <Button
                       type="text"
@@ -394,7 +471,7 @@ const Requisition = () => {
                   }
                 >
                   <p>
-                    <strong>Description:</strong> {item.description}
+                    <strong>Item Name:</strong> {item.itemName}
                   </p>
   
                   <p>
