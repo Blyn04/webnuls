@@ -17,6 +17,8 @@ import {
 } from "@ant-design/icons";
 import moment from "moment";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getFirestore, collection, addDoc, Timestamp, getDocs, updateDoc, doc } from "firebase/firestore";
+import { db } from "../../backend/firebase/FirebaseConfig";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/usersStyle/Requisition.css";
@@ -86,8 +88,6 @@ const tableCellStyle = {
 };
 
 const Requisition = () => {
-  const [items] = useState(initialItems);
-  const [filteredItems, setFilteredItems] = useState(initialItems);
   const [requestList, setRequestList] = useState([]);
   const [dateRequired, setDateRequired] = useState(null);
   const [timeFrom, setTimeFrom] = useState(null);
@@ -102,8 +102,29 @@ const Requisition = () => {
   const [room, setRoom] = useState("");
   const [reason, setReason] = useState("");
   const [searchUsageType, setSearchUsageType] = useState("");
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "inventory"));
+        const itemList = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+  
+        setItems(itemList);
+        setFilteredItems(itemList);
+      } catch (error) {
+        console.error("Error fetching inventory:", error);
+      }
+    };
+  
+    fetchItems();
+  }, []);
 
   useEffect(() => {
     if (location.state?.loginSuccess === true) {
@@ -197,13 +218,13 @@ const Requisition = () => {
   const columns = [
     {
       title: "ID",
-      dataIndex: "id",
-      key: "id",
+      dataIndex: "itemId",
+      key: "itemId",
     },
     {
       title: "Item Description",
-      dataIndex: "description",
-      key: "description",
+      dataIndex: "itemName",
+      key: "itemName",
     },
     {
       title: "Category",
@@ -325,8 +346,9 @@ const Requisition = () => {
                   setSearchUsageType(selectedType);
                   if (selectedType === "") {
                     setFilteredItems(initialItems);
+
                   } else {
-                    const filteredData = initialItems.filter((item) => item.usageType === selectedType);
+                    const filteredData = items.filter((item) => item.usageType === selectedType);
                     setFilteredItems(filteredData);
                   }
                 }}
@@ -571,8 +593,8 @@ const Requisition = () => {
                   {requestList.map((item, index) => (
                     <tr key={item.id}>
                       <td style={tableCellStyle}>{index + 1}.</td>
-                      <td style={tableCellStyle}>{item.description}</td>
-                      <td style={tableCellStyle}>{item.id}</td>
+                      <td style={tableCellStyle}>{item.itemName}</td>
+                      <td style={tableCellStyle}>{item.itemId}</td>
                       <td style={tableCellStyle}>{item.usageType}</td>
                       <td style={tableCellStyle}>{item.quantity || "N/A"}</td>
                       <td

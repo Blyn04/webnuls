@@ -124,7 +124,8 @@ const Inventory = () => {
       department: values.department,
       type: values.type,
       status: "Available",
-      condition: "Good",
+      condition: "Good",  
+      usageType: values.usageType,
     };
   
     const encryptedData = CryptoJS.AES.encrypt(
@@ -171,6 +172,7 @@ const Inventory = () => {
       type: record.type,
       status: record.status,
       condition: record.condition, 
+      usageType: record.usageType,
     });
     
     setIsEditModalVisible(true);
@@ -196,6 +198,7 @@ const Inventory = () => {
       type: values.type,
       status: values.status,
       condition: values.condition,
+      usageType: values.usageType,
     };
   
     try {
@@ -215,6 +218,7 @@ const Inventory = () => {
             type: values.type,
             status: values.status,
             condition: values.condition,
+            usageType: values.usageType,
           });
   
           setIsNotificationVisible(true);
@@ -267,6 +271,7 @@ const Inventory = () => {
     { title: "Department", dataIndex: "department", key: "department" },
     { title: "Lab/Stock Room", dataIndex: "labRoom", key: "labRoom" },
     { title: "Inventory Balance", dataIndex: "quantity", key: "quantity" },
+    { title: "Usage Type", dataIndex: "usageType", key: "usageType" }, 
     {
       title: "Date of Entry",
       dataIndex: "entryDate",
@@ -371,6 +376,23 @@ const Inventory = () => {
                         />
                     </Form.Item>
               </Space>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="usageType"
+                    label="Usage Type"
+                    rules={[{ required: true, message: "Please select usage type!" }]}
+                  >
+                    <Select placeholder="Select Usage Type">
+                      <Option value="Laboratory Experiment">Laboratory Experiment</Option>
+                      <Option value="Research">Research</Option>
+                      <Option value="Community Extension">Community Extension</Option>
+                      <Option value="Others">Others</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
 
               <Row gutter={16}>
                   <Col span={12}>
@@ -511,13 +533,14 @@ const Inventory = () => {
                       },
                     ]}
                   >
-                    <DatePicker
-                      format="YYYY-MM-DD"
-                      style={{ width: "100%" }}
-                      placeholder="Select Date of Entry"
-                      disabledDate={disabledDate}
-                    />
-                  </Form.Item>
+                  <DatePicker
+                    format="YYYY-MM-DD"
+                    style={{ width: "100%" }}
+                    placeholder="Select Date of Entry"
+                    disabledDate={disabledDate}
+                    getPopupContainer={(trigger) => trigger.parentNode}
+                  />
+                  </Form.Item>  
                 </Col>
 
                 <Col span={12}>
@@ -558,6 +581,19 @@ const Inventory = () => {
                     </Select>
                   </Form.Item>
                 </Col>
+
+                <Row gutter={16}>
+                <Col span={24}>
+                  <Form.Item name="usageType" label="Usage Type">
+                    <Select placeholder="Select Usage Type">
+                      <Option value="Laboratory Experiment">Laboratory Experiment</Option>
+                      <Option value="Research">Research</Option>
+                      <Option value="Community Extension">Community Extension</Option>
+                      <Option value="Others">Others</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
 
                 <Col span={12}>
                   <Form.Item
