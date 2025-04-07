@@ -55,13 +55,9 @@ const Inventory = () => {
         const items = snapshot.docs.map((doc, index) => {
           const data = doc.data();
   
-          const entryDate = data.entryDate && data.entryDate instanceof Timestamp
-            ? data.entryDate.toDate() 
-            : null;
-  
-          const expiryDate = data.expiryDate && data.expiryDate instanceof Timestamp
-            ? data.expiryDate.toDate()
-            : null;
+          const entryDate = data.entryDate ? data.entryDate : "N/A"; 
+          const expiryDate = data.expiryDate ? data.expiryDate : "N/A";
+        
   
           return {
             id: index + 1,
@@ -76,21 +72,20 @@ const Inventory = () => {
   
         setDataSource(items);  
         setCount(items.length);
-
       } catch (error) {
         console.error("Error fetching inventory:", error);
       }
     };
   
     fetchInventory();
-  }, []);
+  }, []);  
 
   const handleAdd = async (values) => {
     if (!itemName || !values.department) {
       alert("Please enter both Item Name and Department!");
       return;
     }
-
+  
     const isDuplicate = dataSource.some(
       (item) => item.item.toLowerCase() === itemName.trim().toLowerCase()
     );
@@ -100,21 +95,20 @@ const Inventory = () => {
       setIsNotificationVisible(true);
       return;
     }
-
+  
     const departmentPrefix = values.department.replace(/\s+/g, "").toUpperCase();
     const deptItems = dataSource.filter(item => item.department === values.department);
     const departmentCount = deptItems.length + 1;
     const generatedItemId = `${departmentPrefix}${departmentCount.toString().padStart(2, "0")}`;
     setItemId(generatedItemId); 
   
-    const entryDate = values.entryDate ? values.entryDate.toDate() : null; 
-
-    const expiryDate =
-      values.type === "Fixed"
-        ? null
-        : values.expiryDate
-        ? values.expiryDate.toDate()
-        : null;
+    const entryDate = values.entryDate ? values.entryDate.format("YYYY-MM-DD") : null;
+    const expiryDate = values.type === "Fixed" 
+      ? null 
+      : values.expiryDate 
+      ? values.expiryDate.format("YYYY-MM-DD")
+      : null;
+    
   
     const timestamp = new Date();
   
@@ -142,8 +136,8 @@ const Inventory = () => {
       id: count + 1,
       itemId: generatedItemId,
       item: itemName,
-      entryDate: entryDate ? entryDate.toISOString().split("T")[0] : "N/A",
-      expiryDate: expiryDate ? expiryDate.toISOString().split("T")[0] : "N/A",
+      entryDate: entryDate, 
+      expiryDate: expiryDate, 
       qrCode: encryptedData,
       ...inventoryItem,
     };
@@ -159,11 +153,11 @@ const Inventory = () => {
       form.resetFields();
       setItemName("");
       setItemId("");
-
+  
     } catch (error) {
       console.error("Error adding document to Firestore:", error);
     }
-  };
+  };  
 
   const editItem = (record) => {
     setEditingItem(record);
@@ -277,20 +271,19 @@ const Inventory = () => {
       title: "Date of Entry",
       dataIndex: "entryDate",
       key: "entryDate",
-      render: (date) =>
-        date && date instanceof Date && !isNaN(date.getTime()) 
-          ? date.toLocaleDateString("en-CA") 
-          : "N/A",  
+      render: (date) => {
+        return date && date !== "N/A" ? date : "N/A";
+      },
     },
     {
       title: "Expiry Date",
       dataIndex: "expiryDate",
       key: "expiryDate",
-      render: (date) =>
-        date && date instanceof Date && !isNaN(date.getTime())  
-          ? date.toLocaleDateString("en-CA")
-          : "N/A",
+      render: (date) => {
+        return date && date !== "N/A" ? date : "N/A";
+      },
     },
+    
     
     { title: "Status", dataIndex: "status", key: "status" },
     { title: "Condition", dataIndex: "condition", key: "condition" },
