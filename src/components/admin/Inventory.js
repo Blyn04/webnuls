@@ -283,8 +283,6 @@ const Inventory = () => {
         return date && date !== "N/A" ? date : "N/A";
       },
     },
-    
-    
     { title: "Status", dataIndex: "status", key: "status" },
     { title: "Condition", dataIndex: "condition", key: "condition" },
     {
