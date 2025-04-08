@@ -178,31 +178,27 @@ const Requisition = () => {
   };
 
   const removeFromList = async (id) => {
-    // Filter out the item from the local requestList
     const updatedList = requestList.filter((item) => item.id !== id);
     setRequestList(updatedList);
-  
-    // Update the localStorage with the new requestList
+
     localStorage.setItem('requestList', JSON.stringify(updatedList));
   
-    // Remove the item from Firestore
-    const userId = localStorage.getItem("userId"); // Get the logged-in userId
+    const userId = localStorage.getItem("userId"); 
     if (userId) {
       try {
-        // Reference to the Firestore collection for the user's temporary requests
         const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
   
-        // Find the document ID of the item you want to delete
         const querySnapshot = await getDocs(tempRequestRef);
         const docToDelete = querySnapshot.docs.find(doc => doc.data().id === id);
   
         if (docToDelete) {
-          // If the document is found, delete it from Firestore
           await deleteDoc(docToDelete.ref);
           message.success("Item removed from the list.");
+
         } else {
           message.warning("Item not found in Firestore.");
         }
+        
       } catch (error) {
         console.error("Error removing item from Firestore:", error);
         message.error("Failed to remove item from Firestore.");

@@ -32,6 +32,7 @@ const SECRET_KEY = CONFIG.SECRET_KEY;
 
 const Inventory = () => {
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
   const [dataSource, setDataSource] = useState([]);
   const [count, setCount] = useState(0);
   const [itemName, setItemName] = useState("");
@@ -161,8 +162,9 @@ const Inventory = () => {
   };  
 
   const editItem = (record) => {
+    editForm.resetFields();
     setEditingItem(record);
-    form.setFieldsValue({
+    editForm.setFieldsValue({
       entryDate: record.entryDate ? moment(record.entryDate) : null,
       expiryDate: record.expiryDate ? moment(record.expiryDate) : null,
       category: record.category,
@@ -174,9 +176,9 @@ const Inventory = () => {
       condition: record.condition, 
       usageType: record.usageType,
     });
-    
     setIsEditModalVisible(true);
   };
+  
 
   const updateItem = async (values) => {
     const updatedEntryDate = values.entryDate
@@ -187,18 +189,17 @@ const Inventory = () => {
       ? values.expiryDate.format("YYYY-MM-DD")
       : "N/A";
   
-    const updatedItem = {
-      ...editingItem,
+    const safeValues = {
       entryDate: updatedEntryDate,
       expiryDate: updatedExpiryDate,
-      category: values.category,
-      labRoom: values.labRoom,
-      quantity: values.quantity,
-      department: values.department,
-      type: values.type,
-      status: values.status,
-      condition: values.condition,
-      usageType: values.usageType,
+      category: values.category ?? "",
+      labRoom: values.labRoom ?? "",
+      quantity: values.quantity ?? 0,
+      department: values.department ?? "",
+      type: values.type ?? "",
+      status: values.status ?? "Available",
+      condition: values.condition ?? "Good",
+      usageType: values.usageType ?? "",
     };
   
     try {
@@ -207,23 +208,17 @@ const Inventory = () => {
       snapshot.forEach(async (docItem) => {
         const data = docItem.data();
         if (data.itemId === editingItem.itemId) {
-          const itemRef = doc(db, "inventory", docItem.id); 
-          await updateDoc(itemRef, {
-            entryDate: updatedEntryDate,
-            expiryDate: updatedExpiryDate,
-            category: values.category,
-            labRoom: values.labRoom,
-            quantity: values.quantity,
-            department: values.department,
-            type: values.type,
-            status: values.status,
-            condition: values.condition,
-            usageType: values.usageType,
-          });
+          const itemRef = doc(db, "inventory", docItem.id);
+          await updateDoc(itemRef, safeValues);
   
           setIsNotificationVisible(true);
-          setNotificationMessage('Item updated successfully!');
-
+          setNotificationMessage("Item updated successfully!");
+  
+          const updatedItem = {
+            ...editingItem,
+            ...safeValues,
+          };
+  
           setDataSource((prevData) =>
             prevData.map((item) =>
               item.id === editingItem.id ? updatedItem : item
@@ -238,7 +233,7 @@ const Inventory = () => {
     } catch (error) {
       console.error("Error updating document in Firestore:", error);
     }
-  };
+  };  
 
   const printQRCode = (record) => {
     html2canvas(qrRefs.current[record.id]).then((canvas) => {
@@ -247,15 +242,6 @@ const Inventory = () => {
       pdf.text("Scan this QR Code", 80, 10);
       pdf.addImage(imgData, "PNG", 40, 20, 120, 120);
       pdf.save(`QRCode_${record.id}.pdf`);
-    });
-  };
-
-  const downloadQRCode = (record) => {
-    html2canvas(qrRefs.current[record.id]).then((canvas) => {
-      const link = document.createElement("a");
-      link.href = canvas.toDataURL("image/png");
-      link.download = `QRCode_${record.id}.png`;
-      link.click();
     });
   };
 
@@ -518,52 +504,9 @@ const Inventory = () => {
             title="Edit Item"
             visible={isEditModalVisible}
             onCancel={() => setIsEditModalVisible(false)}
-            onOk={() => form.submit()}
+            onOk={() => editForm.submit()}
           >
-            <Form layout="vertical" form={form} onFinish={updateItem}>
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="entryDate"
-                    label="Date of Entry"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please select a date of entry!",
-                      },
-                    ]}
-                  >
-                  <DatePicker
-                    format="YYYY-MM-DD"
-                    style={{ width: "100%" }}
-                    placeholder="Select Date of Entry"
-                    disabledDate={disabledDate}
-                    getPopupContainer={(trigger) => trigger.parentNode}
-                  />
-                  </Form.Item>  
-                </Col>
-
-                <Col span={12}>
-                  <Form.Item
-                    name="expiryDate"
-                    label="Date of Expiry"
-                    rules={[
-                      {
-                        message: "Please select a date of expiry!",
-                      },
-                    ]}
-                  >
-                    <DatePicker
-                      format="YYYY-MM-DD"
-                      style={{ width: "100%" }}
-                      placeholder="Select Date of Expiry"
-                      disabledDate={disabledExpiryDate}
-                      disabled={itemType === "Fixed"} 
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-
+            <Form layout="vertical" form={editForm} onFinish={updateItem}>
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
