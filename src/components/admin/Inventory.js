@@ -164,14 +164,11 @@ const Inventory = () => {
   const editItem = (record) => {
     editForm.resetFields();
     setEditingItem(record);
+
     editForm.setFieldsValue({
-      entryDate: record.entryDate ? moment(record.entryDate) : null,
-      expiryDate: record.expiryDate ? moment(record.expiryDate) : null,
       category: record.category,
       labRoom: record.labRoom,
       quantity: record.quantity,
-      department: record.department,
-      type: record.type,
       status: record.status,
       condition: record.condition, 
       usageType: record.usageType,
@@ -181,22 +178,10 @@ const Inventory = () => {
   
 
   const updateItem = async (values) => {
-    const updatedEntryDate = values.entryDate
-      ? values.entryDate.format("YYYY-MM-DD")
-      : "N/A";
-  
-    const updatedExpiryDate = values.expiryDate
-      ? values.expiryDate.format("YYYY-MM-DD")
-      : "N/A";
-  
     const safeValues = {
-      entryDate: updatedEntryDate,
-      expiryDate: updatedExpiryDate,
       category: values.category ?? "",
       labRoom: values.labRoom ?? "",
       quantity: values.quantity ?? 0,
-      department: values.department ?? "",
-      type: values.type ?? "",
       status: values.status ?? "Available",
       condition: values.condition ?? "Good",
       usageType: values.usageType ?? "",
@@ -536,7 +521,7 @@ const Inventory = () => {
                     </Select>
                   </Form.Item>
                 </Col>
-              </Row>
+               </Row>
 
                 <Col span={12}>
                   <Form.Item
@@ -555,14 +540,6 @@ const Inventory = () => {
               </Row>
 
               <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item name="type" label="Item Type">
-                    <Select onChange={value => setItemType(value)}>
-                      <Option value="Fixed">Fixed</Option>
-                      <Option value="Consumable">Consumable</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
 
                 <Col span={12}>
                   <Form.Item name="quantity" label="Quantity">
