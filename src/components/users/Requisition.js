@@ -198,7 +198,7 @@ const Requisition = () => {
         } else {
           message.warning("Item not found in Firestore.");
         }
-        
+
       } catch (error) {
         console.error("Error removing item from Firestore:", error);
         message.error("Failed to remove item from Firestore.");
@@ -219,6 +219,7 @@ const Requisition = () => {
   const finalizeRequest = async () => {
     let isValid = true;
   
+    // Validate fields
     if (!dateRequired) {
       message.error("Please select a date!");
       isValid = false;
@@ -248,6 +249,7 @@ const Requisition = () => {
         const userId = localStorage.getItem("userId");
   
         if (userId) {
+          // Add data to the user's requests collection
           const userRequestRef = collection(db, "accounts", userId, "userRequests");
           const requestData = {
             dateRequired,
@@ -257,30 +259,61 @@ const Requisition = () => {
             room,
             reason,
             requestList,
-            timestamp: Timestamp.fromDate(new Date()), 
+            timestamp: Timestamp.fromDate(new Date()),
           };
- 
+  
           await addDoc(userRequestRef, requestData);
-
+  
           const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
-
           const querySnapshot = await getDocs(tempRequestRef);
   
+          const deletionPromises = []; // Collect promises for deletions
+  
+          // For each document in the temporaryRequests collection, handle addition to pendingrequest and deletion
           querySnapshot.forEach(async (docSnapshot) => {
             const itemData = docSnapshot.data();
   
-            await addDoc(userRequestRef, itemData);
- 
-            await deleteDoc(doc(db, "accounts", userId, "temporaryRequests", docSnapshot.id));
+            const pendingRequestRef = collection(db, "accounts", userId, "pendingrequest");
+            await addDoc(pendingRequestRef, itemData); // Add to pending requests
+  
+            // Deletion operation for temporaryRequests
+            deletionPromises.push(deleteDoc(doc(db, "accounts", userId, "temporaryRequests", docSnapshot.id)));
+  
+            // Remove item from requestList and update localStorage
+            const updatedRequestList = requestList.filter((item) => item.id !== itemData.id);
+            setRequestList(updatedRequestList); // Update state to remove item
+            localStorage.setItem('requestList', JSON.stringify(updatedRequestList));
+  
+            // Remove item from pendingrequest collection
+            const pendingRequestDocs = await getDocs(pendingRequestRef);
+            pendingRequestDocs.forEach(async (pendingDoc) => {
+              if (pendingDoc.data().id === itemData.id) {
+                deletionPromises.push(deleteDoc(doc(db, "accounts", userId, "pendingrequest", pendingDoc.id)));
+              }
+            });
           });
   
+          // Wait for all deletions and additions to finish
+          await Promise.all(deletionPromises);
+  
           message.success("Requisition sent successfully!");
-          setIsFinalizeVisible(false);
-
+          setIsFinalizeVisible(false); // Close the finalize modal
+  
+          // Clear form fields and reset the list
+          setDateRequired(null); // Reset date input
+          setTimeFrom(null); // Reset time input
+          setTimeTo(null); // Reset time input
+          setProgram(""); // Reset program input
+          setRoom(""); // Reset room input
+          setReason(""); // Reset reason input
+          setRequestList([]); // Reset request list
+  
+          // Optionally clear localStorage if you want to reset the stored list
+          localStorage.removeItem('requestList');
         } else {
           message.error("User is not logged in.");
         }
-
+  
       } catch (error) {
         console.error("Error finalizing the requisition:", error);
         message.error("Failed to send requisition. Please try again.");
