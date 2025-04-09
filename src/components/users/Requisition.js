@@ -323,11 +323,12 @@ const Requisition = () => {
             });
           });
   
+          // Wait for all deletions and additions to finish
           await Promise.all(deletionPromises);
   
           setNotificationMessage("Requisition sent successfully!");
           setIsNotificationVisible(true);
-          setIsFinalizeVisible(false);
+          setIsFinalizeVisible(false); 
   
           setDateRequired(null);
           setTimeFrom(null);  

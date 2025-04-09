@@ -1,48 +1,47 @@
 import React, { useState, useEffect } from "react";
-import { message } from "antd";
-import { useHistory } from "react-router-dom";  // or 'react-router-dom' for navigation
+import { Modal } from "antd";
+import { useNavigate } from "react-router-dom"; // Import useNavigate instead of useHistory
 
-const SessionTimeout = () => {
+const SessionTimeout = ({ onLogout }) => {  // Accept onLogout prop
   const [timer, setTimer] = useState(null);
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
-  const history = useHistory();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const navigate = useNavigate(); 
 
-  const timeoutDuration = 15 * 60 * 1000; // 15 minutes in milliseconds
+  const timeoutDuration = 1 * 60 * 1000; // 1 minute in milliseconds
 
-  // Function to log out the user
   const logoutUser = () => {
-    // You can perform any logout action here (e.g., clearing tokens, redirecting to login page)
-    localStorage.removeItem("userId"); // Example: remove userId from localStorage
-    message.warning("Your session has timed out due to inactivity.");
-    history.push("/login");  // Redirect to the login page
+    localStorage.removeItem("userId");
+    onLogout();  // Call the onLogout prop to update the login state in AppController
+    navigate("/");  // Redirect to the login page
   };
 
-  // Function to reset the timeout when activity is detected
+  const showSessionTimeoutModal = () => {
+    setIsModalVisible(true);
+  };
+
   const resetTimeout = () => {
-    setLastActivityTime(Date.now());  // Update last activity time
+    setLastActivityTime(Date.now());  
     if (timer) {
-      clearTimeout(timer);  // Clear previous timeout
+      clearTimeout(timer);  
     }
-    // Set a new timeout to log out the user
+
     const newTimer = setTimeout(() => {
-      logoutUser();
+      showSessionTimeoutModal();  
     }, timeoutDuration);
 
-    setTimer(newTimer);  // Set new timer state
+    setTimer(newTimer);  
   };
 
-  // Set up event listeners to detect user activity
   useEffect(() => {
     const handleActivity = () => {
-      resetTimeout();  // Reset the timeout whenever user interacts
+      resetTimeout();  
     };
 
-    // Add event listeners for user activity (mousemove, click, keypress)
     window.addEventListener("mousemove", handleActivity);
     window.addEventListener("keydown", handleActivity);
     window.addEventListener("click", handleActivity);
 
-    // Clean up event listeners on component unmount
     return () => {
       window.removeEventListener("mousemove", handleActivity);
       window.removeEventListener("keydown", handleActivity);
@@ -50,17 +49,35 @@ const SessionTimeout = () => {
     };
   }, [lastActivityTime]);
 
-  // Start the session timer when the component mounts
   useEffect(() => {
-    resetTimeout();  // Start the timeout
+    resetTimeout();  
     return () => {
       if (timer) {
-        clearTimeout(timer);  // Clear the timeout when the component unmounts
+        clearTimeout(timer);  
       }
     };
   }, []);
 
-  return null;  // This component doesn't render anything but runs the session timeout logic
+  const handleOk = () => {
+    logoutUser();
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    resetTimeout();  
+  };
+
+  return (
+    <Modal
+      title="Session Timeout"
+      visible={isModalVisible}
+      onOk={handleOk}
+      okText="Okay"
+    >
+      <p>Your session has timed out due to inactivity. Please log in again.</p>
+    </Modal>
+  );
 };
 
 export default SessionTimeout;
