@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout, Row, Col, Card, Button, Typography, Space, Modal, Table, notification } from "antd";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/PendingRequest.css";
+import { db } from "../../backend/firebase/FirebaseConfig"; 
+import { collection, getDocs } from "firebase/firestore";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -13,52 +15,27 @@ const PendingRequest = () => {
   const [approvedRequests, setApprovedRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [requests, setRequests] = useState([]);
 
-  const [requests, setRequests] = useState([
-    {
-      id: "Req0002",
-      name: "Ma. Nadine Faye Rufo",
-      requisitionDate: "Sept. 28, 2025",
-      requiredDate: "Oct. 7, 2025",
-      department: "Medical Technology",
-      reason:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      room: "Lab 203",
-      courseCode: "MEDTECH101",
-      courseDescription: "Introduction to Medical Technology",
-      timeNeeded: "9:00 AM - 12:00 PM",
-      items: [
-        {
-          id: "Med02",
-          description: "Syringe",
-          quantity: "24 pieces",
-          category: "Equipment",
-          itemCondition: "New",
-        },
-      ],
-    },
-    {
-      id: "Req0004",
-      name: "Mikmik Dubu",
-      requisitionDate: "Sept. 28, 2025",
-      requiredDate: "Oct. 7, 2025",
-      department: "Nursing",
-      reason: "For training purposes in laboratory simulations.",
-      room: "Lab 105",
-      courseCode: "NURS102",
-      courseDescription: "Advanced Nursing Procedures",
-      timeNeeded: "1:00 PM - 4:00 PM",
-      items: [
-        {
-          id: "Med03",
-          description: "Gauze",
-          quantity: "10 packs",
-          category: "Supplies",
-          itemCondition: "Good",
-        },
-      ],
-    },
-  ]);
+  useEffect(() => {
+    const fetchUserRequests = async () => {
+      try {
+        const userRequestRef = collection(db, "userrequests");
+        const querySnapshot = await getDocs(userRequestRef);
+        const fetchedRequests = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setRequests(fetchedRequests);
+
+      } catch (error) {
+        console.error("Error fetching requests: ", error);
+      }
+    };
+
+    fetchUserRequests();
+  }, []);
 
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
@@ -69,11 +46,11 @@ const PendingRequest = () => {
     setCheckedItems({});
     setIsModalVisible(false);
     setSelectedRequest(null);
-  };  
+  };
 
   const handleApprove = () => {
     const isChecked = Object.values(checkedItems).some((checked) => checked);
-  
+
     if (!isChecked) {
       Modal.warning({
         title: "No Items Selected",
@@ -81,7 +58,7 @@ const PendingRequest = () => {
       });
       return;
     }
-  
+
     if (selectedRequest) {
       setApprovedRequests([...approvedRequests, selectedRequest]);
       setRequests(requests.filter((req) => req.id !== selectedRequest.id));
@@ -89,7 +66,7 @@ const PendingRequest = () => {
       setIsModalVisible(false);
       setSelectedRequest(null);
     }
-  };  
+  };
 
   const handleReturn = () => {
     if (selectedRequest) {
@@ -97,10 +74,10 @@ const PendingRequest = () => {
       setApprovedRequests(
         approvedRequests.filter((req) => req.id !== selectedRequest.id)
       );
-      
+
       setIsModalVisible(false);
       setSelectedRequest(null);
-  
+
       setTimeout(() => {
         notification.success({
           message: "Request Returned",
@@ -109,10 +86,10 @@ const PendingRequest = () => {
         });
       }, 100);
     }
-  };  
+  };
 
   const handlePrint = () => {
-    window.print(); 
+    window.print();
   };
 
   const columns = [
@@ -139,7 +116,7 @@ const PendingRequest = () => {
     },
     {
       title: "Item Description",
-      dataIndex: "description",
+      dataIndex: "itemName",
     },
     {
       title: "Quantity",
@@ -151,29 +128,35 @@ const PendingRequest = () => {
     },
     {
       title: "Item Condition",
-      dataIndex: "itemCondition",
+      dataIndex: "condition",
     },
   ];
-  
 
+  const formatDate = (timestamp) => {
+    if (!timestamp || !timestamp.toDate) return "N/A";
+    const date = timestamp.toDate(); 
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+  
   return (
     <Layout style={{ minHeight: "100vh" }}>
-
       <Layout>
         <Content style={{ margin: "20px" }}>
-
           <Row gutter={24}>
             <Col span={16}>
-
               <Title level={4}>List of Requests</Title>
-              
+
               {requests.map((request, index) => (
                 <Card key={request.id} className="request-card">
                   <Row justify="space-between" align="middle">
                     <Col>
                       <Text strong> {index + 1}. </Text>
                       <Text strong>
-                        Requestor: {" "}
+                        Requestor: {request.userName}
                         <span style={{ fontWeight: "bold" }}>
                           {request.name}
                         </span>
@@ -206,13 +189,13 @@ const PendingRequest = () => {
 
                     <Col style={{ textAlign: "right" }}>
                       <Text type="secondary">
-                        Requisition Date: {request.requisitionDate}
+                        Requisition Date: {formatDate(request.timestamp)}
                       </Text>
 
                       <br />
 
                       <Text type="secondary">
-                        Required Date: {request.requiredDate}
+                        Required Date: {request.dateRequired}
                       </Text>
                     </Col>
                   </Row>
@@ -286,22 +269,22 @@ const PendingRequest = () => {
               <div style={{ padding: "20px" }}>
                 <Row gutter={[16, 16]}>
                   <Col span={12}>
-                    <Text strong>Name:</Text> {selectedRequest.name}
+                    <Text strong>Name:</Text> {selectedRequest.userName}
 
                     <br />
 
                     <Text strong>Request Date:</Text>{" "}
-                    {selectedRequest.requisitionDate}
+                    {formatDate(selectedRequest.timestamp)}
 
                     <br />
 
                     <Text strong>Required Date:</Text>{" "}
-                    {selectedRequest.requiredDate}
+                    {selectedRequest.dateRequired}
 
                     <br />
 
                     <Text strong>Time Needed:</Text>{" "}
-                    {selectedRequest.timeNeeded}
+                    {selectedRequest.timeFrom} -  {selectedRequest.timeTo}
                   </Col>
 
                   <Col span={12}>
@@ -309,7 +292,7 @@ const PendingRequest = () => {
                     <p style={{ fontSize: "12px", marginTop: 5 }}>
                       {selectedRequest.reason}
                     </p>
-                   
+
                     <br />
 
                     <Text strong>Room:</Text> {selectedRequest.room}
@@ -326,17 +309,17 @@ const PendingRequest = () => {
 
                     <br />
 
-                    <Text strong>Department:</Text>{" "}
-                    {selectedRequest.department}
+                    <Text strong>Program:</Text>{" "}
+                    {selectedRequest.program}
                   </Col>
                 </Row>
 
                 <Title level={5} style={{ marginTop: 20 }}>
                   Requested Items:
                 </Title>
-                
+
                 <Table
-                  dataSource={selectedRequest.items}
+                  dataSource={selectedRequest.requestList}
                   columns={columns}
                   rowKey="id"
                   pagination={false}

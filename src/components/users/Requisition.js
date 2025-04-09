@@ -17,7 +17,7 @@ import {
 } from "@ant-design/icons";
 import moment from "moment";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getFirestore, collection, addDoc, Timestamp, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, Timestamp, getDocs, updateDoc, doc, deleteDoc,setDoc, getDoc } from "firebase/firestore";
 import { getAuth } from 'firebase/auth';
 import { db } from "../../backend/firebase/FirebaseConfig";
 import Sidebar from "../Sidebar";
@@ -139,6 +139,7 @@ const Requisition = () => {
       delete newState.loginSuccess;
       navigate(location.pathname, { replace: true, state: newState });
     }
+
   }, [location.state, navigate]);  
 
   const closeModal = () => {
@@ -214,12 +215,10 @@ const Requisition = () => {
     setRequestList(updatedList);
     localStorage.setItem('requestList', JSON.stringify(updatedList)); 
   };
-  
 
   const finalizeRequest = async () => {
     let isValid = true;
   
-    // Validate fields
     if (!dateRequired) {
       message.error("Please select a date!");
       isValid = false;
@@ -228,6 +227,7 @@ const Requisition = () => {
     if (!program) {
       setProgramError(true);
       isValid = false;
+
     } else {
       setProgramError(false);
     }
@@ -249,6 +249,17 @@ const Requisition = () => {
         const userId = localStorage.getItem("userId");
   
         if (userId) {
+          // Fetch the user's name from the accounts collection
+          const userDocRef = doc(db, "accounts", userId);
+          const userDocSnapshot = await getDoc(userDocRef);
+          
+          if (!userDocSnapshot.exists()) {
+            message.error("User not found.");
+            return;
+          }
+  
+          const userName = userDocSnapshot.data().name; // Assuming the name field is stored in the 'accounts' collection
+  
           // Add data to the user's requests collection
           const userRequestRef = collection(db, "accounts", userId, "userRequests");
           const requestData = {
@@ -259,10 +270,19 @@ const Requisition = () => {
             room,
             reason,
             requestList,
-            timestamp: Timestamp.fromDate(new Date()),
+            userName, // Add the user's name to the request data
+            timestamp: Timestamp.now(),
           };
   
           await addDoc(userRequestRef, requestData);
+  
+          // Add the user request data to the root userrequests collection
+          const userRequestsRootRef = collection(db, "userrequests");
+          const newUserRequestRef = doc(userRequestsRootRef);
+          await setDoc(newUserRequestRef, {
+            ...requestData,
+            accountId: userId, // Optionally add the user ID to the root-level document
+          });
   
           const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
           const querySnapshot = await getDocs(tempRequestRef);
@@ -310,17 +330,18 @@ const Requisition = () => {
   
           // Optionally clear localStorage if you want to reset the stored list
           localStorage.removeItem('requestList');
+
         } else {
           message.error("User is not logged in.");
         }
-  
+        
       } catch (error) {
         console.error("Error finalizing the requisition:", error);
         message.error("Failed to send requisition. Please try again.");
       }
     }
-  };  
-
+  };
+  
   const columns = [
     {
       title: "ID",
