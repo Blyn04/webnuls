@@ -15,6 +15,8 @@ const PendingRequest = () => {
   const [approvedRequests, setApprovedRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
   const [requests, setRequests] = useState([]);
 
   useEffect(() => {
@@ -52,10 +54,8 @@ const PendingRequest = () => {
     const isChecked = Object.values(checkedItems).some((checked) => checked);
 
     if (!isChecked) {
-      Modal.warning({
-        title: "No Items Selected",
-        content: "Please select at least one item before approving.",
-      });
+      setNotificationMessage("No Items selected");
+      setIsNotificationVisible(true);
       return;
     }
 

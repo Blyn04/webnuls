@@ -58,6 +58,8 @@ const Requisition = () => {
   const [searchUsageType, setSearchUsageType] = useState("");
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
+  const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
   const auth = getAuth();
@@ -149,7 +151,8 @@ const Requisition = () => {
   const addToList = async (item) => {
     const alreadyAdded = requestList.find((req) => req.id === item.id);
     if (alreadyAdded) {
-      message.warning("Item already added!");
+      setNotificationMessage("Item already added!");
+      setIsNotificationVisible(true);
 
     } else {
       const updatedRequestList = [...requestList, { ...item, quantity: "" }];
@@ -168,11 +171,13 @@ const Requisition = () => {
             timestamp: Timestamp.fromDate(new Date()), 
           });
 
-          message.success("Item added to temporary list.");
+          setNotificationMessage("Item added to temporary list");
+          setIsNotificationVisible(true);
 
         } catch (error) {
           console.error("Error adding item to temporary list:", error);
-          message.error("Failed to add item to temporary list.");
+          setNotificationMessage("Failed to add item to temporary list.");
+          setIsNotificationVisible(true);
         }
       }
     }
@@ -194,15 +199,17 @@ const Requisition = () => {
   
         if (docToDelete) {
           await deleteDoc(docToDelete.ref);
-          message.success("Item removed from the list.");
+          setNotificationMessage("Item removed from the list");
+          setIsNotificationVisible(true);
+          
 
         } else {
-          message.warning("Item not found in Firestore.");
+          setNotificationMessage("Item not found in Firestore.");
+          setIsNotificationVisible(true);
         }
 
       } catch (error) {
         console.error("Error removing item from Firestore:", error);
-        message.error("Failed to remove item from Firestore.");
       }
     }
   };  
@@ -220,7 +227,8 @@ const Requisition = () => {
     let isValid = true;
   
     if (!dateRequired) {
-      message.error("Please select a date!");
+      setNotificationMessage("Please select a date!.");
+      setIsNotificationVisible(true);
       isValid = false;
     }
   
@@ -235,12 +243,14 @@ const Requisition = () => {
     if (!room) {
       setRoomError(true);
       isValid = false;
+
     } else {
       setRoomError(false);
     }
   
     if (requestList.length === 0) {
-      message.error("Please add items to the request list!");
+      setNotificationMessage("Please add items to the request list!");
+      setIsNotificationVisible(true);
       isValid = false;
     }
   
@@ -316,7 +326,8 @@ const Requisition = () => {
           // Wait for all deletions and additions to finish
           await Promise.all(deletionPromises);
   
-          message.success("Requisition sent successfully!");
+          setNotificationMessage("Requisition sent successfully!");
+          setIsNotificationVisible(true);
           setIsFinalizeVisible(false); // Close the finalize modal
   
           // Clear form fields and reset the list
@@ -334,7 +345,7 @@ const Requisition = () => {
         } else {
           message.error("User is not logged in.");
         }
-        
+
       } catch (error) {
         console.error("Error finalizing the requisition:", error);
         message.error("Failed to send requisition. Please try again.");
@@ -597,6 +608,7 @@ const Requisition = () => {
                     disabledMinutes={(selectedHour) => {
                       if (!timeFrom) return [];
                       const [startHour, startMinute] = timeFrom.split(":").map(Number);
+
                       if (selectedHour === startHour) {
                         return Array.from({ length: startMinute }, (_, i) => i);
                       }
