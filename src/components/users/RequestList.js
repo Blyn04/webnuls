@@ -41,26 +41,33 @@ const RequestList = () => {
 
   const fetchRequests = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "accounts/7Gy44baolf72J0T8yq3u/userRequests"));
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        throw new Error("User ID not found in localStorage.");
+      }
+  
+      const querySnapshot = await getDocs(collection(db, `accounts/${userId}/userRequests`));
       const fetched = [];
-
+  
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         fetched.push({
           id: doc.id,
-          dateRequested: new Date(data.timestamp.seconds * 1000).toLocaleDateString(),
-          dateRequired: data.dateRequired,
+          dateRequested: data.timestamp
+            ? new Date(data.timestamp.seconds * 1000).toLocaleDateString()
+            : "N/A",
+          dateRequired: data.dateRequired || "N/A",
           requester: data.name || "Unknown",
-          room: data.room,
-          timeNeeded: `${data.timeFrom} - ${data.timeTo}`,
+          room: data.room || "N/A",
+          timeNeeded: `${data.timeFrom || "N/A"} - ${data.timeTo || "N/A"}`,
           courseCode: data.program || "N/A",
           courseDescription: data.reason || "N/A",
           items: data.requestList || [],
-          status: "PENDING", // assuming static for now
+          status: "PENDING", // Assuming static for now
           message: data.reason || "",
         });
       });
-
+  
       setRequests(fetched);
     } catch (err) {
       console.error("Error fetching requests:", err);
@@ -68,7 +75,7 @@ const RequestList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   useEffect(() => {
     fetchRequests();

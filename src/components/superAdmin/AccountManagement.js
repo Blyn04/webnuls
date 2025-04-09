@@ -13,7 +13,8 @@ import {
 } from "antd";
 import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
-import { db } from "../../backend/firebase/FirebaseConfig";
+import { db, auth } from "../../backend/firebase/FirebaseConfig";
+import { createUserWithEmailAndPassword, updateEmail } from "firebase/auth";
 import {
   collection,
   addDoc,
