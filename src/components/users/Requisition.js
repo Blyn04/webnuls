@@ -268,7 +268,7 @@ const Requisition = () => {
             return;
           }
   
-          const userName = userDocSnapshot.data().name; // Assuming the name field is stored in the 'accounts' collection
+          const userName = userDocSnapshot.data().name;
   
           // Add data to the user's requests collection
           const userRequestRef = collection(db, "accounts", userId, "userRequests");
@@ -280,7 +280,7 @@ const Requisition = () => {
             room,
             reason,
             requestList,
-            userName, // Add the user's name to the request data
+            userName, 
             timestamp: Timestamp.now(),
           };
   
@@ -291,7 +291,7 @@ const Requisition = () => {
           const newUserRequestRef = doc(userRequestsRootRef);
           await setDoc(newUserRequestRef, {
             ...requestData,
-            accountId: userId, // Optionally add the user ID to the root-level document
+            accountId: userId,
           });
   
           const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
@@ -323,21 +323,19 @@ const Requisition = () => {
             });
           });
   
-          // Wait for all deletions and additions to finish
           await Promise.all(deletionPromises);
   
           setNotificationMessage("Requisition sent successfully!");
           setIsNotificationVisible(true);
-          setIsFinalizeVisible(false); // Close the finalize modal
+          setIsFinalizeVisible(false);
   
-          // Clear form fields and reset the list
-          setDateRequired(null); // Reset date input
-          setTimeFrom(null); // Reset time input
-          setTimeTo(null); // Reset time input
-          setProgram(""); // Reset program input
-          setRoom(""); // Reset room input
-          setReason(""); // Reset reason input
-          setRequestList([]); // Reset request list
+          setDateRequired(null);
+          setTimeFrom(null);  
+          setTimeTo(null); 
+          setProgram(""); 
+          setRoom("");
+          setReason(""); 
+          setRequestList([]); 
   
           // Optionally clear localStorage if you want to reset the stored list
           localStorage.removeItem('requestList');
