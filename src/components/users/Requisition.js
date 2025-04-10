@@ -202,7 +202,6 @@ const Requisition = () => {
           setNotificationMessage("Item removed from the list");
           setIsNotificationVisible(true);
           
-
         } else {
           setNotificationMessage("Item not found in Firestore.");
           setIsNotificationVisible(true);
