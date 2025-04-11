@@ -195,6 +195,7 @@ const Login = () => {
       if (!querySnapshot.empty) {
         userDoc = querySnapshot.docs[0];
         userData = userDoc.data();
+
       } else {
         // 🔎 Then check if it's a super-admin
         const superAdminRef = collection(db, "super-admin");
@@ -231,6 +232,7 @@ const Login = () => {
           setError(`Account is blocked. Try again after ${remainingTime} seconds.`);
           setIsLoading(false);
           return;
+
         } else {
           await updateDoc(userDoc.ref, {
             isBlocked: false,
@@ -266,6 +268,7 @@ const Login = () => {
             });
   
             setError("Super Admin account blocked. Try again after 30 minutes.");
+
           } else {
             await updateDoc(userDoc.ref, { loginAttempts: newAttempts });
             setError(`Invalid password. ${4 - newAttempts} attempts remaining.`);
@@ -295,9 +298,11 @@ const Login = () => {
             case "admin":
               navigate("/main/dashboard", { state: { loginSuccess: true, role } });
               break;
+
             case "user":
               navigate("/main/requisition", { state: { loginSuccess: true, role } });
               break;
+
             default:
               setError("Unknown role. Please contact admin.");
               break;
@@ -316,6 +321,7 @@ const Login = () => {
             });
   
             setError("Account blocked after 4 failed attempts. Try again after 30 minutes.");
+
           } else {
             await updateDoc(userDoc.ref, { loginAttempts: newAttempts });
             setError(`Invalid password. ${4 - newAttempts} attempts remaining.`);
@@ -326,12 +332,12 @@ const Login = () => {
     } catch (error) {
       console.error("Error during login:", error.message);
       setError("Unexpected error. Please try again.");
+
     } finally {
       setIsLoading(false);
     }
   };
   
-
   // const handleRegisterPassword = async () => {
   //   if (formData.password !== confirmPassword) {
   //     setError("Passwords do not match.");
@@ -389,6 +395,7 @@ const Login = () => {
   //     setError("Failed to set password. Try again.");
   //   }
   // };  
+
   const handleRegisterPassword = async () => {
     if (formData.password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -427,12 +434,15 @@ const Login = () => {
           case "super-admin":
             navigate("/main/accounts", { state: { loginSuccess: true, role: "super-admin" } });
             break;
+
           case "admin":
             navigate("/main/dashboard", { state: { loginSuccess: true, role: "admin" } });
             break;
+
           case "user":
             navigate("/main/requisition", { state: { loginSuccess: true, role: "user" } });
             break;
+
           default:
             setError("Unknown role. Please contact admin.");
             return;
@@ -449,12 +459,12 @@ const Login = () => {
       console.error("Error setting password and UID:", error.message);
       if (error.code === "auth/email-already-in-use") {
         setError("Email already in use. Try logging in instead.");
+
       } else {
         setError("Failed to set password. Try again.");
       }
     }
   };
-  
   
   const handleForgotPassword = async () => {
     if (!forgotPasswordEmail) {
