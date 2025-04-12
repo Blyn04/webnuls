@@ -16,6 +16,10 @@ import {
   doc,
   updateDoc,
   getDoc,
+  deleteDoc,
+  setDoc,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "../../backend/firebase/FirebaseConfig";
 import { getAuth } from "firebase/auth";
@@ -113,14 +117,53 @@ const RequestList = () => {
   const handleCancelRequest = async () => {
     try {
       const userId = localStorage.getItem("userId");
-      const requestRef = doc(db, `accounts/${userId}/userRequests`, selectedRequest.id);
-      await updateDoc(requestRef, { status: "CANCELLED" });
-      setNotificationMessage("Request successfully canceled!");
+  
+      if (!userId || !selectedRequest?.id) {
+        throw new Error("Missing user ID or selected request ID.");
+      }
+  
+      const userRequestRef = doc(db, `accounts/${userId}/userRequests`, selectedRequest.id);
+      const activityLogRef = doc(db, `accounts/${userId}/activitylog`, selectedRequest.id);
+  
+      // Fetch request data before deleting
+      const requestSnap = await getDoc(userRequestRef);
+      if (!requestSnap.exists()) throw new Error("Request not found.");
+  
+      const requestData = requestSnap.data();
+  
+      // Write to activity log
+      await setDoc(activityLogRef, {
+        ...requestData,
+        status: "CANCELLED",
+        cancelledAt: new Date(),
+      });
+  
+      // Delete from userRequests subcollection
+      await deleteDoc(userRequestRef);
+  
+      // Find and delete from root userrequests collection
+      const rootQuery = query(
+        collection(db, "userrequests"),
+        where("accountId", "==", userId),
+        where("timestamp", "==", requestData.timestamp) // Assumes timestamp is unique for each request
+      );
+  
+      const rootSnap = await getDocs(rootQuery);
+      const batchDeletes = [];
+  
+      rootSnap.forEach((docSnap) => {
+        batchDeletes.push(deleteDoc(doc(db, "userrequests", docSnap.id)));
+      });
+  
+      await Promise.all(batchDeletes);
+  
+      // UI feedback
+      setNotificationMessage("Request successfully canceled and logged.");
       setNotificationVisible(true);
       setSelectedRequest(null);
       setViewDetailsModalVisible(false);
-      fetchRequests(); 
-
+      fetchRequests();
+      
     } catch (err) {
       console.error("Error canceling request:", err);
       setNotificationMessage("Failed to cancel the request.");
