@@ -19,6 +19,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../backend/firebase/FirebaseConfig";
 import { getAuth } from "firebase/auth";
+import NotificationModal from "../customs/NotifcationModal"; 
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -30,6 +31,8 @@ const RequestList = () => {
   const [loading, setLoading] = useState(true);
   const [viewDetailsModalVisible, setViewDetailsModalVisible] = useState(false);
   const [userName, setUserName] = useState("User");
+  const [notificationVisible, setNotificationVisible] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
 
   const fetchUserName = async () => {
     const auth = getAuth();
@@ -61,6 +64,7 @@ const RequestList = () => {
                 if (invDoc.exists()) {
                   itemId = invDoc.data().itemId || "N/A";
                 }
+
               } catch (err) {
                 console.error(`Error fetching inventory item ${inventoryId}:`, err);
               }
@@ -93,7 +97,8 @@ const RequestList = () => {
       setRequests(fetched);
     } catch (err) {
       console.error("Error fetching requests:", err);
-      message.error("Failed to fetch user requests.");
+      setNotificationMessage("Failed to fetch user requests.");
+      setNotificationVisible(true);
       
     } finally {
       setLoading(false);
@@ -110,14 +115,16 @@ const RequestList = () => {
       const userId = localStorage.getItem("userId");
       const requestRef = doc(db, `accounts/${userId}/userRequests`, selectedRequest.id);
       await updateDoc(requestRef, { status: "CANCELLED" });
-      message.success("Request successfully canceled!");
+      setNotificationMessage("Request successfully canceled!");
+      setNotificationVisible(true);
       setSelectedRequest(null);
       setViewDetailsModalVisible(false);
       fetchRequests(); 
 
     } catch (err) {
       console.error("Error canceling request:", err);
-      message.error("Failed to cancel the request.");
+      setNotificationMessage("Failed to cancel the request.");
+      setNotificationVisible(true);
     }
   };
 
@@ -300,6 +307,13 @@ const RequestList = () => {
           </Modal>
         </Content>
       </Layout>
+
+      <NotificationModal
+        isVisible={notificationVisible}
+        onClose={() => setNotificationVisible(false)}
+        message={notificationMessage}
+      />
+
     </Layout>
   );
 };
