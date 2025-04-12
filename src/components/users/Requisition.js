@@ -1319,7 +1319,8 @@ const Requisition = () => {
                   const selectedCategory = e.target.value;
                   setSearchCategory(selectedCategory);
                   if (selectedCategory === "") {
-                    setFilteredItems(items); // Show all items if no category is selected
+                    setFilteredItems(items);
+                    
                   } else {
                     const filteredData = items.filter((item) => item.category === selectedCategory);
                     setFilteredItems(filteredData);

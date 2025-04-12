@@ -1,87 +1,56 @@
 .activity-content {
   padding: 20px;
-  background-color: #f5f5f5;
+  background-color: #f0f2f5;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.activity-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.icon-activity {
-  font-size: 20px;
-  margin-right: 8px;
-}
-
-.activity-search {
-  margin-bottom: 10px;
-  width: 100%;
-  height: 40px;
-  border-radius: 8px;
-  border: 1px solid #d9d9d9;
-  padding: 5px 12px;
-}
-
 .activity-table {
-  width: 100%;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
   overflow: hidden;
-}
-
-.table-header {
-  background-color: #092685;
-  color: white;
-  font-weight: bold;
-  text-align: center;
-  padding: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 .ant-table-thead > tr > th {
-  background-color: #092685 !important;
-  color: white !important;
-  font-size: 14px;
-  padding: 12px;
-  text-align: center;
+  background-color: rgba(9, 38, 133, 0.8) !important;
+  color: #fff !important;
 }
 
 .ant-table-tbody > tr:nth-child(odd) {
-  background-color: #f9f9f9;
+  background-color: rgba(255, 255, 255, 0.4);
 }
 
 .ant-table-tbody > tr:nth-child(even) {
-  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.6);
 }
 
-.ant-table-tbody > tr:hover {
-  background-color: #e0e0e0 !important;
-  cursor: pointer;
-}
+@media screen and (max-width: 768px) {
+  .activity-content {
+    padding: 10px;
+  }
 
-.ant-table-tbody > tr:hover td {
-  color: black !important;
-}
+  .activity-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-.activity-row {
-  text-align: center;
-  font-size: 14px;
-  padding: 10px;
-}
+  .activity-search {
+    width: 100%;
+  }
 
-.empty-row {
-  height: 50px;
-  background-color: #fff;
-  border-top: 1px solid #e8e8e8;
-  text-align: center;
-  padding: 12px;
-  color: #888;
-}
+  .ant-table {
+    font-size: 12px;
+  }
 
-.empty-row span {
-  font-style: italic;
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 8px;
+  }
+
+  .activity-table {
+    overflow-x: auto;
+  }
 }
