@@ -986,8 +986,9 @@ const Requisition = () => {
     }
   };
   
-   const finalizeRequest = async () => {
+  const finalizeRequest = async () => {
     let isValid = true;
+    let idsToRemove = [];
   
     if (!dateRequired) {
       setNotificationMessage("Please select a date!.");
@@ -998,7 +999,6 @@ const Requisition = () => {
     if (!program) {
       setProgramError(true);
       isValid = false;
-
     } else {
       setProgramError(false);
     }
@@ -1006,7 +1006,6 @@ const Requisition = () => {
     if (!room) {
       setRoomError(true);
       isValid = false;
-
     } else {
       setRoomError(false);
     }
@@ -1025,7 +1024,7 @@ const Requisition = () => {
           // Fetch the user's name from the accounts collection
           const userDocRef = doc(db, "accounts", userId);
           const userDocSnapshot = await getDoc(userDocRef);
-          
+  
           if (!userDocSnapshot.exists()) {
             message.error("User not found.");
             return;
@@ -1043,13 +1042,13 @@ const Requisition = () => {
             room,
             reason,
             requestList,
-            userName, 
+            userName,
             timestamp: Timestamp.now(),
           };
   
           await addDoc(userRequestRef, requestData);
   
-          // Add the user request data to the root userrequests collection
+          // Add to root userrequests collection
           const userRequestsRootRef = collection(db, "userrequests");
           const newUserRequestRef = doc(userRequestsRootRef);
           await setDoc(newUserRequestRef, {
@@ -1060,62 +1059,65 @@ const Requisition = () => {
           const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
           const querySnapshot = await getDocs(tempRequestRef);
   
-          const deletionPromises = []; // Collect promises for deletions
+          const deletionPromises = [];
   
-          // For each document in the temporaryRequests collection, handle addition to pendingrequest and deletion
-          querySnapshot.forEach(async (docSnapshot) => {
+          querySnapshot.forEach((docSnapshot) => {
             const itemData = docSnapshot.data();
+            idsToRemove.push(itemData.id);
   
             const pendingRequestRef = collection(db, "accounts", userId, "pendingrequest");
-            await addDoc(pendingRequestRef, itemData); // Add to pending requests
   
-            // Deletion operation for temporaryRequests
-            deletionPromises.push(deleteDoc(doc(db, "accounts", userId, "temporaryRequests", docSnapshot.id)));
+            deletionPromises.push(
+              (async () => {
+                // Add to pending requests
+                await addDoc(pendingRequestRef, itemData);
   
-            // Remove item from requestList and update localStorage
-            const updatedRequestList = requestList.filter((item) => item.id !== itemData.id);
-            setRequestList(updatedRequestList); // Update state to remove item
-            localStorage.setItem('requestList', JSON.stringify(updatedRequestList));
+                // Delete from temporaryRequests
+                await deleteDoc(doc(db, "accounts", userId, "temporaryRequests", docSnapshot.id));
   
-            // Remove item from pendingrequest collection
-            const pendingRequestDocs = await getDocs(pendingRequestRef);
-            pendingRequestDocs.forEach(async (pendingDoc) => {
-              if (pendingDoc.data().id === itemData.id) {
-                deletionPromises.push(deleteDoc(doc(db, "accounts", userId, "pendingrequest", pendingDoc.id)));
-              }
-            });
+                // Delete from pendingRequest if already exists
+                const pendingRequestDocs = await getDocs(pendingRequestRef);
+                pendingRequestDocs.forEach((pendingDoc) => {
+                  if (pendingDoc.data().id === itemData.id) {
+                    deletionPromises.push(deleteDoc(doc(db, "accounts", userId, "pendingrequest", pendingDoc.id)));
+                  }
+                });
+              })()
+            );
           });
   
-          // Wait for all deletions and additions to finish
           await Promise.all(deletionPromises);
+  
+          // Filter out removed items from requestList
+          const updatedRequestList = requestList.filter((item) => !idsToRemove.includes(item.id));
+          setRequestList(updatedRequestList);
+          localStorage.setItem('requestList', JSON.stringify(updatedRequestList));
   
           setNotificationMessage("Requisition sent successfully!");
           setIsNotificationVisible(true);
-          setIsFinalizeVisible(false); 
+          setIsFinalizeVisible(false);
   
           setDateRequired(null);
-          setTimeFrom(null);  
-          setTimeTo(null); 
-          setProgram(""); 
+          setTimeFrom(null);
+          setTimeTo(null);
+          setProgram("");
           setRoom("");
-          setReason(""); 
-          setRequestList([]); 
+          setReason("");
+          setRequestList([]);
   
-          // Optionally clear localStorage if you want to reset the stored list
+          // Optionally clear localStorage
           localStorage.removeItem('requestList');
-
         } else {
           message.error("User is not logged in.");
         }
-
+  
       } catch (error) {
         console.error("Error finalizing the requisition:", error);
         message.error("Failed to send requisition. Please try again.");
       }
     }
-  };
+  };  
   
-
   const removeFromList = async (id) => {
     const updatedList = requestList.filter((item) => item.id !== id);
     setRequestList(updatedList);
