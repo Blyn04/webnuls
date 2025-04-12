@@ -804,6 +804,7 @@ import {
   CalendarOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
+import dayjs from 'dayjs';
 import { useLocation, useNavigate } from "react-router-dom";
 import { getFirestore, collection, addDoc, Timestamp, getDocs, updateDoc, doc, deleteDoc,setDoc, getDoc } from "firebase/firestore";
 import { getAuth } from 'firebase/auth';
@@ -1216,7 +1217,7 @@ const Requisition = () => {
                   key={item.id}
                   value={item.id}
                   label={item.itemName}
-                  disabled={isDisabled} // Prevent duplicate selections
+                  disabled={isDisabled}
                 >
                   {label}
                 </Select.Option>
@@ -1351,6 +1352,7 @@ const Requisition = () => {
             <div className="date-required">
               <strong>Date Required:</strong>
               <DatePicker
+                value={dateRequired ? dayjs(dateRequired, "YYYY-MM-DD") : null}
                 onChange={(date, dateString) => setDateRequired(dateString)}
                 disabledDate={(current) => current && current < moment().startOf("day")}
                 style={{
@@ -1369,6 +1371,7 @@ const Requisition = () => {
                 <strong>Time Needed:</strong>
                 <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
                   <TimePicker
+                   value={timeFrom ? dayjs(timeFrom, "HH:mm") : null}
                     placeholder="From"
                     onChange={(time, timeString) => {
                       setTimeFrom(timeString);
@@ -1380,6 +1383,7 @@ const Requisition = () => {
                   />
 
                   <TimePicker
+                    value={timeTo ? dayjs(timeTo, "HH:mm") : null}
                     placeholder="To"
                     onChange={(time, timeString) => setTimeTo(timeString)}
                     format="HH:mm"
