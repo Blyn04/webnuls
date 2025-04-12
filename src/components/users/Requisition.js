@@ -1445,7 +1445,7 @@ const Requisition = () => {
               <div className="room-container">
                 <strong>Room:</strong>
                 <Input
-                  type="text"
+                  type="number"
                   value={room}
                   onChange={(e) => setRoom(e.target.value)}
                   placeholder="Enter room number"
