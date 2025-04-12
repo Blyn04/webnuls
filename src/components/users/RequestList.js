@@ -156,6 +156,7 @@ const RequestList = () => {
       });
   
       await Promise.all(batchDeletes);
+      setIsCancelVisible(false);
   
       // UI feedback
       setNotificationMessage("Request successfully canceled and logged.");
@@ -163,7 +164,7 @@ const RequestList = () => {
       setSelectedRequest(null);
       setViewDetailsModalVisible(false);
       fetchRequests();
-      
+
     } catch (err) {
       console.error("Error canceling request:", err);
       setNotificationMessage("Failed to cancel the request.");
