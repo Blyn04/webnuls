@@ -948,7 +948,7 @@ const Requisition = () => {
     const itemId = item.itemId || item.id || crypto.randomUUID(); // Fallback to UUID if itemId is missing
   
     // Check if item is already in the requestList
-    const alreadyAdded = requestList.find((req) => req.itemId === itemId);
+    const alreadyAdded = requestList.find((req) => req.selectedItemId === item.selectedItemId);
   
     if (alreadyAdded) {
       setNotificationMessage("Item already added!");
@@ -956,7 +956,7 @@ const Requisition = () => {
 
     } else {
       // Add item to the list, including quantity as empty initially
-      const updatedRequestList = [...requestList, { ...item, quantity: "" }];
+      const updatedRequestList = [...requestList, { ...item,  id: itemId, quantity: "" }];
       setRequestList(updatedRequestList);
   
       // Save updated list to localStorage
@@ -970,6 +970,7 @@ const Requisition = () => {
           const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
           await addDoc(tempRequestRef, {
             ...item,
+            id: itemId,
             timestamp: Timestamp.fromDate(new Date()), // Add timestamp for record
           });
   
