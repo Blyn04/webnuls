@@ -1198,7 +1198,8 @@ const Requisition = () => {
           <Select
             showSearch
             placeholder="Select item"
-            style={{ width: 250 }}
+            style={{ width: 100 }}
+            dropdownStyle={{ width: 550 }}
             optionFilterProp="label"
             labelInValue
             value={record.selectedItem || undefined}
@@ -1209,7 +1210,7 @@ const Requisition = () => {
           >
             {/* Map through filtered items instead of the entire items list */}
             {filteredItems.map((item) => {
-              const label = `${item.itemName} | ${item.category} | Qty: ${item.quantity}`;
+              const label = `${item.itemName} | ${item.category} | Qty: ${item.quantity} | ${item.status} | ${item.condition} | ${item.usageType} | ${item.department}`;
               const isDisabled = selectedIds.includes(item.id);
   
               return (
