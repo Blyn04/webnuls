@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Modal } from "antd";
-import { useNavigate } from "react-router-dom"; // Import useNavigate instead of useHistory
+import { Modal, Button } from "antd";
+import { useNavigate } from "react-router-dom";
 
-const SessionTimeout = ({ onLogout }) => {  // Accept onLogout prop
+const SessionTimeout = ({ onLogout }) => { 
   const [timer, setTimer] = useState(null);
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -16,7 +16,7 @@ const SessionTimeout = ({ onLogout }) => {  // Accept onLogout prop
     localStorage.removeItem("userName");
     localStorage.removeItem("userDepartment");
     localStorage.removeItem("userPosition");
-    onLogout(); // Notify parent
+    onLogout();
     navigate("/", { replace: true });
   };
 
@@ -76,8 +76,13 @@ const SessionTimeout = ({ onLogout }) => {  // Accept onLogout prop
     <Modal
       title="Session Timeout"
       visible={isModalVisible}
-      onOk={handleOk}
-      okText="Okay"
+      footer={[
+        <Button key="ok" type="primary" onClick={handleOk}>
+          Okay
+        </Button>,
+      ]}
+      closable={false}
+      maskClosable={false}
     >
       <p>Your session has timed out due to inactivity. Please log in again.</p>
     </Modal>
