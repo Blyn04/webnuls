@@ -1,6 +1,5 @@
-// AppController.js
 import React from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Login from './Login';
 import Dashboard from './Dashboard';
 import Inventory from './admin/Inventory';
@@ -19,7 +18,9 @@ import LayoutMain from './LayoutMain';
 import ProtectedRoute from './ProtectedRoute'; 
 import SessionTimeout from './SessionTimeout'; 
 
-const AppController = () => {
+const AppWrapper = () => {
+  const location = useLocation();
+
   const handleSignOut = () => {
     localStorage.removeItem("userId");  
     localStorage.removeItem("userEmail");
@@ -28,9 +29,11 @@ const AppController = () => {
     localStorage.removeItem("userPosition");
   };
 
+  const shouldShowTimeout = location.pathname !== '/';
+
   return (
-    <BrowserRouter>
-      <SessionTimeout onLogout={handleSignOut} />
+    <>
+      {shouldShowTimeout && <SessionTimeout onLogout={handleSignOut} />}
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
@@ -48,8 +51,14 @@ const AppController = () => {
         <Route path="/return-items" element={<ProtectedRoute element={<ReturnItems />} />} />
         <Route path="/main/*" element={<ProtectedRoute element={<LayoutMain />} />} />
       </Routes>
-    </BrowserRouter>
+    </>
   );
 };
+
+const AppController = () => (
+  <BrowserRouter>
+    <AppWrapper />
+  </BrowserRouter>
+);
 
 export default AppController;
