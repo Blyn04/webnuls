@@ -434,7 +434,7 @@ const PendingRequest = () => {
   
     if (selectedRequest) {
       const filteredItems = selectedRequest.requestList.filter((item, index) => {
-        const key = `${item.id || selectedRequest.id}-${index}`;
+        const key = `${selectedRequest.id}-${index}`;
         return checkedItems[key];
       });
   
@@ -488,13 +488,13 @@ const PendingRequest = () => {
       render: (_, record, index) => (
         <input
           type="checkbox"
-          checked={checkedItems[`${record.id}-${index}`] || false}
+          checked={checkedItems[`${selectedRequest?.id}-${index}`] || false}
           onChange={(e) =>
             setCheckedItems({
               ...checkedItems,
-              [`${record.id}-${index}`]: e.target.checked,
+              [`${selectedRequest?.id}-${index}`]: e.target.checked,
             })
-          }          
+          }         
         />
       ),
       width: 50,

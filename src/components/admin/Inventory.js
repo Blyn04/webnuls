@@ -326,36 +326,30 @@ const Inventory = () => {
           />
 
           <div className="form-container">
-            <h3>Add Item to Inventory with QR Code</h3>
-
             <Form layout="vertical" form={form} onFinish={handleAdd}>
-              <Space style={{ marginBottom: "20px" }}>
-                    <Form.Item 
-                        name="Item Name" 
-                        label="Item Name" 
-                        rules={[
-                        {
-                          required: true,
-                          message: "Please enter Item Name!",
-                        },
-                      ]}>
-                        <Input
-                          placeholder="Enter Item Name"
-                          value={itemName}
-                          onChange={(e) => setItemName(e.target.value)}
-                          style={{ width: "200px" }}
-                        />
-                    </Form.Item>
-              </Space>
-
               <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item 
+                    name="Item Name" 
+                    label="Item Name" 
+                    rules={[{ required: true, message: "Please enter Item Name!" }]}
+                  >
+                    <Input
+                      placeholder="Enter Item Name"
+                      value={itemName}
+                      onChange={(e) => setItemName(e.target.value)}
+                      style={{ width: "100%" }}
+                    />
+                  </Form.Item>
+                </Col>
+
                 <Col span={12}>
                   <Form.Item
                     name="usageType"
                     label="Usage Type"
                     rules={[{ required: true, message: "Please select usage type!" }]}
                   >
-                    <Select placeholder="Select Usage Type">
+                    <Select placeholder="Select Usage Type" style={{ width: "100%" }}>
                       <Option value="Laboratory Experiment">Laboratory Experiment</Option>
                       <Option value="Research">Research</Option>
                       <Option value="Community Extension">Community Extension</Option>
