@@ -1,5 +1,6 @@
 // AppController.js
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import Login from './Login';
 import Dashboard from './Dashboard';
 import Inventory from './admin/Inventory';
@@ -16,10 +17,20 @@ import CapexRequest from './users/CapexRequest';
 import ReturnItems from './users/ReturnItems';
 import LayoutMain from './LayoutMain';
 import ProtectedRoute from './ProtectedRoute'; 
+import SessionTimeout from './SessionTimeout'; 
 
 const AppController = () => {
+  const handleSignOut = () => {
+    localStorage.removeItem("userId");  
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userDepartment");
+    localStorage.removeItem("userPosition");
+  };
+
   return (
     <BrowserRouter>
+      <SessionTimeout onLogout={handleSignOut} />
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />

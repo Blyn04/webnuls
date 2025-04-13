@@ -12,8 +12,12 @@ const SessionTimeout = ({ onLogout }) => {  // Accept onLogout prop
 
   const logoutUser = () => {
     localStorage.removeItem("userId");
-    onLogout();  // Call the onLogout prop to update the login state in AppController
-    navigate("/");  // Redirect to the login page
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userDepartment");
+    localStorage.removeItem("userPosition");
+    onLogout(); // Notify parent
+    navigate("/", { replace: true });
   };
 
   const showSessionTimeoutModal = () => {
