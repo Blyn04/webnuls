@@ -1,65 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Layout,
   Table,
   Input,
   Tag,
-  Select,
-  Card,
   Typography,
-  Button,
 } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
-import Sidebar from "../Sidebar";
-import AppHeader from "../Header";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../backend/firebase/FirebaseConfig";
 import "../styles/usersStyle/SearchItems.css";
 
 const { Content } = Layout;
 const { Title } = Typography;
-const { Option } = Select;
-
-const itemData = [
-  {
-    key: "1",
-    description: "Sodium Chloride",
-    quantity: 50,
-    status: "Available",
-    category: "Chemical",
-    room: "Chemistry Lab 1",
-  },
-  {
-    key: "2",
-    description: "Test Tubes",
-    quantity: 0,
-    status: "Out of Stock",
-    category: "Reagent",
-    room: "Biology Lab 2",
-  },
-  {
-    key: "3",
-    description: "Beaker Set",
-    quantity: 20,
-    status: "In Use",
-    category: "Equipment",
-    room: "Physics Lab 3",
-  },
-  {
-    key: "4",
-    description: "Gloves",
-    quantity: 100,
-    status: "Available",
-    category: "Materials",
-    room: "Nursing Lab 1",
-  },
-  {
-    key: "5",
-    description: "Ethanol",
-    quantity: 0,
-    status: "Out of Stock",
-    category: "Chemical",
-    room: "Chemistry Lab 2",
-  },
-];
 
 const columns = [
   {
@@ -91,15 +44,12 @@ const columns = [
         case "Available":
           color = "green";
           break;
-
         case "Out of Stock":
           color = "red";
           break;
-
         case "In Use":
           color = "orange";
           break;
-          
         default:
           color = "blue";
       }
@@ -132,12 +82,37 @@ const columns = [
 ];
 
 const SearchItems = () => {
-  const [filteredData, setFilteredData] = useState(itemData);
+  const [inventoryData, setInventoryData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [searchText, setSearchText] = useState("");
-  const [pageTitle, setPageTitle] = useState("Search Items");
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "inventory"));
+        const items = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            key: doc.id,
+            description: data.itemName || "Unnamed Item",
+            quantity: data.quantity || 0,
+            status: data.status || "Unknown",
+            category: data.category || "Uncategorized",
+            room: data.labRoom || "No Room Info",
+          };
+        });
+        setInventoryData(items);
+        setFilteredData(items);
+      } catch (err) {
+        console.error("Error fetching inventory data:", err);
+      }
+    };
+
+    fetchInventory();
+  }, []);
 
   const handleSearch = (value) => {
-    const filteredItems = itemData.filter((item) =>
+    const filteredItems = inventoryData.filter((item) =>
       item.description.toLowerCase().includes(value.toLowerCase())
     );
     setFilteredData(filteredItems);
@@ -145,7 +120,6 @@ const SearchItems = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      
       <Layout className="site-layout">
         <Content className="search-content">
           <div className="pending-header">
