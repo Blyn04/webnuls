@@ -336,7 +336,6 @@
 
 // export default PendingRequest;
 
-
 import React, { useState, useEffect } from "react";
 import { Layout, Row, Col, Card, Button, Typography, Space, Modal, Table, notification } from "antd";
 import Sidebar from "../Sidebar";
@@ -344,6 +343,8 @@ import AppHeader from "../Header";
 import "../styles/adminStyle/PendingRequest.css";
 import { db } from "../../backend/firebase/FirebaseConfig"; 
 import { collection, getDocs, getDoc, doc } from "firebase/firestore";
+import RequisitionRequestModal from "../customs/RequisitionRequestModal";
+import ApprovedRequestModal from "../customs/ApprovedRequestModal";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -357,6 +358,8 @@ const PendingRequest = () => {
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
   const [requests, setRequests] = useState([]);
+  const [selectedApprovedRequest, setSelectedApprovedRequest] = useState(null);
+  const [isApprovedModalVisible, setIsApprovedModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchUserRequests = async () => {
@@ -422,21 +425,37 @@ const PendingRequest = () => {
 
   const handleApprove = () => {
     const isChecked = Object.values(checkedItems).some((checked) => checked);
-
+  
     if (!isChecked) {
       setNotificationMessage("No Items selected");
       setIsNotificationVisible(true);
       return;
     }
-
+  
     if (selectedRequest) {
-      setApprovedRequests([...approvedRequests, selectedRequest]);
+      const filteredItems = selectedRequest.requestList.filter((item, index) => {
+        const key = `${item.id || selectedRequest.id}-${index}`;
+        return checkedItems[key];
+      });
+  
+      if (filteredItems.length === 0) {
+        setNotificationMessage("No Items selected");
+        setIsNotificationVisible(true);
+        return;
+      }
+  
+      const approvedRequest = {
+        ...selectedRequest,
+        requestList: filteredItems,
+      };
+  
+      setApprovedRequests([...approvedRequests, approvedRequest]);
       setRequests(requests.filter((req) => req.id !== selectedRequest.id));
       setCheckedItems({});
       setIsModalVisible(false);
       setSelectedRequest(null);
     }
-  };
+  };  
 
   const handleReturn = () => {
     if (selectedRequest) {
@@ -475,15 +494,15 @@ const PendingRequest = () => {
               ...checkedItems,
               [`${record.id}-${index}`]: e.target.checked,
             })
-          }
+          }          
         />
       ),
       width: 50,
     },
     {
       title: "Item ID",
-      dataIndex: "itemIdFromInventory",  // This is the itemId from inventory, fetched and added
-      render: (text) => text || "N/A",   // Show 'N/A' if itemId is not available
+      dataIndex: "itemIdFromInventory", 
+      render: (text) => text || "N/A",  
     },   
     {
       title: "Item Description",
@@ -552,7 +571,9 @@ const PendingRequest = () => {
                       <Text type="secondary">
                         Room: {request.room} | Course Code: {request.courseCode}
                       </Text>
+
                       <br />
+
                       <Text type="secondary">
                         Course: {request.courseDescription}
                       </Text>
@@ -582,124 +603,72 @@ const PendingRequest = () => {
                 </Text>
               ) : (
                 approvedRequests.map((request, index) => (
-                  <Row key={request.id} justify="space-between" align="middle">
-                    <Col>
-                      <Text>
-                        {index + 1}. Requisition ID: {request.id}
-                      </Text>
-                    </Col>
+                  <Card
+                    key={request.id}
+                    className="request-card"
+                    title={`Approved Request #${index + 1}`}
+                    style={{ marginBottom: "16px" }}
+                    extra={
+                      <Button size="small" onClick={() => {
+                        setSelectedApprovedRequest(request);
+                        setIsApprovedModalVisible(true);
+                      }}>
+                        View Details
+                      </Button>
+                    }
+                  >
+                    <p><Text strong>Requisition ID:</Text> {request.id}</p>
+                    <p><Text strong>Requestor:</Text> {request.userName}</p>
+                    <p><Text strong>Room:</Text> {request.room}</p>
+                    <p><Text strong>Required Date:</Text> {request.dateRequired}</p>
+                    <p><Text strong>Course:</Text> {request.courseDescription}</p>
 
-                    <Col>
-                      <a
-                        href={`#`}
-                        style={{ color: "#1890ff", textDecoration: "underline" }}
-                      >
-                        Download PDF
-                      </a>
-                    </Col>
-                  </Row>
+                    <Button
+                      type="primary"
+                      size="small"
+                      onClick={handlePrint}
+                      style={{ marginRight: "8px" }}
+                    >
+                      Print
+                    </Button>
+
+                    <Button
+                      danger
+                      type="default"
+                      size="small"
+                      onClick={() => {
+                        setSelectedRequest(request);
+                        handleReturn();
+                      }}
+                    >
+                      Return
+                    </Button>
+                  </Card>
                 ))
               )}
             </Col>
           </Row>
-
-          <Modal
-            title={
-              <div style={{ background: "#f60", padding: "12px", color: "#fff" }}>
-                <Text strong style={{ color: "#fff" }}>
-                  📄 Requisition Slip
-                </Text>
-
-                <span style={{ float: "right", fontStyle: "italic" }}>
-                  Requisition ID: {selectedRequest?.id}
-                </span>
-              </div>
-            }
-            open={isModalVisible}
-            onCancel={handleCancel}
-            width={800}
-            footer={[
-              <Button key="print" onClick={handlePrint}>
-                Print
-              </Button>,
-
-              <Button key="return" type="default" onClick={handleReturn}>
-                Return
-              </Button>,
-
-              <Button key="cancel" onClick={handleCancel}>
-                Cancel
-              </Button>,
-
-              <Button key="approve" type="primary" onClick={handleApprove}>
-                Approve
-              </Button>,
-            ]}
-          >
-            {selectedRequest && (
-              <div style={{ padding: "20px" }}>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <Text strong>Name:</Text> {selectedRequest.userName}
-
-                    <br />
-
-                    <Text strong>Request Date:</Text>{" "}
-                    {formatDate(selectedRequest.timestamp)}
-
-                    <br />
-
-                    <Text strong>Required Date:</Text>{" "}
-                    {selectedRequest.dateRequired}
-
-                    <br />
-
-                    <Text strong>Time Needed:</Text>{" "}
-                    {selectedRequest.timeFrom} -  {selectedRequest.timeTo}
-                  </Col>
-
-                  <Col span={12}>
-                    <Text strong>Reason of Request:</Text>
-                    <p style={{ fontSize: "12px", marginTop: 5 }}>
-                      {selectedRequest.reason}
-                    </p>
-
-                    <br />
-
-                    <Text strong>Room:</Text> {selectedRequest.room}
-
-                    <br />
-
-                    <Text strong>Course Code:</Text>{" "}
-                    {selectedRequest.courseCode}
-
-                    <br />
-
-                    <Text strong>Course Description:</Text>{" "}
-                    {selectedRequest.courseDescription}
-
-                    <br />
-
-                    <Text strong>Program:</Text>{" "}
-                    {selectedRequest.program}
-                  </Col>
-                </Row>
-
-                <Title level={5} style={{ marginTop: 20 }}>
-                  Requested Items:
-                </Title>
-
-                <Table
-                  dataSource={selectedRequest.requestList}
-                  columns={columns}
-                  rowKey="id"
-                  pagination={false}
-                  bordered
-                />
-              </div>
-            )}
-          </Modal>
         </Content>
+
+        <RequisitionRequestModal
+          isModalVisible={isModalVisible}
+          handleCancel={handleCancel}
+          handleApprove={handleApprove}
+          handleReturn={handleReturn}
+          selectedRequest={selectedRequest}
+          columns={columns}
+          formatDate={formatDate}
+        />
+
+        <ApprovedRequestModal
+          isApprovedModalVisible={isApprovedModalVisible}
+          setIsApprovedModalVisible={setIsApprovedModalVisible}
+          selectedApprovedRequest={selectedApprovedRequest}
+          setSelectedApprovedRequest={setSelectedApprovedRequest}
+          columns={columns}
+          formatDate={formatDate}
+        />
+
       </Layout>
     </Layout>
   );
