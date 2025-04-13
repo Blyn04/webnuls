@@ -69,6 +69,7 @@
 .table-request-container {
   display: flex;
   gap: 20px;
+  border-radius: 10px;
 }
 
 .table-container {
@@ -79,9 +80,8 @@
   flex: 1;
   overflow-y: auto;
   max-height: 500px; 
-  padding-right: 10px;
   border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 10px;
   background-color: #f9f9f9;
 }
 
@@ -114,4 +114,22 @@
 .date-required,
 .time-required {
   flex: 1;
+}
+
+.reason-container {
+  padding-top: 20px;
+}
+
+.dropdowns {
+  padding-bottom: 20px;
+}
+
+.request-list-title {
+  padding-left: 750px;
+  padding-top: 10px;
+}
+
+.add-item-row-btn {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }

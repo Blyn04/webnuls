@@ -835,12 +835,10 @@ const Requisition = () => {
   const [dateRequired, setDateRequired] = useState(null);
   const [timeFrom, setTimeFrom] = useState(null);
   const [timeTo, setTimeTo] = useState(null);
-  const [isCalendarVisible, setIsCalendarVisible] = useState(false);
   const [isFinalizeVisible, setIsFinalizeVisible] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [programError, setProgramError] = useState(false);
   const [roomError, setRoomError] = useState(false);
-  const [pageTitle, setPageTitle] = useState("");
   const [program, setProgram] = useState("");
   const [room, setRoom] = useState("");
   const [reason, setReason] = useState("");
@@ -849,15 +847,13 @@ const Requisition = () => {
   const [filteredItems, setFilteredItems] = useState([]);
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
-  const [filteredSuggestions, setFilteredSuggestions] = useState(items);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchCategory, setSearchCategory] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
   const auth = getAuth();
 
   const [tableData, setTableData] = useState([
-    { key: 0, selectedItemId: null }, // one empty row to start
+    { key: 0, selectedItemId: null }, 
   ]);
 
   useEffect(() => {
@@ -1279,73 +1275,18 @@ const Requisition = () => {
     },
   ];
 
-  return (
-    <Layout style={{ minHeight: "100vh" }}>
+  // <div className="requisition-header">
+  // <Input
+  // placeholder="Search"
+  // className="requisition-search"
+  // allowClear
+  // />
+  // </div>
 
+  return (
+    <Layout style={{ minHeight: "80vh" }}>
       <Layout className="site-layout">
         <Content className="requisition-content">
-          <div className="requisition-header">
-            <div style={{ display: "flex", gap: "10px" }}>
-              <Input
-                placeholder="Search"
-                className="requisition-search"
-                allowClear
-              />
-              <select
-                value={searchUsageType}
-                onChange={(e) => {
-                  const selectedType = e.target.value;
-                  setSearchUsageType(selectedType);
-                  if (selectedType === "") {
-                    setFilteredItems(items);
-
-                  } else {
-                    const filteredData = items.filter((item) => item.usageType === selectedType);
-                    setFilteredItems(filteredData);
-                  }
-                }}
-                style={{
-                  width: "200px",
-                  padding: "8px",
-                  borderRadius: "4px",
-                  border: "1px solid #ccc",
-                }}
-              >
-                <option value="">All Usage Types</option>
-                <option value="Laboratory Experiment">Laboratory Experiment</option>
-                <option value="Research">Research</option>
-                <option value="Community Extension">Community Extension</option>
-                <option value="Others">Others</option>
-              </select>
-              
-              <select
-                value={searchCategory}
-                onChange={(e) => {
-                  const selectedCategory = e.target.value;
-                  setSearchCategory(selectedCategory);
-                  if (selectedCategory === "") {
-                    setFilteredItems(items);
-                    
-                  } else {
-                    const filteredData = items.filter((item) => item.category === selectedCategory);
-                    setFilteredItems(filteredData);
-                  }
-                }}
-                style={{
-                  width: "200px",
-                  padding: "8px",
-                  borderRadius: "4px",
-                  border: "1px solid #ccc",
-                }}
-              >
-                <option value="">All Categories</option>
-                <option value="Chemical">Chemical</option>
-                <option value="Reagent">Reagent</option>
-                <option value="Materials">Materials</option>
-                <option value="Equipment">Equipment</option>
-              </select>
-            </div>
-          </div>
 
           <div className="request-details">
             <div className="date-time-container">
@@ -1475,6 +1416,64 @@ const Requisition = () => {
                 placeholder="Enter reason for request"
               />
             </div>
+
+            <div className="dropdowns" style={{ display: "flex", gap: "20px" }}>
+              <select
+                value={searchUsageType}
+                onChange={(e) => {
+                  const selectedType = e.target.value;
+                  setSearchUsageType(selectedType);
+                  if (selectedType === "") {
+                    setFilteredItems(items);
+
+                  } else {
+                    const filteredData = items.filter((item) => item.usageType === selectedType);
+                    setFilteredItems(filteredData);
+                  }
+                }}
+                style={{
+                  width: "200px",
+                  padding: "8px",
+                  borderRadius: "4px",
+                  border: "1px solid #ccc",
+                }}
+              >
+                <option value="">All Usage Types</option>
+                <option value="Laboratory Experiment">Laboratory Experiment</option>
+                <option value="Research">Research</option>
+                <option value="Community Extension">Community Extension</option>
+                <option value="Others">Others</option>
+              </select>
+              
+              <select
+                value={searchCategory}
+                onChange={(e) => {
+                  const selectedCategory = e.target.value;
+                  setSearchCategory(selectedCategory);
+                  if (selectedCategory === "") {
+                    setFilteredItems(items);
+                    
+                  } else {
+                    const filteredData = items.filter((item) => item.category === selectedCategory);
+                    setFilteredItems(filteredData);
+                  }
+                }}
+                style={{
+                  width: "200px",
+                  padding: "8px",
+                  borderRadius: "4px",
+                  border: "1px solid #ccc",
+                }}
+              >
+                <option value="">All Categories</option>
+                <option value="Chemical">Chemical</option>
+                <option value="Reagent">Reagent</option>
+                <option value="Materials">Materials</option>
+                <option value="Equipment">Equipment</option>
+              </select>
+
+              <h3 className="request-list-title">Request List:</h3>
+            </div>
           </div>
 
           <div className="table-request-container">
@@ -1486,13 +1485,11 @@ const Requisition = () => {
             />
 
             <div className="request-list-container">
-              <h3>Request List:</h3>
               <Table
                   dataSource={requestList}
                   rowKey="id"
                   pagination={false}
                   bordered
-                  style={{ marginTop: 20 }}
                   columns={[
                     {
                       title: "Item Name",
@@ -1553,7 +1550,7 @@ const Requisition = () => {
           <div>
             <Button type="dashed" onClick={() => {
                 setTableData([...tableData, { key: Date.now(), selectedItemId: null }]);
-              }} style={{ marginBottom: 16 }}>
+              }} className="add-item-row-btn">
                 Add Item Row
             </Button>
 
