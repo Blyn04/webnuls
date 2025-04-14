@@ -1358,14 +1358,6 @@ const Requisition = () => {
     },
   ];
 
-  // <div className="requisition-header">
-  // <Input
-  // placeholder="Search"
-  // className="requisition-search"
-  // allowClear
-  // />
-  // </div>
-
   return (
     <Layout style={{ minHeight: "80vh" }}>
       <Layout className="site-layout">
