@@ -1258,7 +1258,7 @@ const Requisition = () => {
   
   const columns = [
     {
-      title: "Item Description",
+      title: "Item Name",
       dataIndex: "selectedItemId",
       key: "selectedItemId",
       render: (value, record, index) => {
@@ -1622,7 +1622,7 @@ const Requisition = () => {
                 <thead>
                   <tr>
                     <th style={tableHeaderStyle}>#</th>
-                    <th style={tableHeaderStyle}>Item Description</th>
+                    <th style={tableHeaderStyle}>Item Name</th>
                     <th style={tableHeaderStyle}>Item ID</th>
                     <th style={tableHeaderStyle}>Usage Type</th>
                     <th style={tableHeaderStyle}>Qty</th>

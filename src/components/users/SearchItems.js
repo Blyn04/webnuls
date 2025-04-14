@@ -5,6 +5,8 @@ import {
   Input,
   Tag,
   Typography,
+  Select,
+  Space,
 } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { collection, getDocs } from "firebase/firestore";
@@ -13,6 +15,7 @@ import "../styles/usersStyle/SearchItems.css";
 
 const { Content } = Layout;
 const { Title } = Typography;
+const { Option } = Select;
 
 const columns = [
   {
@@ -32,12 +35,6 @@ const columns = [
     title: "Status",
     dataIndex: "status",
     key: "status",
-    filters: [
-      { text: "Available", value: "Available" },
-      { text: "Out of Stock", value: "Out of Stock" },
-      { text: "In Use", value: "In Use" },
-    ],
-    onFilter: (value, record) => record.status === value,
     render: (status) => {
       let color;
       switch (status) {
@@ -60,13 +57,6 @@ const columns = [
     title: "Category",
     dataIndex: "category",
     key: "category",
-    filters: [
-      { text: "Chemical", value: "Chemical" },
-      { text: "Reagent", value: "Reagent" },
-      { text: "Materials", value: "Materials" },
-      { text: "Equipment", value: "Equipment" },
-    ],
-    onFilter: (value, record) => record.category === value,
     render: (category) => (
       <Tag color={category === "Chemical" ? "blue" : "geekblue"}>
         {category.toUpperCase()}
@@ -85,6 +75,8 @@ const SearchItems = () => {
   const [inventoryData, setInventoryData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState(null);
 
   useEffect(() => {
     const fetchInventory = async () => {
@@ -111,12 +103,25 @@ const SearchItems = () => {
     fetchInventory();
   }, []);
 
-  const handleSearch = (value) => {
-    const filteredItems = inventoryData.filter((item) =>
-      item.description.toLowerCase().includes(value.toLowerCase())
-    );
-    setFilteredData(filteredItems);
-  };
+  useEffect(() => {
+    let data = [...inventoryData];
+
+    if (searchText) {
+      data = data.filter((item) =>
+        item.description.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+
+    if (statusFilter) {
+      data = data.filter((item) => item.status === statusFilter);
+    }
+
+    if (categoryFilter) {
+      data = data.filter((item) => item.category === categoryFilter);
+    }
+
+    setFilteredData(data);
+  }, [searchText, statusFilter, categoryFilter, inventoryData]);
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -132,17 +137,41 @@ const SearchItems = () => {
             <Input
               placeholder="Search by item description..."
               value={searchText}
-              onChange={(e) => {
-                setSearchText(e.target.value);
-                handleSearch(e.target.value);
-              }}
+              onChange={(e) => setSearchText(e.target.value)}
               allowClear
               prefix={<SearchOutlined />}
               className="search-input"
             />
+
+            <Space style={{ marginTop: 16 }} wrap>
+              <Select
+                placeholder="Filter by Status"
+                allowClear
+                style={{ width: 200 }}
+                onChange={value => setStatusFilter(value)}
+                value={statusFilter}
+              >
+                <Option value="Available">Available</Option>
+                <Option value="Out of Stock">Out of Stock</Option>
+                <Option value="In Use">In Use</Option>
+              </Select>
+
+              <Select
+                placeholder="Filter by Category"
+                allowClear
+                style={{ width: 200 }}
+                onChange={value => setCategoryFilter(value)}
+                value={categoryFilter}
+              >
+                <Option value="Chemical">Chemical</Option>
+                <Option value="Reagent">Reagent</Option>
+                <Option value="Materials">Materials</Option>
+                <Option value="Equipment">Equipment</Option>
+              </Select>
+            </Space>
           </div>
 
-          <div className="pending-main">
+          <div className="pending-main" style={{ marginTop: 24 }}>
             <Table
               columns={columns}
               dataSource={filteredData}
