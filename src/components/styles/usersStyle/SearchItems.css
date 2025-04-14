@@ -6,13 +6,6 @@
   gap: 20px;
 }
 
-.pending-header {
-  background-color: white;
-  padding: 15px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-}
-
 .search-container {
   display: flex;
   justify-content: space-between;

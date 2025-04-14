@@ -127,11 +127,6 @@ const SearchItems = () => {
     <Layout style={{ minHeight: "100vh" }}>
       <Layout className="site-layout">
         <Content className="search-content">
-          <div className="pending-header">
-            <Title level={3}>
-              <SearchOutlined /> Search Items
-            </Title>
-          </div>
 
           <div className="search-container">
             <Input
@@ -143,7 +138,7 @@ const SearchItems = () => {
               className="search-input"
             />
 
-            <Space style={{ marginTop: 16 }} wrap>
+            <Space style={{ marginTop: 10 }} wrap>
               <Select
                 placeholder="Filter by Status"
                 allowClear
@@ -171,7 +166,7 @@ const SearchItems = () => {
             </Space>
           </div>
 
-          <div className="pending-main" style={{ marginTop: 24 }}>
+          <div className="pending-main">
             <Table
               columns={columns}
               dataSource={filteredData}
