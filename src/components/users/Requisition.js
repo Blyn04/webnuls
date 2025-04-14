@@ -848,6 +848,7 @@ const Requisition = () => {
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
   const [searchCategory, setSearchCategory] = useState("");
+  const [mergedData, setMergedData] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
   const auth = getAuth();
@@ -855,6 +856,10 @@ const Requisition = () => {
   const [tableData, setTableData] = useState([
     { key: 0, selectedItemId: null }, 
   ]);
+
+  useEffect(() => {
+    mergeData();
+  }, [tableData, requestList]);
 
   useEffect(() => {
     const storedRequestList = JSON.parse(localStorage.getItem('requestList'));
@@ -870,7 +875,16 @@ const Requisition = () => {
         try {
           const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
           const querySnapshot = await getDocs(tempRequestRef);
-          const tempRequestList = querySnapshot.docs.map((doc) => doc.data());
+          const tempRequestList = querySnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              ...data,
+              selectedItem: {
+                value: data.selectedItemId,
+                label: data.selectedItemLabel, // <-- This restores the label after refresh
+              },
+            };
+          });          
   
           setRequestList(tempRequestList);
 
@@ -940,47 +954,56 @@ const Requisition = () => {
     setShowModal(false);
   };
 
-  const addToList = async (item) => {
-    // Check if itemId is available, if not generate a fallback
-    const itemId = item.itemId || item.id || crypto.randomUUID(); // Fallback to UUID if itemId is missing
+  // const addToList = async (item) => {
+  //   // Check if itemId is available, if not generate a fallback
+  //   const itemId = item.itemId || item.id || crypto.randomUUID(); // Fallback to UUID if itemId is missing
   
-    // Check if item is already in the requestList
-    const alreadyAdded = requestList.find((req) => req.selectedItemId === item.selectedItemId);
+  //   // Check if item is already in the requestList
+  //   const alreadyAdded = requestList.find((req) => req.selectedItemId === item.selectedItemId);
   
-    if (alreadyAdded) {
-      setNotificationMessage("Item already added!");
-      setIsNotificationVisible(true);
+  //   if (alreadyAdded) {
+  //     setNotificationMessage("Item already added!");
+  //     setIsNotificationVisible(true);
 
-    } else {
-      // Add item to the list, including quantity as empty initially
-      const updatedRequestList = [...requestList, { ...item,  id: itemId, quantity: "" }];
-      setRequestList(updatedRequestList);
+  //   } else {
+  //     // Add item to the list, including quantity as empty initially
+  //     const updatedRequestList = [...requestList, { ...item,  id: itemId, quantity: "" }];
+  //     setRequestList(updatedRequestList);
   
-      // Save updated list to localStorage
-      localStorage.setItem('requestList', JSON.stringify(updatedRequestList));
+  //     // Save updated list to localStorage
+  //     localStorage.setItem('requestList', JSON.stringify(updatedRequestList));
   
-      // Proceed to add the item to Firestore
-      const userId = localStorage.getItem("userId");
+  //     // Proceed to add the item to Firestore
+  //     const userId = localStorage.getItem("userId");
   
-      if (userId) {
-        try {
-          const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
-          await addDoc(tempRequestRef, {
-            ...item,
-            id: itemId,
-            timestamp: Timestamp.fromDate(new Date()), // Add timestamp for record
-          });
+  //     if (userId) {
+  //       try {
+  //         const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+  //         await addDoc(tempRequestRef, {
+  //           ...item,
+  //           id: itemId,
+  //           timestamp: Timestamp.fromDate(new Date()), // Add timestamp for record
+  //         });
   
-          setNotificationMessage("Item added to temporary list");
-          setIsNotificationVisible(true);
+  //         setNotificationMessage("Item added to temporary list");
+  //         setIsNotificationVisible(true);
 
-        } catch (error) {
-          console.error("Error adding item to temporary list:", error);
-          setNotificationMessage("Failed to add item to temporary list.");
-          setIsNotificationVisible(true);
-        }
-      }
-    }
+  //       } catch (error) {
+  //         console.error("Error adding item to temporary list:", error);
+  //         setNotificationMessage("Failed to add item to temporary list.");
+  //         setIsNotificationVisible(true);
+  //       }
+  //     }
+  //   }
+  // };
+
+  const mergeData = () => {
+    // Merge tableData and requestList to create the final list to display
+    const merged = [
+      ...tableData,
+      ...requestList.filter(item => !tableData.some(t => t.selectedItemId === item.selectedItemId)),
+    ];
+    setMergedData(merged);
   };
   
   const finalizeRequest = async () => {
@@ -996,6 +1019,7 @@ const Requisition = () => {
     if (!program) {
       setProgramError(true);
       isValid = false;
+
     } else {
       setProgramError(false);
     }
@@ -1003,16 +1027,32 @@ const Requisition = () => {
     if (!room) {
       setRoomError(true);
       isValid = false;
+
     } else {
       setRoomError(false);
     }
   
-    if (requestList.length === 0) {
+    if (mergedData.length === 0) {
       setNotificationMessage("Please add items to the request list!");
       setIsNotificationVisible(true);
       isValid = false;
     }
-  
+
+    console.log("Original mergedData:", mergedData);
+    // Filter out incomplete items from mergedData
+    const filteredMergedData = mergedData.filter(item =>
+      item.itemName && item.category && item.quantity && item.labRoom &&
+      item.status && item.condition && item.usageType && item.department
+    );
+
+    // Show a warning if all items are incomplete
+    if (filteredMergedData.length === 0) {
+      setNotificationMessage("Please complete all required item fields before finalizing.");
+      setIsNotificationVisible(true);
+      isValid = false;
+    }
+    console.log("Filtered mergedData:", filteredMergedData);
+
     if (isValid) {
       try {
         const userId = localStorage.getItem("userId");
@@ -1038,7 +1078,7 @@ const Requisition = () => {
             program,
             room,
             reason,
-            requestList,
+            filteredMergedData,
             userName,
             timestamp: Timestamp.now(),
           };
@@ -1086,7 +1126,7 @@ const Requisition = () => {
           await Promise.all(deletionPromises);
   
           // Filter out removed items from requestList
-          const updatedRequestList = requestList.filter((item) => !idsToRemove.includes(item.id));
+          const updatedRequestList = mergedData.filter((item) => !idsToRemove.includes(item.id));
           setRequestList(updatedRequestList);
           localStorage.setItem('requestList', JSON.stringify(updatedRequestList));
   
@@ -1104,6 +1144,7 @@ const Requisition = () => {
   
           // Optionally clear localStorage
           localStorage.removeItem('requestList');
+
         } else {
           message.error("User is not logged in.");
         }
@@ -1116,32 +1157,43 @@ const Requisition = () => {
   };  
   
   const removeFromList = async (id) => {
-    const updatedList = requestList.filter((item) => item.id !== id);
-    setRequestList(updatedList);
-
-    localStorage.setItem('requestList', JSON.stringify(updatedList));
+    try {
+      // Filter out the item from local state
+      const updatedList = requestList.filter((item) => item.id !== id);
+      setRequestList(updatedList);
   
-    const userId = localStorage.getItem("userId"); 
-    if (userId) {
-      try {
-        const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+      // Update localStorage
+      localStorage.setItem('requestList', JSON.stringify(updatedList));
   
-        const querySnapshot = await getDocs(tempRequestRef);
-        const docToDelete = querySnapshot.docs.find(doc => doc.data().id === id);
-  
-        if (docToDelete) {
-          await deleteDoc(docToDelete.ref);
-          setNotificationMessage("Item removed from the list");
-          setIsNotificationVisible(true);
-          
-        } else {
-          setNotificationMessage("Item not found in Firestore.");
-          setIsNotificationVisible(true);
-        }
-
-      } catch (error) {
-        console.error("Error removing item from Firestore:", error);
+      const userId = localStorage.getItem("userId"); 
+      if (!userId) {
+        console.warn("User ID not found in localStorage.");
+        return;
       }
+  
+      // Check Firestore and remove item
+      const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+      const querySnapshot = await getDocs(tempRequestRef);
+  
+      let foundInFirestore = false;
+  
+      for (const docSnapshot of querySnapshot.docs) {
+        const data = docSnapshot.data();
+        if (data.id === id) {
+          await deleteDoc(docSnapshot.ref);
+          foundInFirestore = true;
+          break;
+        }
+      }
+  
+      // Notify user
+      setNotificationMessage(foundInFirestore ? "Item removed from the list" : "Item not found in Firestore.");
+      setIsNotificationVisible(true);
+  
+    } catch (error) {
+      console.error("Error removing item:", error);
+      setNotificationMessage("Something went wrong while removing the item.");
+      setIsNotificationVisible(true);
     }
   };  
 
@@ -1154,16 +1206,17 @@ const Requisition = () => {
     localStorage.setItem('requestList', JSON.stringify(updatedList)); 
   };
 
-  const handleItemSelect = (selected, index) => {
-  const { value: itemId } = selected;
-  const selectedItem = items.find((item) => item.id === itemId);
-
-  const updatedData = [...tableData];
+  const handleItemSelect = async (selected, index) => {
+    const { value: itemId } = selected;
+    const selectedItem = items.find((item) => item.id === itemId);
+  
+    // Update the tableData with the selected item details
+    const updatedData = [...tableData];
     updatedData[index] = {
       ...updatedData[index],
       selectedItem: {
         value: itemId,
-        label: selectedItem.itemName, // shown in the dropdown
+        label: selectedItem.itemName, // Shown in dropdown
       },
       selectedItemId: itemId,
       itemName: selectedItem.itemName,
@@ -1175,8 +1228,32 @@ const Requisition = () => {
       usageType: selectedItem.usageType,
       department: selectedItem.department,
     };
-
-  setTableData(updatedData);
+  
+    setTableData(updatedData);
+  
+    const userId = localStorage.getItem("userId");
+  
+    if (userId) {
+      try {
+        // Add the selected item to the temporaryRequests sub-collection in Firestore
+        const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+        await addDoc(tempRequestRef, {
+          ...selectedItem,
+          id: itemId,
+          selectedItemId: itemId,
+          selectedItemLabel: selectedItem.itemName, // <-- Add this
+          timestamp: Timestamp.fromDate(new Date()),
+        });
+  
+        // Notify the user
+        setNotificationMessage("Item added to temporary list.");
+        setIsNotificationVisible(true);
+      } catch (error) {
+        console.error("Error adding item to temporary list:", error);
+        setNotificationMessage("Failed to add item to temporary list.");
+        setIsNotificationVisible(true);
+      }
+    }
   };
   
   const columns = [
@@ -1185,8 +1262,8 @@ const Requisition = () => {
       dataIndex: "selectedItemId",
       key: "selectedItemId",
       render: (value, record, index) => {
-        // Step 1: Get all selected item IDs except current row
-        const selectedIds = tableData
+        // Step 1: Get all selected item IDs except the current row
+        const selectedIds = mergedData
           .filter((_, i) => i !== index)
           .map((row) => row.selectedItemId);
   
@@ -1199,7 +1276,7 @@ const Requisition = () => {
             optionFilterProp="label"
             labelInValue
             value={record.selectedItem || undefined}
-            onChange={(selected) => handleItemSelect(selected, index)}
+            onChange={(selected) => handleItemSelect(selected, index)} // Trigger handleItemSelect on change
             filterOption={(input, option) =>
               option?.label?.toLowerCase().includes(input.toLowerCase())
             }
@@ -1230,9 +1307,17 @@ const Requisition = () => {
       key: "category",
     },
     {
-      title: "Qty",
+      title: "Quantity",
       dataIndex: "quantity",
       key: "quantity",
+      render: (value, record) => (
+        <Input
+          type="number"
+          min={1}
+          value={value}
+          onChange={(e) => updateQuantity(record.id, e.target.value)}
+        />
+      ),
     },
     {
       title: "Lab Room",
@@ -1260,17 +1345,15 @@ const Requisition = () => {
       key: "department",
     },
     {
-      title: "",
+      title: "Action",
       key: "action",
-      render: (text, record) => (
+      render: (_, record) => (
         <Button
-          type="primary"
+          type="text"
           danger
-          size="small"
-          onClick={() => addToList(record)}
-        >
-          Add to List
-        </Button>
+          icon={<DeleteOutlined />}
+          onClick={() => removeFromList(record.id)}
+        />
       ),
     },
   ];
@@ -1471,87 +1554,37 @@ const Requisition = () => {
                 <option value="Materials">Materials</option>
                 <option value="Equipment">Equipment</option>
               </select>
-
-              <h3 className="request-list-title">Request List:</h3>
             </div>
           </div>
 
           <div className="table-request-container">
-            <Table
-              dataSource={tableData}
-              columns={columns}
-              rowKey="id"
-              className="requisition-table"
-            />
-
-            <div className="request-list-container">
-              <Table
-                  dataSource={requestList}
-                  rowKey="id"
-                  pagination={false}
-                  bordered
-                  columns={[
-                    {
-                      title: "Item Name",
-                      dataIndex: "itemName",
-                      key: "itemName",
-                    },
-                    {
-                      title: "Quantity",
-                      dataIndex: "quantity",
-                      key: "quantity",
-                      render: (value, record) => (
-                        <Input
-                          type="number"
-                          min={1}
-                          value={value}
-                          onChange={(e) => updateQuantity(record.id, e.target.value)}
-                        />
-                      ),
-                    },
-                    {
-                      title: "Category",
-                      dataIndex: "category",
-                      key: "category",
-                    },
-                    {
-                      title: "Item Condition",
-                      dataIndex: "condition",
-                      key: "condition",
-                    },
-                    {
-                      title: "Department",
-                      dataIndex: "department",
-                      key: "department",
-                      render: (text) => (
-                        <span style={{ color: text === "MEDTECH" ? "magenta" : "orange", fontWeight: "bold" }}>
-                          {text}
-                        </span>
-                      ),
-                    },
-                    {
-                      title: "Action",
-                      key: "action",
-                      render: (_, record) => (
-                        <Button
-                          type="text"
-                          danger
-                          icon={<DeleteOutlined />}
-                          onClick={() => removeFromList(record.id)}
-                        />
-                      ),
-                    },
-                  ]}
-                />
-
-            </div>
+          <Table
+            columns={columns}
+            dataSource={mergedData}
+            pagination={{ pageSize: 5 }}
+            rowKey={(record, index) => index}
+          />
           </div>
 
           <div>
-            <Button type="dashed" onClick={() => {
-                setTableData([...tableData, { key: Date.now(), selectedItemId: null }]);
-              }} className="add-item-row-btn">
-                Add Item Row
+            <Button
+              type="dashed"
+              onClick={() => {
+                const lastRow = tableData[tableData.length - 1];
+                // Only add a new row if the last one has an item selected
+                if (!lastRow || lastRow.selectedItemId) {
+                  setTableData([
+                    ...tableData,
+                    { key: Date.now(), selectedItemId: null } // empty row
+                  ]);
+                } else {
+                  setNotificationMessage("Please select an item in the last row first.");
+                  setIsNotificationVisible(true);
+                }
+              }}
+              className="add-item-row-btn"
+            >
+              Add Item Row
             </Button>
 
             <Button

@@ -373,7 +373,7 @@ const PendingRequest = () => {
           const data = docSnap.data();
   
           const enrichedItems = await Promise.all(
-            (data.requestList || []).map(async (item) => {
+            (data.filteredMergedData || []).map(async (item) => {
               const inventoryId = item.selectedItemId || item.selectedItem?.value;
               let itemId = "N/A";
   

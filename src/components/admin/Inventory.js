@@ -237,7 +237,7 @@ const Inventory = () => {
 
   const columns = [
     { title: "Item ID", dataIndex: "itemId", key: "itemId" },
-    { title: "Item Name", dataIndex: "item", key: "item" },
+    { title: "Item Name", dataIndex: "itemName", key: "itemName" },
     { title: "Category", dataIndex: "category", key: "category" },
     { title: "Department", dataIndex: "department", key: "department" },
     { title: "Lab/Stock Room", dataIndex: "labRoom", key: "labRoom" },
@@ -266,8 +266,8 @@ const Inventory = () => {
       dataIndex: "qrCode",
       key: "qrCode",
       render: (qrCode, record) => (
-        <div ref={(el) => (qrRefs.current[record.id] = el)}>
-          <QRCodeCanvas value={qrCode} size={100} />
+        <div ref={(el) => (qrRefs.current[record.itemId] = el)}>
+          <QRCodeCanvas value={qrCode} size={200} />
         </div>
       ),
     },

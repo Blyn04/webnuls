@@ -8,7 +8,7 @@ const SessionTimeout = ({ onLogout }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const navigate = useNavigate(); 
 
-  const timeoutDuration = 10 * 60 * 1000; // 1 minute in milliseconds
+  const timeoutDuration = 20 * 60 * 1000; // 1 minute in milliseconds
 
   const logoutUser = () => {
     localStorage.removeItem("userId");
