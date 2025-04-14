@@ -267,7 +267,7 @@ const Inventory = () => {
       key: "qrCode",
       render: (qrCode, record) => (
         <div ref={(el) => (qrRefs.current[record.itemId] = el)}>
-          <QRCodeCanvas value={qrCode} size={200} />
+          <QRCodeCanvas value={qrCode} size={100} />
         </div>
       ),
     },
@@ -316,14 +316,6 @@ const Inventory = () => {
               All
             </Button>
           </div>
-
-          <Table
-            dataSource={dataSource}
-            columns={columns}
-            rowKey={(record) => record.itemId}
-            bordered
-            className="inventory-table"
-          />
 
           <div className="form-container">
             <Form layout="vertical" form={form} onFinish={handleAdd}>
@@ -478,6 +470,14 @@ const Inventory = () => {
               </Button>
             </Form>
           </div>
+
+          <Table
+            dataSource={dataSource}
+            columns={columns}
+            rowKey={(record) => record.itemId}
+            bordered
+            className="inventory-table"
+          />
 
           <Modal
             title="Edit Item"
