@@ -50,7 +50,6 @@ const AccountManagement = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
 
-
   useEffect(() => {
     const loginSuccessFlag = sessionStorage.getItem("loginSuccess");
 
@@ -138,12 +137,71 @@ const AccountManagement = () => {
     setIsModalVisible(true);
   };
 
+  // const handleSave = async (values) => {
+  //   const isDuplicate = accounts.some(
+  //     (acc) =>
+  //       acc.id !== (editingAccount?.id || null) &&
+  //       (acc.name.toLowerCase() === values.name.toLowerCase() ||
+  //         acc.email.toLowerCase() === values.email.toLowerCase())
+  //   );
+  
+  //   if (isDuplicate) {
+  //     setModalMessage("An account with the same name or email already exists!");
+  //     setIsNotificationVisible(true);
+  //     return;
+  //   }
+
+  //   if (editingAccount) {
+  //     try {
+  //       const accountRef = doc(db, "accounts", editingAccount.id);
+  //       await updateDoc(accountRef, values);
+  
+  //       const updatedAccounts = accounts.map((acc) =>
+  //         acc.id === editingAccount.id ? { ...acc, ...values } : acc
+  //       );
+
+  //       setAccounts(updatedAccounts);
+  //       setModalMessage("Account updated successfully!");
+  //       setIsNotificationVisible(true);
+
+  //     } catch (error) {
+  //       console.error("Error updating account:", error);
+  //       message.error("Failed to update account.");
+  //     }
+
+  //   } else {
+  //     try {
+  //       const docRef = await addDoc(collection(db, "accounts"), values);
+  //       const newAccount = { ...values, id: docRef.id };
+  
+  //       setAccounts([...accounts, newAccount]);
+  //       setModalMessage("Account added successfully!");
+  //       setIsNotificationVisible(true);
+
+  //     } catch (error) {
+  //       console.error("Error adding account:", error);
+  //       setModalMessage("Failed to update account.");
+  //       setIsNotificationVisible(true);
+  //     }
+  //   }
+  
+  //   setIsModalVisible(false);
+  // };
+
   const handleSave = async (values) => {
+    // Sanitize input by trimming extra spaces and lowering the case
+    const sanitizedValues = {
+      ...values,
+      name: values.name.trim().toLowerCase(),
+      email: values.email.trim().toLowerCase(),
+    };
+  
+    // Check for duplicates, ensuring all names and emails are unique
     const isDuplicate = accounts.some(
       (acc) =>
         acc.id !== (editingAccount?.id || null) &&
-        (acc.name.toLowerCase() === values.name.toLowerCase() ||
-          acc.email.toLowerCase() === values.email.toLowerCase())
+        (acc.name.toLowerCase() === sanitizedValues.name ||
+          acc.email.toLowerCase() === sanitizedValues.email)
     );
   
     if (isDuplicate) {
@@ -151,43 +209,39 @@ const AccountManagement = () => {
       setIsNotificationVisible(true);
       return;
     }
-
-    if (editingAccount) {
-      try {
+  
+    try {
+      if (editingAccount) {
+        // If editing an existing account
         const accountRef = doc(db, "accounts", editingAccount.id);
-        await updateDoc(accountRef, values);
+        await updateDoc(accountRef, sanitizedValues);
   
         const updatedAccounts = accounts.map((acc) =>
-          acc.id === editingAccount.id ? { ...acc, ...values } : acc
+          acc.id === editingAccount.id ? { ...acc, ...sanitizedValues } : acc
         );
-
+  
         setAccounts(updatedAccounts);
         setModalMessage("Account updated successfully!");
-        setIsNotificationVisible(true);
-
-      } catch (error) {
-        console.error("Error updating account:", error);
-        message.error("Failed to update account.");
-      }
-
-    } else {
-      try {
-        const docRef = await addDoc(collection(db, "accounts"), values);
-        const newAccount = { ...values, id: docRef.id };
+        
+      } else {
+        // If adding a new account
+        const docRef = await addDoc(collection(db, "accounts"), sanitizedValues);
+        const newAccount = { ...sanitizedValues, id: docRef.id };
   
         setAccounts([...accounts, newAccount]);
         setModalMessage("Account added successfully!");
-        setIsNotificationVisible(true);
-
-      } catch (error) {
-        console.error("Error adding account:", error);
-        setModalMessage("Failed to update account.");
-        setIsNotificationVisible(true);
       }
+  
+      setIsNotificationVisible(true);
+
+    } catch (error) {
+      console.error("Error handling account:", error);
+      setModalMessage("Failed to update account.");
+      setIsNotificationVisible(true);
     }
   
     setIsModalVisible(false);
-  };
+  };  
   
   // const handleDelete = async (id) => {
   //   try {
@@ -218,6 +272,7 @@ const AccountManagement = () => {
   
       setModalMessage("Account disabled successfully!");
       setIsNotificationVisible(true);
+
     } catch (error) {
       console.error("Error disabling account:", error);
       message.error("Failed to disable account.");
@@ -237,6 +292,7 @@ const AccountManagement = () => {
   
       setModalMessage("Account enabled successfully!");
       setIsNotificationVisible(true);
+
     } catch (error) {
       console.error("Error enabling account:", error);
       message.error("Failed to enable account.");
@@ -252,6 +308,7 @@ const AccountManagement = () => {
       } else if (actionType === "delete") {
         handleDisable(selectedAccountId); 
       }
+
       message.success("Password confirmed!");
       setIsPasswordModalVisible(false);
       setPassword("");
