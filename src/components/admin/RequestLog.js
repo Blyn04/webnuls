@@ -203,7 +203,7 @@ const RequestLog = () => {
                     key: "quantity",
                   },
                 ]}
-                pagination={false}
+                pagination={{ pageSize: 10 }}
                 style={{ marginTop: 10 }}
               />
               <Row gutter={[16, 8]} style={{ marginTop: 20 }}>
