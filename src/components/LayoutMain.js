@@ -36,6 +36,8 @@ import CustomModal from "./customs/CustomModal";
 import AppHeader from './Header';
 import ProtectedRoute from './ProtectedRoute';
 import HistoryLog from './users/HistoryLog';
+import RequestLog from './admin/RequestLog';
+import AdminActivityLog from './admin/AdminActivityLog';
 
 const { Header, Sider, Content } = Layout;
 
@@ -151,9 +153,19 @@ const LayoutMain = () => {
         setPageTitle("Return Items");
         break;
 
-      case "/main/hsitory-log":
+      case "/main/history-log":
         setSelectedKey("14");
         setPageTitle("History Log");
+        break;
+
+      case "/main/request-log":
+        setSelectedKey("15");
+        setPageTitle("Request Log");
+        break;
+
+      case "/main/admin-activity-log":
+        setSelectedKey("16");
+        setPageTitle("Activivty Log");
         break;
 
       default:
@@ -256,9 +268,14 @@ const LayoutMain = () => {
       label: "Borrow Catalog",
     },
     {
-      key: "/main/history",
+      key: "/main/admin-activity-log",
       icon: <HistoryOutlined />,
-      label: "History",
+      label: "Activity Log",
+    },
+    {
+      key: "/main/request-log",
+      icon: <HistoryOutlined />,
+      label: "Request Log",
     },
     {
       key: "logout",
@@ -386,6 +403,8 @@ const LayoutMain = () => {
             <Route path="/capex-request" element={<ProtectedRoute element={<CapexRequest />} />} />
             <Route path="/return-items" element={<ProtectedRoute element={<ReturnItems />} />} />
             <Route path="/history-log" element={<ProtectedRoute element={<HistoryLog/>} />} />
+            <Route path="/request-log" element={<ProtectedRoute element={<RequestLog/>} />} />
+            <Route path="/admin-activity-log" element={<ProtectedRoute element={<AdminActivityLog/>} />} />
           </Routes>
         </Content>
         

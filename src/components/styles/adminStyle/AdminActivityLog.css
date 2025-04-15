@@ -1,0 +1,56 @@
+.activity-content {
+  padding: 20px;
+  background-color: #f0f2f5;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.activity-table {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.ant-table-thead > tr > th {
+  background-color: rgba(9, 38, 133, 0.8) !important;
+  color: #fff !important;
+}
+
+.ant-table-tbody > tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.ant-table-tbody > tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+@media screen and (max-width: 768px) {
+  .activity-content {
+    padding: 10px;
+  }
+
+  .activity-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .activity-search {
+    width: 100%;
+  }
+
+  .ant-table {
+    font-size: 12px;
+  }
+
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 8px;
+  }
+
+  .activity-table {
+    overflow-x: auto;
+  }
+}

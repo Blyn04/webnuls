@@ -18,6 +18,8 @@ import LayoutMain from './LayoutMain';
 import ProtectedRoute from './ProtectedRoute'; 
 import SessionTimeout from './SessionTimeout'; 
 import HistoryLog from './users/HistoryLog';
+import RequestLog from './admin/RequestLog';
+import AdminActivityLog from './admin/AdminActivityLog';
 
 const AppWrapper = () => {
   const location = useLocation();
@@ -52,6 +54,8 @@ const AppWrapper = () => {
         <Route path="/return-items" element={<ProtectedRoute element={<ReturnItems />} />} />
         <Route path="/main/*" element={<ProtectedRoute element={<LayoutMain />} />} />
         <Route path="/history-log" element={<ProtectedRoute element={<HistoryLog/>} />} />
+        <Route path="/request-log" element={<ProtectedRoute element={<RequestLog/>} />} />
+        <Route path="/admin-activity-log" element={<ProtectedRoute element={<AdminActivityLog/>} />} />
       </Routes>
     </>
   );
