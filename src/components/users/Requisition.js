@@ -785,7 +785,7 @@
 
 // export default Requisition;
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Layout,
   Input,
@@ -857,9 +857,6 @@ const Requisition = () => {
     { key: 0, selectedItemId: null }, 
   ]);
 
-  useEffect(() => {
-    mergeData();
-  }, [tableData, requestList]);
 
   useEffect(() => {
     const storedRequestList = JSON.parse(localStorage.getItem('requestList'));
@@ -997,14 +994,19 @@ const Requisition = () => {
   //   }
   // };
 
-  const mergeData = () => {
-    // Merge tableData and requestList to create the final list to display
+  const mergeData = useCallback(() => {
     const merged = [
       ...tableData,
       ...requestList.filter(item => !tableData.some(t => t.selectedItemId === item.selectedItemId)),
     ];
+    console.log("Merged Data:", merged);
     setMergedData(merged);
-  };
+  }, [tableData, requestList]); // <- dependencies added
+  
+
+  useEffect(() => {
+    mergeData(); // will always use the freshest version now
+  }, [mergeData]);
   
   const finalizeRequest = async () => {
     let isValid = true;
@@ -1141,7 +1143,11 @@ const Requisition = () => {
           setRoom("");
           setReason("");
           setRequestList([]);
-  
+          setMergedData([]);
+          setTableData([]); 
+          console.log("MergedData after finalize:", mergedData);
+          console.log("TableData after finalize:", tableData);
+
           // Optionally clear localStorage
           localStorage.removeItem('requestList');
 
@@ -1155,12 +1161,19 @@ const Requisition = () => {
       }
     }
   };  
-  
+
   const removeFromList = async (id) => {
     try {
       // Filter out the item from local state
-      const updatedList = requestList.filter((item) => item.id !== id);
+      const updatedList = requestList.filter((item) => item.selectedItemId !== id);
       setRequestList(updatedList);
+  
+      // Also update tableData
+      const updatedTableData = tableData.filter((item) => item.selectedItemId !== id);
+      setTableData(updatedTableData);
+  
+      console.log("Attempting to remove ID:", id);
+      console.log("Current requestList:", updatedList);
   
       // Update localStorage
       localStorage.setItem('requestList', JSON.stringify(updatedList));
@@ -1195,7 +1208,7 @@ const Requisition = () => {
       setNotificationMessage("Something went wrong while removing the item.");
       setIsNotificationVisible(true);
     }
-  };  
+  };
 
   const updateQuantity = (id, value) => {
     const updatedList = requestList.map((item) =>
@@ -1210,13 +1223,12 @@ const Requisition = () => {
     const { value: itemId } = selected;
     const selectedItem = items.find((item) => item.id === itemId);
   
-    // Update the tableData with the selected item details
-    const updatedData = [...tableData];
-    updatedData[index] = {
-      ...updatedData[index],
+    // Build new row object
+    const newRow = {
+      ...tableData[index],
       selectedItem: {
         value: itemId,
-        label: selectedItem.itemName, // Shown in dropdown
+        label: selectedItem.itemName,
       },
       selectedItemId: itemId,
       itemName: selectedItem.itemName,
@@ -1229,25 +1241,39 @@ const Requisition = () => {
       department: selectedItem.department,
     };
   
+    // Update tableData
+    const updatedData = [...tableData];
+    updatedData[index] = newRow;
     setTableData(updatedData);
+  
+    // 🔁 Ensure the item is added to requestList
+    const existsInRequestList = requestList.some((item) => item.selectedItemId === itemId);
+    let updatedRequestList = [...requestList];
+  
+    if (!existsInRequestList) {
+      updatedRequestList.push(newRow);
+      setRequestList(updatedRequestList);
+      localStorage.setItem("requestList", JSON.stringify(updatedRequestList));
+    }
+  
+    mergeData(); // ✅ Trigger UI update
   
     const userId = localStorage.getItem("userId");
   
     if (userId) {
       try {
-        // Add the selected item to the temporaryRequests sub-collection in Firestore
         const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
         await addDoc(tempRequestRef, {
           ...selectedItem,
           id: itemId,
           selectedItemId: itemId,
-          selectedItemLabel: selectedItem.itemName, // <-- Add this
+          selectedItemLabel: selectedItem.itemName,
           timestamp: Timestamp.fromDate(new Date()),
         });
   
-        // Notify the user
         setNotificationMessage("Item added to temporary list.");
         setIsNotificationVisible(true);
+
       } catch (error) {
         console.error("Error adding item to temporary list:", error);
         setNotificationMessage("Failed to add item to temporary list.");
@@ -1255,6 +1281,10 @@ const Requisition = () => {
       }
     }
   };
+  
+  useEffect(() => {
+    mergeData();
+  }, [requestList, tableData]);
   
   const columns = [
     {
@@ -1352,7 +1382,7 @@ const Requisition = () => {
           type="text"
           danger
           icon={<DeleteOutlined />}
-          onClick={() => removeFromList(record.id)}
+          onClick={() => removeFromList(record.selectedItemId)}
         />
       ),
     },
