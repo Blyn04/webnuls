@@ -98,7 +98,14 @@ const RequestList = () => {
         });
       }
 
-      setRequests(fetched);
+      const sortedByDate = fetched.sort((a, b) => {
+        const dateA = new Date(a.dateRequested);
+        const dateB = new Date(b.dateRequested);
+        return dateB - dateA; 
+      });
+      
+      setRequests(sortedByDate);      
+
     } catch (err) {
       console.error("Error fetching requests:", err);
       setNotificationMessage("Failed to fetch user requests.");
