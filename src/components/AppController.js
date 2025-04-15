@@ -17,6 +17,7 @@ import ReturnItems from './users/ReturnItems';
 import LayoutMain from './LayoutMain';
 import ProtectedRoute from './ProtectedRoute'; 
 import SessionTimeout from './SessionTimeout'; 
+import HistoryLog from './users/HistoryLog';
 
 const AppWrapper = () => {
   const location = useLocation();
@@ -50,6 +51,7 @@ const AppWrapper = () => {
         <Route path="/capex-request" element={<ProtectedRoute element={<CapexRequest />} />} />
         <Route path="/return-items" element={<ProtectedRoute element={<ReturnItems />} />} />
         <Route path="/main/*" element={<ProtectedRoute element={<LayoutMain />} />} />
+        <Route path="/history-log" element={<ProtectedRoute element={<HistoryLog/>} />} />
       </Routes>
     </>
   );

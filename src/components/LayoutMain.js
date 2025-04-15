@@ -33,6 +33,7 @@ import ReturnItems from './users/ReturnItems';
 import CustomModal from "./customs/CustomModal";
 import AppHeader from './Header';
 import ProtectedRoute from './ProtectedRoute';
+import HistoryLog from './users/HistoryLog';
 
 const { Header, Sider, Content } = Layout;
 
@@ -148,6 +149,11 @@ const LayoutMain = () => {
         setPageTitle("Return Items");
         break;
 
+      case "/main/hsitory-log":
+        setSelectedKey("14");
+        setPageTitle("History Log");
+        break;
+
       default:
         setSelectedKey("1");
         setPageTitle("Dashboard");
@@ -246,14 +252,19 @@ const LayoutMain = () => {
       label: "Request List",
     },
     {
+      key: "/main/search-items",
+      icon: <ClockCircleOutlined />,
+      label: "Search Items",
+    },
+    {
       key: "/main/activity-log",
       icon: <ClockCircleOutlined />,
       label: "Activity Log",
     },
     {
-      key: "/main/search-items",
+      key: "/main/history-log",
       icon: <ClockCircleOutlined />,
-      label: "Search Items",
+      label: "History Log",
     },
     {
       key: "/main/capex-request",
@@ -346,6 +357,7 @@ const LayoutMain = () => {
             <Route path="/search-items" element={<ProtectedRoute element={<SearchItems />} />} />
             <Route path="/capex-request" element={<ProtectedRoute element={<CapexRequest />} />} />
             <Route path="/return-items" element={<ProtectedRoute element={<ReturnItems />} />} />
+            <Route path="/history-log" element={<ProtectedRoute element={<HistoryLog/>} />} />
           </Routes>
         </Content>
         
