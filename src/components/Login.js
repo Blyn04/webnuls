@@ -5,7 +5,8 @@ import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   onAuthStateChanged,
-  updatePassword
+  updatePassword,
+  signOut,
 } from "firebase/auth";
 import { auth, db } from "../backend/firebase/FirebaseConfig";
 import { collection, query, where, getDocs, doc, updateDoc, Timestamp, addDoc, serverTimestamp } from "firebase/firestore";
@@ -211,6 +212,13 @@ const Login = () => {
   
       if (!userData) {
         setError("User not found. Please contact admin.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (userData.disabled) {
+        setError("Your account has been disabled.");
+        await signOut(auth);
         setIsLoading(false);
         return;
       }

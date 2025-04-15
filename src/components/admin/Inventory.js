@@ -12,6 +12,7 @@ import {
   DatePicker,
   Modal,
 } from "antd";
+import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons'; 
 import moment from "moment";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
@@ -46,6 +47,13 @@ const Inventory = () => {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [isRowModalVisible, setIsRowModalVisible] = useState(false);
+  const [qrModalVisible, setQrModalVisible] = useState(false);
+  const [selectedQrCode, setSelectedQrCode] = useState('');
+  const [isItemModalVisible, setIsItemModalVisible] = useState(false);
+  const [isQrModalVisible, setIsQrModalVisible] = useState(false);
+  const [isViewQRModalVisible, setIsViewQRModalVisible] = useState(false);
   const db = getFirestore();
 
   useEffect(() => {
@@ -240,25 +248,24 @@ const Inventory = () => {
     { title: "Item Name", dataIndex: "itemName", key: "itemName" },
     { title: "Category", dataIndex: "category", key: "category" },
     { title: "Department", dataIndex: "department", key: "department" },
-    { title: "Lab/Stock Room", dataIndex: "labRoom", key: "labRoom" },
     { title: "Inventory Balance", dataIndex: "quantity", key: "quantity" },
     { title: "Usage Type", dataIndex: "usageType", key: "usageType" }, 
-    {
-      title: "Date of Entry",
-      dataIndex: "entryDate",
-      key: "entryDate",
-      render: (date) => {
-        return date && date !== "N/A" ? date : "N/A";
-      },
-    },
-    {
-      title: "Expiry Date",
-      dataIndex: "expiryDate",
-      key: "expiryDate",
-      render: (date) => {
-        return date && date !== "N/A" ? date : "N/A";
-      },
-    },
+    // {
+    //   title: "Date of Entry",
+    //   dataIndex: "entryDate",
+    //   key: "entryDate",
+    //   render: (date) => {
+    //     return date && date !== "N/A" ? date : "N/A";
+    //   },
+    // },
+    // {
+    //   title: "Expiry Date",
+    //   dataIndex: "expiryDate",
+    //   key: "expiryDate",
+    //   render: (date) => {
+    //     return date && date !== "N/A" ? date : "N/A";
+    //   },
+    // },
     { title: "Status", dataIndex: "status", key: "status" },
     { title: "Condition", dataIndex: "condition", key: "condition" },
     {
@@ -266,30 +273,55 @@ const Inventory = () => {
       dataIndex: "qrCode",
       key: "qrCode",
       render: (qrCode, record) => (
-        <div ref={(el) => (qrRefs.current[record.itemId] = el)}>
-          <QRCodeCanvas value={qrCode} size={100} />
-        </div>
+        <Button
+          type="link"
+          onClick={() => {
+            setSelectedQrCode(qrCode);
+            setQrModalVisible(true);
+          }}
+        >
+          View QR
+        </Button>
       ),
-    },
+    },    
     {
       title: "Actions",
+      dataIndex: "actions",
       key: "actions",
       render: (_, record) => (
         <Space direction="vertical" size="small">
-          <Button type="primary" onClick={() => printQRCode(record)}>
-            Print PDF
-          </Button>
+          <Button
+            icon={<EyeOutlined />} 
+            onClick={(e) => {
+              e.stopPropagation(); 
+              setSelectedRow(record);
+              setIsRowModalVisible(true);
+            }}
+          />
 
-          <Button type="link" onClick={() => editItem(record)}>
-            Edit
-          </Button>
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={(e) => {
+              e.stopPropagation(); 
+              handleDelete(record);
+            }}
+          />
 
-          <Button type="text" danger onClick={() => handleDelete(record)}>
-            Delete
-          </Button>
+          <Button
+            type="link"
+            icon={<EditOutlined />}
+            onClick={(e) => {
+              e.stopPropagation(); 
+              setSelectedRow(record);
+              setIsEditModalVisible(true);
+              editItem(record)
+            }}
+          />
         </Space>
       ),
-    },
+    }    
   ];
 
   const disabledDate = (current) => {
@@ -478,6 +510,43 @@ const Inventory = () => {
             bordered
             className="inventory-table"
           />
+
+          <Modal
+            title="Item Details"
+            visible={isRowModalVisible}
+            footer={null}
+            onCancel={() => setIsRowModalVisible(false)}
+          >
+            {selectedRow && (
+              <div>
+                <p><strong>Item ID:</strong> {selectedRow.itemId}</p>
+                <p><strong>Item Name:</strong> {selectedRow.itemName}</p>
+                <p><strong>Category:</strong> {selectedRow.category}</p>
+                <p><strong>Quantity:</strong> {selectedRow.quantity}</p>
+                <p><strong>Department:</strong> {selectedRow.department}</p>
+                <p><strong>Status:</strong> {selectedRow.status}</p>
+                <p><strong>Condition:</strong> {selectedRow.condition}</p>
+                <p><strong>Lab / Stock Room:</strong> {selectedRow.labRoom}</p>
+                <p><strong>Date of Entry:</strong> {selectedRow.entryDate || 'N/A'}</p>
+                <p><strong>Date of Expiry:</strong> {selectedRow.expiryDate || 'N/A'}</p>
+              </div>
+            )}
+          </Modal>
+
+          <Modal
+            title="Item QR Code"
+            visible={qrModalVisible}
+            onCancel={() => setQrModalVisible(false)}
+            footer={null}
+          >
+            {selectedQrCode ? (
+              <div style={{ textAlign: 'center' }}>
+                <QRCodeCanvas value={selectedQrCode} size={200} />
+              </div>
+            ) : (
+              <p>No QR Code Available</p>
+            )}
+          </Modal>
 
           <Modal
             title="Edit Item"

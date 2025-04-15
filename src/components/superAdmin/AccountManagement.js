@@ -189,19 +189,59 @@ const AccountManagement = () => {
     setIsModalVisible(false);
   };
   
-  const handleDelete = async (id) => {
-    try {
-      await deleteDoc(doc(db, "accounts", id));
-      const updatedAccounts = accounts.filter((acc) => acc.id !== id);
-      setAccounts(updatedAccounts);
-      setModalMessage("Account deleted successfully!");
-      setIsNotificationVisible(true);
+  // const handleDelete = async (id) => {
+  //   try {
+  //     await deleteDoc(doc(db, "accounts", id));
+  //     const updatedAccounts = accounts.filter((acc) => acc.id !== id);
+  //     setAccounts(updatedAccounts);
+  //     setModalMessage("Account deleted successfully!");
+  //     setIsNotificationVisible(true);
 
+  //   } catch (error) {
+  //     console.error("Error deleting account:", error);
+  //     message.error("Failed to delete account.");
+  //   }
+  // };
+
+  const handleDisable = async (id) => {
+    try {
+      // 1. Mark the account as disabled in Firestore
+      await updateDoc(doc(db, "accounts", id), {
+        disabled: true,
+      });
+  
+      // 2. Update local state
+      const updatedAccounts = accounts.map((acc) =>
+        acc.id === id ? { ...acc, disabled: true } : acc
+      );
+      setAccounts(updatedAccounts);
+  
+      setModalMessage("Account disabled successfully!");
+      setIsNotificationVisible(true);
     } catch (error) {
-      console.error("Error deleting account:", error);
-      message.error("Failed to delete account.");
+      console.error("Error disabling account:", error);
+      message.error("Failed to disable account.");
     }
   };
+
+  const handleEnable = async (id) => {
+    try {
+      await updateDoc(doc(db, "accounts", id), {
+        disabled: false,
+      });
+  
+      const updatedAccounts = accounts.map((acc) =>
+        acc.id === id ? { ...acc, disabled: false } : acc
+      );
+      setAccounts(updatedAccounts);
+  
+      setModalMessage("Account enabled successfully!");
+      setIsNotificationVisible(true);
+    } catch (error) {
+      console.error("Error enabling account:", error);
+      message.error("Failed to enable account.");
+    }
+  };  
 
   const handlePasswordConfirm = () => {
     if (adminCredentials && password === adminCredentials.password) {
@@ -210,7 +250,7 @@ const AccountManagement = () => {
         showModalHandler(accountToEdit);
 
       } else if (actionType === "delete") {
-        handleDelete(selectedAccountId); 
+        handleDisable(selectedAccountId); 
       }
       message.success("Password confirmed!");
       setIsPasswordModalVisible(false);
@@ -259,6 +299,41 @@ const AccountManagement = () => {
         </Tag>
       ),
     },
+    // {
+    //   title: "Actions",
+    //   key: "actions",
+    //   render: (text, record) => (
+    //     <>
+    //       <Button
+    //         type="link"
+    //         icon={<EditOutlined />}
+    //         onClick={() => confirmEdit(record)}
+    //       />
+          
+    //       <Popconfirm
+    //         title="Are you sure you want to delete this account?"
+    //         onConfirm={() => confirmDelete(record.id)} 
+    //         okText="Yes"
+    //         cancelText="No"
+    //       >
+    //         <Button
+    //           type="link"
+    //           danger
+    //           icon={<DeleteOutlined />}
+    //         />
+    //       </Popconfirm>
+    //     </>
+    //   ),
+    // },
+    {
+      title: "Status",
+      key: "status",
+      render: (_, record) => (
+        <Tag color={record.disabled ? "red" : "green"}>
+          {record.disabled ? "Disabled" : "Active"}
+        </Tag>
+      ),
+    },
     {
       title: "Actions",
       key: "actions",
@@ -268,23 +343,31 @@ const AccountManagement = () => {
             type="link"
             icon={<EditOutlined />}
             onClick={() => confirmEdit(record)}
+            disabled={record.disabled} // Optionally disable edit if account is disabled
           />
           
-          <Popconfirm
-            title="Are you sure you want to delete this account?"
-            onConfirm={() => confirmDelete(record.id)} 
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button
-              type="link"
-              danger
-              icon={<DeleteOutlined />}
-            />
-          </Popconfirm>
+          {record.disabled ? (
+            <Popconfirm
+              title="Enable this account?"
+              onConfirm={() => handleEnable(record.id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button type="link" style={{ color: "green" }}>Enable</Button>
+            </Popconfirm>
+          ) : (
+            <Popconfirm
+              title="Are you sure you want to disable this account?"
+              onConfirm={() => confirmDelete(record.id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button type="link" danger>Disable</Button>
+            </Popconfirm>
+          )}
         </>
       ),
-    },
+    }    
   ];
 
   return (
