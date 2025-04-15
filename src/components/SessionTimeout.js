@@ -1,21 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Modal, Button } from "antd";
 import { useNavigate } from "react-router-dom";
 
-const SessionTimeout = ({ onLogout }) => { 
-  const [timer, setTimer] = useState(null);
-  const [lastActivityTime, setLastActivityTime] = useState(Date.now());
+const SessionTimeout = ({ onLogout }) => {
+  const timerRef = useRef(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
-  const timeoutDuration = 20 * 60 * 1000; // 1 minute in milliseconds
+  const timeoutDuration = 1 * 60 * 1000; // 1 minute
 
   const logoutUser = () => {
-    localStorage.removeItem("userId");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userDepartment");
-    localStorage.removeItem("userPosition");
+    localStorage.clear(); // clears all localStorage items
     onLogout();
     navigate("/", { replace: true });
   };
@@ -25,39 +20,32 @@ const SessionTimeout = ({ onLogout }) => {
   };
 
   const resetTimeout = () => {
-    setLastActivityTime(Date.now());  
-    if (timer) {
-      clearTimeout(timer);  
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
     }
 
-    const newTimer = setTimeout(() => {
-      showSessionTimeoutModal();  
+    timerRef.current = setTimeout(() => {
+      showSessionTimeoutModal();
     }, timeoutDuration);
-
-    setTimer(newTimer);  
   };
 
   useEffect(() => {
     const handleActivity = () => {
-      resetTimeout();  
+      resetTimeout();
     };
 
     window.addEventListener("mousemove", handleActivity);
     window.addEventListener("keydown", handleActivity);
     window.addEventListener("click", handleActivity);
 
+    resetTimeout(); // initialize on mount
+
     return () => {
       window.removeEventListener("mousemove", handleActivity);
       window.removeEventListener("keydown", handleActivity);
       window.removeEventListener("click", handleActivity);
-    };
-  }, [lastActivityTime]);
-
-  useEffect(() => {
-    resetTimeout();  
-    return () => {
-      if (timer) {
-        clearTimeout(timer);  
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
       }
     };
   }, []);
@@ -69,13 +57,13 @@ const SessionTimeout = ({ onLogout }) => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
-    resetTimeout();  
+    resetTimeout();
   };
 
   return (
     <Modal
       title="Session Timeout"
-      visible={isModalVisible}
+      open={isModalVisible} // Ant Design v5 uses `open`, not `visible`
       footer={[
         <Button key="ok" type="primary" onClick={handleOk}>
           Okay
