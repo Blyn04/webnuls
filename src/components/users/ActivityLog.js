@@ -87,6 +87,7 @@ const ActivityLog = () => {
         });        
 
         setActivityData(logs);
+
       } catch (error) {
         console.error("Failed to fetch activity logs:", error);
       }
@@ -128,7 +129,7 @@ const ActivityLog = () => {
           <Table
             columns={columns}
             dataSource={filteredData}
-            pagination={false}
+            pagination={{ pageSize: 10 }}
             bordered
             className="activity-table"
             rowClassName="activity-row"

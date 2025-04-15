@@ -100,6 +100,7 @@ const SearchItems = () => {
         });
         setInventoryData(items);
         setFilteredData(items);
+        
       } catch (err) {
         console.error("Error fetching inventory data:", err);
       }
@@ -180,7 +181,7 @@ const SearchItems = () => {
               columns={columns}
               dataSource={filteredData}
               rowKey="key"
-              pagination={{ pageSize: 5 }}
+              pagination={{ pageSize: 10 }}
               className="search-table"
               onRow={(record) => ({
                 onClick: () => handleRowClick(record),

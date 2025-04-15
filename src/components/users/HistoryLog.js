@@ -123,7 +123,7 @@ const HistoryLog = () => {
           <Table
             columns={columns}
             dataSource={filteredData}
-            pagination={false}
+            pagination={{ pageSize: 10 }}
             bordered
             className="activity-table"
             rowClassName="activity-row"

@@ -299,6 +299,7 @@ const RequestList = () => {
               <Table
                 columns={columns}
                 dataSource={requests}
+                pagination={{ pageSize: 10 }}
                 rowKey="id"
                 className="pending-table"
               />
