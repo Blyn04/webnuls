@@ -516,7 +516,7 @@ const AccountManagement = () => {
                         value === "Admin1"
                           ? "Dean"
                           : value === "Admin2"
-                          ? "LabTech"
+                          ? "Laboratory Custodian"
                           : value === "User"
                           ? "Faculty"
                           : "",
