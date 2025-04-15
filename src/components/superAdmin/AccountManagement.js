@@ -508,12 +508,35 @@ const AccountManagement = () => {
                 label="Role"
                 rules={[{ required: true, message: "Please select a role" }]}
               >
-                <Select placeholder="Select Role">
-                <Option value="Admin1">Admin1</Option>
-                <Option value="Admin2">Admin2</Option>
-                <Option value="User">User</Option>
+                <Select
+                  placeholder="Select Role"
+                  onChange={(value) => {
+                    form.setFieldsValue({
+                      jobTitle:
+                        value === "Admin1"
+                          ? "Dean"
+                          : value === "Admin2"
+                          ? "LabTech"
+                          : value === "User"
+                          ? "Faculty"
+                          : "",
+                    });
+                  }}
+                >
+                  <Option value="Admin1">Admin1</Option>
+                  <Option value="Admin2">Admin2</Option>
+                  <Option value="User">User</Option>
                 </Select>
               </Form.Item>
+
+              <Form.Item
+                name="jobTitle"
+                label="Job Title"
+                rules={[{ required: true, message: "Job title is required" }]}
+              >
+                <Input disabled />
+              </Form.Item>
+
             </Form>
           </Modal>
         </Content>
