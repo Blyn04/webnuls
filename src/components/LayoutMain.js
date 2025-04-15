@@ -17,6 +17,8 @@ import {
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
 import { useNavigate, useLocation, Routes, Route } from "react-router-dom";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../backend/firebase/FirebaseConfig"; 
 import Dashboard from './Dashboard';
 import Inventory from './admin/Inventory';
 import PendingRequest from './admin/PendingRequest';
@@ -181,14 +183,40 @@ const LayoutMain = () => {
     if (isMobile) setMobileOpen(false);
   };  
 
-  const handleSignOut = () => {
-    // localStorage.clear();
-    // navigate("/", { replace: true });
-    localStorage.removeItem("userId");  
+  // const handleSignOut = () => {
+  //   // localStorage.clear();
+  //   // navigate("/", { replace: true });
+  //   localStorage.removeItem("userId");  
+  //   localStorage.removeItem("userEmail");
+  //   localStorage.removeItem("userName");
+  //   localStorage.removeItem("userDepartment");
+  //   localStorage.removeItem("userPosition");
+  //   navigate("/", { replace: true });
+  // };
+
+  const handleSignOut = async () => {
+    const userId = localStorage.getItem("userId");
+    const userName = localStorage.getItem("userName") || "Unknown User";
+
+    if (userId) {
+      try {
+        await addDoc(collection(db, `accounts/${userId}/activitylog`), {
+          action: "User Logged Out",
+          userName,
+          timestamp: serverTimestamp(),
+        });
+      } catch (error) {
+        console.error("Error logging logout:", error);
+      }
+    }
+
+    // Clear local storage and redirect
+    localStorage.removeItem("userId");
     localStorage.removeItem("userEmail");
     localStorage.removeItem("userName");
     localStorage.removeItem("userDepartment");
     localStorage.removeItem("userPosition");
+
     navigate("/", { replace: true });
   };
 

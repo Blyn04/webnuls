@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Modal, Button } from "antd";
 import { useNavigate } from "react-router-dom";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../backend/firebase/FirebaseConfig"; 
 
 const SessionTimeout = ({ onLogout }) => {
   const timerRef = useRef(null);
@@ -9,9 +11,28 @@ const SessionTimeout = ({ onLogout }) => {
 
   const timeoutDuration = 1 * 60 * 1000; // 1 minute
 
-  const logoutUser = () => {
-    localStorage.clear(); 
+  const logoutUser = async () => {
+    const userId = localStorage.getItem("userId");
+    const userName = localStorage.getItem("userName") || "Unknown User";
+
+    // Clear local storage and perform logout action
+    localStorage.clear();
     onLogout();
+
+    // Log logout activity to Firestore
+    if (userId) {
+      try {
+        await addDoc(collection(db, `accounts/${userId}/activitylog`), {
+          action: "User Logged Out",
+          userName,
+          timestamp: serverTimestamp(),
+        });
+      } catch (error) {
+        console.error("Error logging logout:", error);
+      }
+    }
+
+    // Redirect to the home page or login page
     navigate("/", { replace: true });
   };
 
@@ -63,7 +84,7 @@ const SessionTimeout = ({ onLogout }) => {
   return (
     <Modal
       title="Session Timeout"
-      open={isModalVisible} 
+      open={isModalVisible}
       footer={[
         <Button key="ok" type="primary" onClick={handleOk}>
           Okay

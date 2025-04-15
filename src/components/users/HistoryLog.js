@@ -51,7 +51,7 @@ const HistoryLog = () => {
         const userId = localStorage.getItem("userId");
         if (!userId) throw new Error("User ID not found");
 
-        const activityRef = collection(db, `accounts/${userId}/activitylog`);
+        const activityRef = collection(db, `accounts/${userId}/historylog`);
         const querySnapshot = await getDocs(activityRef);
 
         const logs = querySnapshot.docs.map((doc, index) => {
@@ -63,7 +63,14 @@ const HistoryLog = () => {
 
           return {
             key: doc.id || index.toString(),
-            date: logDate.toLocaleDateString(),
+            date: logDate.toLocaleString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            }),
             action:
               data.status === "CANCELLED"
                 ? "Cancelled a request"
@@ -74,6 +81,7 @@ const HistoryLog = () => {
         });
 
         setActivityData(logs);
+
       } catch (error) {
         console.error("Failed to fetch activity logs:", error);
       }
@@ -131,7 +139,6 @@ const HistoryLog = () => {
             }}
           />
 
-          {/* Modal for detailed log info */}
           <Modal
             title="Activity Details"
             visible={modalVisible}
@@ -168,25 +175,13 @@ const HistoryLog = () => {
                     : "N/A"}
                 </Descriptions.Item>
 
-                <Descriptions.Item label="Usage Type">
-                  {selectedLog.requestList?.[0]?.usageType || "N/A"}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="Category">
-                  {selectedLog.requestList?.map((item, index) => (
-                    <div key={index}>
-                      {item.category || "N/A"}
-                    </div>
-                  )) || "N/A"}
-                </Descriptions.Item>
-
                 <Descriptions.Item label="Date Required">
                   {selectedLog.dateRequired || "N/A"}
                 </Descriptions.Item>
 
                 <Descriptions.Item label="Items Requested">
                   <ul style={{ paddingLeft: 20 }}>
-                    {selectedLog.requestList?.map((item, index) => (
+                    {selectedLog.filteredMergedData?.map((item, index) => (
                       <li key={index}>
                         {item.itemName} - Quantity: {item.quantity}
                       </li>

@@ -806,7 +806,7 @@ import {
 import moment from "moment";
 import dayjs from 'dayjs';
 import { useLocation, useNavigate } from "react-router-dom";
-import { getFirestore, collection, addDoc, Timestamp, getDocs, updateDoc, doc, deleteDoc,setDoc, getDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, Timestamp, getDocs, updateDoc, doc, deleteDoc,setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth } from 'firebase/auth';
 import { db } from "../../backend/firebase/FirebaseConfig";
 import Sidebar from "../Sidebar";
@@ -858,7 +858,6 @@ const Requisition = () => {
   const [tableData, setTableData] = useState([
     { key: 0, selectedItemId: null }, 
   ]);
-
 
   useEffect(() => {
     const storedRequestList = JSON.parse(localStorage.getItem('requestList'));
@@ -1009,6 +1008,15 @@ const Requisition = () => {
   useEffect(() => {
     mergeData(); // will always use the freshest version now
   }, [mergeData]);
+
+  const logRequestOrReturn = async (userId, userName, action, requestDetails) => {
+    await addDoc(collection(db, `accounts/${userId}/activitylog`), {
+      action, // e.g. "Requested Items" or "Returned Items"
+      userName,
+      timestamp: serverTimestamp(),
+      requestList: requestDetails, 
+    });
+  };  
   
   const finalizeRequest = async () => {
     let isValid = true;
@@ -1096,6 +1104,8 @@ const Requisition = () => {
             ...requestData,
             accountId: userId,
           });
+
+          await logRequestOrReturn(userId, userName, "Requested Items", filteredMergedData); 
   
           const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
           const querySnapshot = await getDocs(tempRequestRef);
@@ -1150,7 +1160,6 @@ const Requisition = () => {
           console.log("MergedData after finalize:", mergedData);
           console.log("TableData after finalize:", tableData);
 
-          // Optionally clear localStorage
           localStorage.removeItem('requestList');
 
         } else {
@@ -1254,7 +1263,7 @@ const Requisition = () => {
     updatedData[index] = newRow;
     setTableData(updatedData);
   
-    // 🔁 Ensure the item is added to requestList
+    // Ensure the item is added to requestList
     const existsInRequestList = requestList.some((item) => item.selectedItemId === itemId);
     let updatedRequestList = [...requestList];
   
@@ -1264,7 +1273,7 @@ const Requisition = () => {
       localStorage.setItem("requestList", JSON.stringify(updatedRequestList));
     }
   
-    mergeData(); // ✅ Trigger UI update
+    mergeData(); 
   
     const userId = localStorage.getItem("userId");
   
@@ -1300,7 +1309,7 @@ const Requisition = () => {
       dataIndex: "selectedItemId",
       key: "selectedItemId",
       render: (value, record, index) => {
-        // Step 1: Get all selected item IDs except the current row
+        // Get all selected item IDs except the current row
         const selectedIds = mergedData
           .filter((_, i) => i !== index)
           .map((row) => row.selectedItemId);
@@ -1601,11 +1610,11 @@ const Requisition = () => {
               type="dashed"
               onClick={() => {
                 const lastRow = tableData[tableData.length - 1];
-                // Only add a new row if the last one has an item selected
+
                 if (!lastRow || lastRow.selectedItemId) {
                   setTableData([
                     ...tableData,
-                    { key: Date.now(), selectedItemId: null } // empty row
+                    { key: Date.now(), selectedItemId: null }
                   ]);
                 } else {
                   setNotificationMessage("Please select an item in the last row first.");

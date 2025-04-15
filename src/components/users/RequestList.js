@@ -130,7 +130,7 @@ const RequestList = () => {
       }
   
       const userRequestRef = doc(db, `accounts/${userId}/userRequests`, selectedRequest.id);
-      const activityLogRef = doc(db, `accounts/${userId}/activitylog`, selectedRequest.id);
+      const activityLogRef = doc(db, `accounts/${userId}/historylog`, selectedRequest.id);
   
       // Fetch request data before deleting
       const requestSnap = await getDoc(userRequestRef);
@@ -164,8 +164,7 @@ const RequestList = () => {
   
       await Promise.all(batchDeletes);
       setIsCancelVisible(false);
-  
-      // UI feedback
+
       setNotificationMessage("Request successfully canceled and logged.");
       setNotificationVisible(true);
       setSelectedRequest(null);

@@ -60,10 +60,17 @@ const ActivityLog = () => {
             data.cancelledAt?.toDate?.() ||
             data.timestamp?.toDate?.() ||
             new Date();
-
+        
           return {
             key: doc.id || index.toString(),
-            date: logDate.toLocaleDateString(),
+            date: logDate.toLocaleString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            }),
             action:
               data.status === "CANCELLED"
                 ? "Cancelled a request"
@@ -71,7 +78,13 @@ const ActivityLog = () => {
             by: data.userName || "Unknown User",
             fullData: data,
           };
-        });
+        });        
+
+        logs.sort((a, b) => {
+          const dateA = new Date(a.fullData.timestamp?.toDate?.() || a.fullData.cancelledAt?.toDate?.() || 0);
+          const dateB = new Date(b.fullData.timestamp?.toDate?.() || b.fullData.cancelledAt?.toDate?.() || 0);
+          return dateB - dateA; 
+        });        
 
         setActivityData(logs);
       } catch (error) {
@@ -130,72 +143,6 @@ const ActivityLog = () => {
               ),
             }}
           />
-
-          {/* Modal for detailed log info */}
-          <Modal
-            title="Activity Details"
-            visible={modalVisible}
-            onCancel={() => setModalVisible(false)}
-            footer={null}
-          >
-            {selectedLog && (
-              <Descriptions column={1} bordered size="small">
-                <Descriptions.Item label="Action">
-                  {selectedLog.status === "CANCELLED"
-                    ? "Cancelled a request"
-                    : selectedLog.action || "Modified a request"}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="By">
-                  {selectedLog.userName || "Unknown User"}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="Program">
-                  {selectedLog.program || "N/A"}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="Reason">
-                  {selectedLog.reason || "N/A"}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="Room">
-                  {selectedLog.room || "N/A"}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="Time">
-                  {selectedLog.timeFrom && selectedLog.timeTo
-                    ? `${selectedLog.timeFrom} - ${selectedLog.timeTo}`
-                    : "N/A"}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="Usage Type">
-                  {selectedLog.requestList?.[0]?.usageType || "N/A"}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="Category">
-                  {selectedLog.requestList?.map((item, index) => (
-                    <div key={index}>
-                      {item.category || "N/A"}
-                    </div>
-                  )) || "N/A"}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="Date Required">
-                  {selectedLog.dateRequired || "N/A"}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="Items Requested">
-                  <ul style={{ paddingLeft: 20 }}>
-                    {selectedLog.requestList?.map((item, index) => (
-                      <li key={index}>
-                        {item.itemName} - Quantity: {item.quantity}
-                      </li>
-                    )) || "None"}
-                  </ul>
-                </Descriptions.Item>
-              </Descriptions>
-            )}
-          </Modal>
         </Content>
       </Layout>
     </Layout>

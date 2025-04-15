@@ -8,7 +8,7 @@ import {
   updatePassword
 } from "firebase/auth";
 import { auth, db } from "../backend/firebase/FirebaseConfig";
-import { collection, query, where, getDocs, doc, updateDoc, Timestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, updateDoc, Timestamp, addDoc, serverTimestamp } from "firebase/firestore";
 import bcrypt from "bcryptjs";
 import "./styles/Login.css";
 
@@ -293,6 +293,12 @@ const Login = () => {
           localStorage.setItem("userName", userName);
           localStorage.setItem("userDepartment", userData.department || "");
           localStorage.setItem("userPosition", userData.role || "User");
+
+          await addDoc(collection(db, `accounts/${userDoc.id}/activitylog`), {
+            action: "User Logged In",
+            userName: userData.name || "User",
+            timestamp: serverTimestamp(),
+          });          
   
           switch (role) {
             case "admin":
