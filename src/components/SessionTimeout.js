@@ -10,7 +10,7 @@ const SessionTimeout = ({ onLogout }) => {
   const timeoutDuration = 1 * 60 * 1000; // 1 minute
 
   const logoutUser = () => {
-    localStorage.clear(); // clears all localStorage items
+    localStorage.clear(); 
     onLogout();
     navigate("/", { replace: true });
   };
@@ -38,7 +38,7 @@ const SessionTimeout = ({ onLogout }) => {
     window.addEventListener("keydown", handleActivity);
     window.addEventListener("click", handleActivity);
 
-    resetTimeout(); // initialize on mount
+    resetTimeout(); 
 
     return () => {
       window.removeEventListener("mousemove", handleActivity);
@@ -63,7 +63,7 @@ const SessionTimeout = ({ onLogout }) => {
   return (
     <Modal
       title="Session Timeout"
-      open={isModalVisible} // Ant Design v5 uses `open`, not `visible`
+      open={isModalVisible} 
       footer={[
         <Button key="ok" type="primary" onClick={handleOk}>
           Okay
