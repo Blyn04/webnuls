@@ -7,6 +7,8 @@ import {
   Typography,
   Select,
   Space,
+  Modal,
+  Descriptions,
 } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { collection, getDocs } from "firebase/firestore";
@@ -77,6 +79,8 @@ const SearchItems = () => {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchInventory = async () => {
@@ -91,6 +95,7 @@ const SearchItems = () => {
             status: data.status || "Unknown",
             category: data.category || "Uncategorized",
             room: data.labRoom || "No Room Info",
+            ...data, // Include all data for modal use
           };
         });
         setInventoryData(items);
@@ -123,11 +128,15 @@ const SearchItems = () => {
     setFilteredData(data);
   }, [searchText, statusFilter, categoryFilter, inventoryData]);
 
+  const handleRowClick = (record) => {
+    setSelectedItem(record);
+    setIsModalVisible(true);
+  };
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Layout className="site-layout">
         <Content className="search-content">
-
           <div className="search-container">
             <Input
               placeholder="Search by item description..."
@@ -143,7 +152,7 @@ const SearchItems = () => {
                 placeholder="Filter by Status"
                 allowClear
                 style={{ width: 200 }}
-                onChange={value => setStatusFilter(value)}
+                onChange={(value) => setStatusFilter(value)}
                 value={statusFilter}
               >
                 <Option value="Available">Available</Option>
@@ -155,7 +164,7 @@ const SearchItems = () => {
                 placeholder="Filter by Category"
                 allowClear
                 style={{ width: 200 }}
-                onChange={value => setCategoryFilter(value)}
+                onChange={(value) => setCategoryFilter(value)}
                 value={categoryFilter}
               >
                 <Option value="Chemical">Chemical</Option>
@@ -173,8 +182,63 @@ const SearchItems = () => {
               rowKey="key"
               pagination={{ pageSize: 5 }}
               className="search-table"
+              onRow={(record) => ({
+                onClick: () => handleRowClick(record),
+              })}
             />
           </div>
+
+          <Modal
+            title="Item Details"
+            visible={isModalVisible}
+            onCancel={() => setIsModalVisible(false)}
+            footer={null}
+          >
+            {selectedItem && (
+              <Descriptions bordered column={1}>
+                <Descriptions.Item label="Item Name">
+                  {selectedItem.itemName}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Quantity">
+                  {selectedItem.quantity}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Status">
+                  {selectedItem.status}
+                </Descriptions.Item>
+                
+                <Descriptions.Item label="Condition">
+                  {selectedItem.condition || "N/A"}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Item Type">
+                  {selectedItem.type}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Usage Type">
+                  {selectedItem.usageType}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Category">
+                  {selectedItem.category}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Department">
+                  {selectedItem.department}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Laboratory Room">
+                  {selectedItem.labRoom}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Date Acquired">
+                  {selectedItem.entryDate || "N/A"}
+                </Descriptions.Item>
+
+              </Descriptions>
+            )}
+          </Modal>
         </Content>
       </Layout>
     </Layout>
