@@ -813,6 +813,7 @@ import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/usersStyle/Requisition.css";
 import SuccessModal from "../customs/SuccessModal";
+import FinalizeRequestModal from "../customs/FinalizeRequestModal";
 
 const { Content } = Layout;
 
@@ -848,6 +849,7 @@ const Requisition = () => {
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
   const [searchCategory, setSearchCategory] = useState("");
+  const [isFinalizeModalVisible, setIsFinalizeModalVisible] = useState(false);
   const [mergedData, setMergedData] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
@@ -1620,95 +1622,29 @@ const Requisition = () => {
                 danger
                 block
                 className="finalize-btn"
-                onClick={finalizeRequest}
+                onClick={() => setIsFinalizeModalVisible(true)}
               >
                 Finalize
             </Button>
           </div>
-  
-          <Modal
-            title={
-              <div style={{ background: "#f60", padding: "12px", color: "#fff" }}>
-                <strong>📝 Finalize Request</strong>
-              </div>
-            }
-            open={isFinalizeVisible}
-            onCancel={() => setIsFinalizeVisible(false)}
-            footer={null}
-            centered
-            className="finalize-modal"
-          >
-            <div style={{ padding: "10px" }}>
-              <h3 style={{ marginBottom: "10px" }}>Item Summary:</h3>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  marginBottom: "10px",
-                }}
-              >
-                <thead>
-                  <tr>
-                    <th style={tableHeaderStyle}>#</th>
-                    <th style={tableHeaderStyle}>Item Name</th>
-                    <th style={tableHeaderStyle}>Item ID</th>
-                    <th style={tableHeaderStyle}>Usage Type</th>
-                    <th style={tableHeaderStyle}>Qty</th>
-                    <th style={tableHeaderStyle}>Dept.</th>
-                  </tr>
-                </thead>
-  
-                <tbody>
-                  {requestList.map((item, index) => (
-                    <tr key={item.id}>
-                      <td style={tableCellStyle}>{index + 1}.</td>
-                      <td style={tableCellStyle}>{item.itemName}</td>
-                      <td style={tableCellStyle}>{item.itemId}</td>
-                      <td style={tableCellStyle}>{item.usageType}</td>
-                      <td style={tableCellStyle}>{item.quantity || "N/A"}</td>
-                      <td
-                        style={{
-                          ...tableCellStyle,
-                          color: item.department === "MEDTECH" ? "magenta" : "orange",
-                        }}
-                      >
-                        {item.department}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-  
-              <h4>
-                <strong>Date Required:</strong> {dateRequired || "N/A"}
-              </h4>
-
-              <h4>
-              <strong>Time Needed:</strong>{" "}
-              {timeFrom && timeTo ? `${timeFrom} - ${timeTo}` : "N/A"}
-              </h4>
-  
-              <h4>
-                <strong>Message:</strong>{" "}
-                <em>{reason || "No message provided."}</em>
-              </h4>
-  
-              <Button
-                type="primary"
-                danger
-                block
-                style={{ marginTop: "15px" }}
-                onClick={() => {
-                  message.success("Requisition sent successfully!");
-                  setIsFinalizeVisible(false);
-                }}
-              >
-                Send Requisition
-              </Button>
-            </div>
-          </Modal>
         </Content>
-  
+
+        <FinalizeRequestModal
+          visible={isFinalizeModalVisible}
+          onOk={() => {
+            finalizeRequest();
+            setIsFinalizeModalVisible(false);
+          }}
+          onCancel={() => setIsFinalizeModalVisible(false)}
+          dateRequired={dateRequired}
+          timeFrom={timeFrom}
+          timeTo={timeTo}
+          program={program}
+          room={room}
+          reason={reason}
+          requestList={requestList}
+        />
+
         <SuccessModal isVisible={showModal} onClose={closeModal} />
       </Layout>
     </Layout>
