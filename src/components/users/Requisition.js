@@ -1211,13 +1211,19 @@ const Requisition = () => {
   };
 
   const updateQuantity = (id, value) => {
-    const updatedList = requestList.map((item) =>
+    // Update the quantity in the requestList
+    const updatedRequestList = requestList.map((item) =>
       item.id === id ? { ...item, quantity: value } : item
-  );
-
-  setRequestList(updatedList);
-    localStorage.setItem('requestList', JSON.stringify(updatedList)); 
-  };
+    );
+    setRequestList(updatedRequestList);
+    localStorage.setItem('requestList', JSON.stringify(updatedRequestList)); 
+  
+    // Update the quantity in tableData as well to keep the table consistent
+    const updatedTableData = tableData.map((item) =>
+      item.id === id ? { ...item, quantity: value } : item
+    );
+    setTableData(updatedTableData);
+  };  
 
   const handleItemSelect = async (selected, index) => {
     const { value: itemId } = selected;
