@@ -1,315 +1,233 @@
-import React, { useState } from "react";
-import { Layout, Row, Col, Card, Button, Typography, Space, Modal, Table, notification } from "antd";
+import React, { useState, useEffect } from "react";
+import { Layout, Table, Button, Modal, Typography, Row, Col } from "antd";
+import { db } from "../../backend/firebase/FirebaseConfig";
+import { collection, getDocs } from "firebase/firestore";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
-import "../styles/usersStyle/ReturnItems.css";
+import "../styles/adminStyle/RequestLog.css";
 
 const { Content } = Layout;
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const ReturnItems = () => {
-  const [pageTitle, setPageTitle] = useState("");
-  const [checkedItems, setCheckedItems] = useState({});
-  const [approvedRequests, setApprovedRequests] = useState([]);
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [modalVisible, setModalVisible] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [historyData, setHistoryData] = useState([]);
 
-  const [requests, setRequests] = useState([
-    {
-      id: "Req0002",
-      name: "Ma. Nadine Faye Rufo",
-      requisitionDate: "Sept. 28, 2025",
-      requiredDate: "Oct. 7, 2025",
-      department: "Medical Technology",
-      reason:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      room: "Lab 203",
-      courseCode: "MEDTECH101",
-      courseDescription: "Introduction to Medical Technology",
-      timeNeeded: "9:00 AM - 12:00 PM",
-      items: [
-        {
-          id: "Med02",
-          description: "Syringe",
-          quantity: "24 pieces",
-          category: "Equipment",
-          itemCondition: "New",
-        },
-      ],
-    },
-    {
-      id: "Req0004",
-      name: "Mikmik Dubu",
-      requisitionDate: "Sept. 28, 2025",
-      requiredDate: "Oct. 7, 2025",
-      department: "Nursing",
-      reason: "For training purposes in laboratory simulations.",
-      room: "Lab 105",
-      courseCode: "NURS102",
-      courseDescription: "Advanced Nursing Procedures",
-      timeNeeded: "1:00 PM - 4:00 PM",
-      items: [
-        {
-          id: "Med03",
-          description: "Gauze",
-          quantity: "10 packs",
-          category: "Supplies",
-          itemCondition: "Good",
-        },
-      ],
-    },
-  ]);
+  useEffect(() => {
+    const fetchRequestLogs = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "requestlog"));
+        const logs = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "N/A";
 
-  const handleViewDetails = (request) => {
-    setSelectedRequest(request);
-    setIsModalVisible(true);
-  };
-
-  const handleCancel = () => {
-    setCheckedItems({});
-    setIsModalVisible(false);
-    setSelectedRequest(null);
-  };  
-
-  const handleApprove = () => {
-    const isChecked = Object.values(checkedItems).some((checked) => checked);
-  
-    if (!isChecked) {
-      Modal.warning({
-        title: "No Items Selected",
-        content: "Please select at least one item before approving.",
-      });
-      return;
-    }
-  
-    if (selectedRequest) {
-      setApprovedRequests([...approvedRequests, selectedRequest]);
-      setRequests(requests.filter((req) => req.id !== selectedRequest.id));
-      setCheckedItems({});
-      setIsModalVisible(false);
-      setSelectedRequest(null);
-    }
-  };  
-
-  const handleReturn = () => {
-    if (selectedRequest) {
-      setRequests([...requests, selectedRequest]);
-      setApprovedRequests(
-        approvedRequests.filter((req) => req.id !== selectedRequest.id)
-      );
-      
-      setIsModalVisible(false);
-      setSelectedRequest(null);
-  
-      setTimeout(() => {
-        notification.success({
-          message: "Request Returned",
-          description: `Request ID ${selectedRequest.id} has been returned to the requestor.`,
-          duration: 3,
+          return {
+            id: doc.id,
+            date: data.dateRequired ?? "N/A",
+            status: data.status ?? "Pending",
+            requestor: data.userName ?? "Unknown",
+            requestedItems: data.requestList
+              ? data.requestList.map((item) => item.itemName).join(", ")
+              : "No items",
+            requisitionId: doc.id,
+            reason: data.reason ?? "No reason provided",
+            department: data.requestList?.[0]?.department ?? "N/A",
+            approvedBy: data.approvedBy,
+            timestamp: timestamp,
+            raw: data, 
+          };
         });
-      }, 100);
-    }
-  };  
 
-  const handlePrint = () => {
-    window.print(); 
-  };
+        setHistoryData(logs);
+
+      } catch (error) {
+        console.error("Error fetching request logs: ", error);
+      }
+    };
+
+    fetchRequestLogs();
+  }, []);
 
   const columns = [
     {
-      title: "Check",
-      dataIndex: "check",
-      render: (_, record, index) => (
-        <input
-          type="checkbox"
-          checked={checkedItems[`${record.id}-${index}`] || false}
-          onChange={(e) =>
-            setCheckedItems({
-              ...checkedItems,
-              [`${record.id}-${index}`]: e.target.checked,
-            })
-          }
-        />
+      title: "Process Date",
+      dataIndex: "timestamp",
+      key: "timestamp",
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <Text
+          style={{
+            color: status === "Approved" ? "green" : "red",
+            fontWeight: "bold",
+          }}
+        >
+          {status}
+        </Text>
       ),
-      width: 50,
     },
     {
-      title: "Item ID",
-      dataIndex: "id",
+      title: "Requestor",
+      dataIndex: "requestor", 
+      key: "requestor", 
     },
     {
-      title: "Item Description",
-      dataIndex: "description",
+      title: "Approved By",
+      dataIndex: "approvedBy",
+      key: "approvedBy", 
     },
     {
-      title: "Quantity",
-      dataIndex: "quantity",
-    },
-    {
-      title: "Category",
-      dataIndex: "category",
-    },
-    {
-      title: "Item Condition",
-      dataIndex: "itemCondition",
+      title: "",
+      key: "action",
+      render: (_, record) => (
+        <a
+          href="#"
+          className="view-details"
+          onClick={() => handleViewDetails(record)}
+        >
+          View Details
+        </a>
+      ),
     },
   ];
-  
+
+  const handleViewDetails = (record) => {
+    setSelectedRequest(record);
+    console.log("Selected Request Data:", record); // Log to check the data
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedRequest(null);
+  };
+
+  const filteredData =
+    filterStatus === "All"
+      ? historyData
+      : historyData.filter((item) => item.status === filterStatus);
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-
       <Layout>
         <Content style={{ margin: "20px" }}>
+          <div style={{ marginBottom: 16 }}>
+            <Button
+              type={filterStatus === "All" ? "primary" : "default"}
+              onClick={() => setFilterStatus("All")}
+              style={{ marginRight: 8 }}
+            >
+              All
+            </Button>
+            
+            <Button
+              type={filterStatus === "Approved" ? "primary" : "default"}
+              onClick={() => setFilterStatus("Approved")}
+              style={{ marginRight: 8 }}
+            >
+              Approved
+            </Button>
 
-          <Row gutter={24}>
-            <Col span={16}>
+            <Button
+              type={filterStatus === "Declined" ? "primary" : "default"}
+              onClick={() => setFilterStatus("Declined")}
+            >
+              Declined
+            </Button>
+          </div>
 
-              <Title level={4}>List of Requests</Title>
-              
-              {requests.map((request, index) => (
-                <Card key={request.id} className="request-card">
-                  <Row justify="space-between" align="middle">
-                    <Col>
-                      <Text strong> {index + 1}. </Text>
-                      <Text strong>
-                        Requestor: {" "}
-                        <span style={{ fontWeight: "bold" }}>
-                          {request.name}
-                        </span>
-                      </Text>
-                    </Col>
-
-                    <Col>
-                      <Space size="middle">
-                        <Button
-                          type="link"
-                          className="view-btn"
-                          onClick={() => handleViewDetails(request)}
-                        >
-                          View Details
-                        </Button>
-                      </Space>
-                    </Col>
-                  </Row>
-
-                  <Row style={{ marginTop: 8 }}>
-                    <Col span={18} style={{ textAlign: "left" }}>
-                      <Text type="secondary">
-                        Room: {request.room} | Course Code: {request.courseCode}
-                      </Text>
-                      <br />
-                      <Text type="secondary">
-                        Course: {request.courseDescription}
-                      </Text>
-                    </Col>
-
-                    <Col style={{ textAlign: "right" }}>
-                      <Text type="secondary">
-                        Requisition Date: {request.requisitionDate}
-                      </Text>
-
-                      <br />
-
-                      <Text type="secondary">
-                        Required Date: {request.requiredDate}
-                      </Text>
-                    </Col>
-                  </Row>
-                </Card>
-              ))}
-            </Col>
-          </Row>
-
-          <Modal
-            title={
-              <div style={{ background: "#f60", padding: "12px", color: "#fff" }}>
-                <Text strong style={{ color: "#fff" }}>
-                  📄 Requisition Slip
-                </Text>
-
-                <span style={{ float: "right", fontStyle: "italic" }}>
-                  Requisition ID: {selectedRequest?.id}
-                </span>
-              </div>
-            }
-            open={isModalVisible}
-            onCancel={handleCancel}
-            width={800}
-            footer={[
-              <Button key="return" type="default" onClick={handleReturn}>
-                Return
-              </Button>,
-
-              <Button key="cancel" onClick={handleCancel}>
-                Cancel
-              </Button>,
-            ]}
-          >
-            {selectedRequest && (
-              <div style={{ padding: "20px" }}>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <Text strong>Name:</Text> {selectedRequest.name}
-
-                    <br />
-
-                    <Text strong>Request Date:</Text>{" "}
-                    {selectedRequest.requisitionDate}
-
-                    <br />
-
-                    <Text strong>Required Date:</Text>{" "}
-                    {selectedRequest.requiredDate}
-
-                    <br />
-
-                    <Text strong>Time Needed:</Text>{" "}
-                    {selectedRequest.timeNeeded}
-                  </Col>
-
-                  <Col span={12}>
-                    <Text strong>Reason of Request:</Text>
-                    <p style={{ fontSize: "12px", marginTop: 5 }}>
-                      {selectedRequest.reason}
-                    </p>
-                   
-                    <br />
-
-                    <Text strong>Room:</Text> {selectedRequest.room}
-
-                    <br />
-
-                    <Text strong>Course Code:</Text>{" "}
-                    {selectedRequest.courseCode}
-
-                    <br />
-
-                    <Text strong>Course Description:</Text>{" "}
-                    {selectedRequest.courseDescription}
-
-                    <br />
-
-                    <Text strong>Department:</Text>{" "}
-                    {selectedRequest.department}
-                  </Col>
-                </Row>
-
-                <Title level={5} style={{ marginTop: 20 }}>
-                  Requested Items:
-                </Title>
-                
-                <Table
-                  dataSource={selectedRequest.items}
-                  columns={columns}
-                  rowKey="id"
-                  pagination={false}
-                  bordered
-                />
-              </div>
-            )}
-          </Modal>
+          <Table
+            className="request-log-table"
+            dataSource={filteredData}
+            columns={columns}
+            rowKey="id"
+            bordered
+            pagination={{ pageSize: 5 }}
+          />
         </Content>
+
+        <Modal
+          title="📄 Requisition Slip"
+          visible={modalVisible}
+          onCancel={closeModal}
+          footer={[<Button key="close" onClick={closeModal}>Back</Button>]}
+          width={800}
+        >
+          {selectedRequest && (
+            <div>
+              <Row gutter={[16, 16]}>
+                <Col span={12}>
+                  <Text strong>Name:</Text> {selectedRequest.raw?.userName}
+                </Col>
+                <Col span={12} style={{ textAlign: "right" }}>
+                  <Text italic>Requisition ID: {selectedRequest.requisitionId}</Text>
+                </Col>
+              </Row>
+
+              <Row gutter={[16, 8]} style={{ marginTop: 10 }}>
+                <Col span={12}>
+                  <Text strong>Request Date:</Text> {selectedRequest.timestamp}
+                </Col>
+                <Col span={12}>
+                  <Text strong>Required Date:</Text> {selectedRequest.raw?.dateRequired}
+                </Col>
+              </Row>
+
+              <Row gutter={[16, 8]} style={{ marginTop: 10 }}>
+                <Col span={24}>
+                  <Text strong>Requested Items:</Text>
+                  <Text style={{ color: "green" }}>({selectedRequest.status})</Text>
+                </Col>
+              </Row>
+
+              <Table
+                dataSource={(selectedRequest.raw?.requestList ?? []).map((item, index) => ({
+                  key: index,
+                  itemId: item.itemIdFromInventory,
+                  itemDescription: item.itemName,
+                  quantity: item.quantity,
+                }))}
+                columns={[
+                  {
+                    title: "Item ID",
+                    dataIndex: "itemId",
+                    key: "itemId",
+                  },
+                  {
+                    title: "Item Description",
+                    dataIndex: "itemDescription",
+                    key: "itemDescription",
+                  },
+                  {
+                    title: "Quantity",
+                    dataIndex: "quantity",
+                    key: "quantity",
+                  },
+                ]}
+                pagination={{ pageSize: 10 }}
+                style={{ marginTop: 10 }}
+              />
+
+              <Row gutter={[16, 8]} style={{ marginTop: 20 }}>
+                <Col span={12}>
+                  <Text strong>Reason of Request:</Text>
+                  <p>{selectedRequest.raw?.reason}</p>
+                </Col>
+
+                <Col span={12}>
+                  <Text strong>Department:</Text> {selectedRequest.raw?.requestList?.[0]?.department}
+                  <br />
+                  <Text strong>Approved By:</Text> {selectedRequest.raw?.approvedBy}
+                </Col>
+              </Row>
+            </div>
+          )}
+        </Modal>
       </Layout>
     </Layout>
   );

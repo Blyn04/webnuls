@@ -4,7 +4,7 @@ import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/PendingRequest.css";
 import { db } from "../../backend/firebase/FirebaseConfig"; 
-import { collection, getDocs, getDoc, doc, addDoc, query, where } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc, addDoc, query, where, deleteDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import RequisitionRequestModal from "../customs/RequisitionRequestModal";
 import ApprovedRequestModal from "../customs/ApprovedRequestModal";
@@ -118,7 +118,7 @@ const PendingRequest = () => {
               if (inventoryDoc.exists()) {
                 itemType = inventoryDoc.data().type || "Unknown";
               }
-              
+
             } catch (err) {
               console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
             }
@@ -195,6 +195,39 @@ const PendingRequest = () => {
           );
         }
   
+        // Add to userrequestlog subcollection for the requestor's account
+        const userRequestLogEntry = {
+          ...requestLogEntry,
+          status: "Approved", 
+          approvedBy: userName,
+          timestamp: new Date(), // You can choose to use the original timestamp or the current one
+        };
+
+        // Add to the user's 'userrequestlog' subcollection
+        await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
+
+        console.log("selectedRequest.id:", selectedRequest.id);
+        console.log("selectedRequest.accountId:", selectedRequest.accountId);
+        // ✅ Delete from userrequests main collection
+        await deleteDoc(doc(db, "userrequests", selectedRequest.id));
+
+        // ✅ Delete from subcollection with matching timestamp and selectedItemId
+        const subCollectionRef = collection(db, "accounts", selectedRequest.accountId, "userRequests");
+        const subDocsSnap = await getDocs(subCollectionRef);
+
+        subDocsSnap.forEach(async (docSnap) => {
+          const data = docSnap.data();
+          const match = (
+            data.timestamp?.seconds === selectedRequest.timestamp?.seconds &&
+            data.filteredMergedData?.[0]?.selectedItemId === selectedRequest.filteredMergedData?.[0]?.selectedItemId
+          );
+
+          if (match) {
+            console.log("✅ Deleting from subcollection:", docSnap.id);
+            await deleteDoc(doc(db, "accounts", selectedRequest.accountId, "userRequests", docSnap.id));
+          }
+        });
+
         setApprovedRequests([...approvedRequests, requestLogEntry]);
         setRequests(requests.filter((req) => req.id !== selectedRequest.id));
         setCheckedItems({});
