@@ -4,7 +4,8 @@ import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/PendingRequest.css";
 import { db } from "../../backend/firebase/FirebaseConfig"; 
-import { collection, getDocs, getDoc, doc } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc, addDoc, query, where } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import RequisitionRequestModal from "../customs/RequisitionRequestModal";
 import ApprovedRequestModal from "../customs/ApprovedRequestModal";
 
@@ -85,7 +86,7 @@ const PendingRequest = () => {
     setSelectedRequest(null);
   };
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     const isChecked = Object.values(checkedItems).some((checked) => checked);
   
     if (!isChecked) {
@@ -106,18 +107,84 @@ const PendingRequest = () => {
         return;
       }
   
-      const approvedRequest = {
-        ...selectedRequest,
-        requestList: filteredItems,
+      const enrichedItems = await Promise.all(
+        filteredItems.map(async (item) => {
+          const selectedItemId = item.selectedItemId || item.selectedItem?.value;
+          let itemType = "Unknown";
+  
+          if (selectedItemId) {
+            try {
+              const inventoryDoc = await getDoc(doc(db, "inventory", selectedItemId));
+              if (inventoryDoc.exists()) {
+                itemType = inventoryDoc.data().type || "Unknown";
+              }
+            } catch (err) {
+              console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
+            }
+          }
+  
+          return {
+            ...item,
+            selectedItemId,
+            itemType, // This is "Fixed" or "Consumable"
+          };
+        })
+      );
+
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      const userEmail = currentUser.email;
+  
+      // Fetch the user name from Firestore
+      let userName = "Unknown";
+      try {
+        const userQuery = query(collection(db, "accounts"), where("email", "==", userEmail));
+        const userSnapshot = await getDocs(userQuery);
+  
+        if (!userSnapshot.empty) {
+          const userDoc = userSnapshot.docs[0];
+          const userData = userDoc.data();
+          userName = userData.name || "Unknown";
+        }
+      } catch (error) {
+        console.error("Error fetching user name:", error);
+      }
+  
+      const requestLogEntry = {
+        accountId: selectedRequest.accountId || "N/A",
+        userName: selectedRequest.userName || "N/A",
+        room: selectedRequest.room || "N/A",
+        courseCode: selectedRequest.courseCode || "N/A",
+        courseDescription: selectedRequest.courseDescription || "N/A",
+        dateRequired: selectedRequest.dateRequired || "N/A",
+        timestamp: selectedRequest.timestamp || new Date(), 
+        requestList: enrichedItems, 
+        status: "Approved", 
+        approvedBy: userName, 
+        reason: selectedRequest.reason || "No reason provided",
       };
   
-      setApprovedRequests([...approvedRequests, approvedRequest]);
-      setRequests(requests.filter((req) => req.id !== selectedRequest.id));
-      setCheckedItems({});
-      setIsModalVisible(false);
-      setSelectedRequest(null);
+      try {
+        await addDoc(collection(db, "requestlog"), requestLogEntry);
+        setApprovedRequests([...approvedRequests, requestLogEntry]);
+        setRequests(requests.filter((req) => req.id !== selectedRequest.id));
+        setCheckedItems({});
+        setIsModalVisible(false);
+        setSelectedRequest(null);
+  
+        notification.success({
+          message: "Request Approved",
+          description: "Request has been approved and logged.",
+        });
+      } catch (error) {
+        console.error("Error adding to requestlog:", error);
+        notification.error({
+          message: "Approval Failed",
+          description: "There was an error logging the approved request.",
+        });
+      }
     }
-  };  
+  };
 
   const handleReturn = () => {
     if (selectedRequest) {
@@ -137,10 +204,6 @@ const PendingRequest = () => {
         });
       }, 100);
     }
-  };
-
-  const handlePrint = () => {
-    window.print();
   };
 
   const columns = [
