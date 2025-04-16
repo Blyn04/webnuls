@@ -14,6 +14,8 @@ import QRCode from "qrcode.react";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/BorrowCatalog.css";
+import ApprovedRequestModal from "../customs/ApprovedRequestModal";
+
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -104,6 +106,16 @@ const BorrowCatalog = () => {
     setSelectedRequest(null);
   };
 
+  const formatDate = (timestamp) => {
+    if (!timestamp || !timestamp.toDate) return "N/A";
+    const date = timestamp.toDate(); 
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Layout>
@@ -134,53 +146,15 @@ const BorrowCatalog = () => {
             pagination={{ pageSize: 5 }}
           />
 
-          <Modal
-            title={
-              <div style={{ background: "#4CAF50", padding: "12px", color: "#fff" }}>
-                <Text strong style={{ color: "#fff" }}>
-                  👤 {selectedRequest?.requestor}
-                </Text>
-                <span style={{ float: "right", fontStyle: "italic" }}>
-                  Borrow Catalog
-                </span>
-              </div>
-            }
-            open={isModalVisible}
-            onCancel={handleCancel}
-            footer={[
-              <Button key="back" onClick={handleCancel}>
-                Back
-              </Button>,
-            ]}
-            width={800}
-          >
-            {selectedRequest && (
-              <div style={{ padding: "20px" }}>
-                <Descriptions
-                  title="Item Details"
-                  bordered
-                  column={3}
-                  size="middle"
-                >
-                  <Descriptions.Item label={<b>Item Description:</b>}>
-                    {selectedRequest.itemDescription}
-                  </Descriptions.Item>
-                  <Descriptions.Item label={<b>Item ID:</b>}>
-                    {selectedRequest.itemId}
-                  </Descriptions.Item>
-                  <Descriptions.Item label={<b>QR Tracker</b>}>
-                    {/* <QRCode
-                      value={JSON.stringify({
-                        id: selectedRequest.itemId,
-                        requestor: selectedRequest.requestor,
-                      })}
-                      size={80}
-                    /> */}
-                  </Descriptions.Item>
-                </Descriptions>
-              </div>
-            )}
-          </Modal>
+          <ApprovedRequestModal
+            isApprovedModalVisible={isModalVisible}
+            setIsApprovedModalVisible={setIsModalVisible}
+            selectedApprovedRequest={selectedRequest}
+            setSelectedApprovedRequest={setSelectedRequest}
+            columns={columns}
+            formatDate={formatDate}
+          />
+
         </Content>
       </Layout>
     </Layout>

@@ -11,6 +11,7 @@ import {
   Space,
   DatePicker,
   Modal,
+  InputNumber,
 } from "antd";
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons'; 
 import moment from "moment";
@@ -148,7 +149,7 @@ const Inventory = () => {
       timestamp,
       category: values.category,
       labRoom: values.labRoom,
-      quantity: values.quantity,
+      quantity: Number(values.quantity),
       department: values.department,
       type: values.type,
       status: "Available",
@@ -426,7 +427,7 @@ const Inventory = () => {
                     label="Quantity"
                     rules={[{ required: true, message: "Please enter Quantity!" }]}
                   >
-                    <Input placeholder="Enter quantity" />
+                      <InputNumber min={1} placeholder="Enter quantity" style={{ width: "100%" }}/>
                   </Form.Item>
                 </Col>
 

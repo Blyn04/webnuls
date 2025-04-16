@@ -11,6 +11,7 @@ const ApprovedRequestModal = ({
   columns,
   formatDate,
 }) => {
+  
   return (
     <Modal
       title={
