@@ -199,115 +199,100 @@ const PendingRequest = () => {
       <Layout>
         <Content style={{ margin: "20px" }}>
           <Row gutter={24}>
-            <Col span={16}>
-              <Title level={4}>List of Requests</Title>
+            <Col span={24}>
+            <Title level={4}>List of Requests</Title>
+              <Table
+                dataSource={requests}
+                rowKey="id"
+                onRow={(record) => ({
+                  onClick: () => handleViewDetails(record),
+                })}
+                pagination={{ pageSize: 5 }}
+                columns={[
+                  {
+                    title: "Requestor",
+                    dataIndex: "userName",
+                    key: "userName",
+                    render: (text, record, index) => (
+                      <span>
+                        {index + 1}. <strong>{text}</strong>
+                      </span>
+                    ),
+                  },
+                  {
+                    title: "Room",
+                    dataIndex: "room",
+                  },
+                  {
+                    title: "Course Code",
+                    dataIndex: "courseCode",
+                  },
+                  {
+                    title: "Course Description",
+                    dataIndex: "courseDescription",
+                  },
+                  {
+                    title: "Requisition Date",
+                    dataIndex: "timestamp",
+                    render: formatDate,
+                  },
+                  {
+                    title: "Required Date",
+                    dataIndex: "dateRequired",
+                  },
+                ]}
+              />
 
-              {requests.map((request, index) => (
-                <Card key={request.id} className="request-card">
-                  <Row justify="space-between" align="middle">
-                    <Col>
-                      <Text strong> {index + 1}. </Text>
-                      <Text strong>
-                        Requestor: {request.userName}
-                        <span style={{ fontWeight: "bold" }}>
-                          {request.name}
-                        </span>
-                      </Text>
-                    </Col>
+              <div className="cards-hidden">
+                {requests.map((request, index) => (
+                  <Card key={request.id} className="request-card">
+                    <Row justify="space-between" align="middle">
+                      <Col>
+                        <Text strong> {index + 1}. </Text>
+                        <Text strong>
+                          Requestor: {request.userName}
+                          <span style={{ fontWeight: "bold" }}>
+                            {request.name}
+                          </span>
+                        </Text>
+                      </Col>
+                      <Col>
+                        <Space size="middle">
+                          <Button
+                            type="link"
+                            className="view-btn"
+                            onClick={() => handleViewDetails(request)}
+                          >
+                            View Details
+                          </Button>
+                        </Space>
+                      </Col>
+                    </Row>
 
-                    <Col>
-                      <Space size="middle">
-                        <Button
-                          type="link"
-                          className="view-btn"
-                          onClick={() => handleViewDetails(request)}
-                        >
-                          View Details
-                        </Button>
-                      </Space>
-                    </Col>
-                  </Row>
-
-                  <Row style={{ marginTop: 8 }}>
-                    <Col span={18} style={{ textAlign: "left" }}>
-                      <Text type="secondary">
-                        Room: {request.room} | Course Code: {request.courseCode}
-                      </Text>
-
-                      <br />
-
-                      <Text type="secondary">
-                        Course: {request.courseDescription}
-                      </Text>
-                    </Col>
-
-                    <Col style={{ textAlign: "right" }}>
-                      <Text type="secondary">
-                        Requisition Date: {formatDate(request.timestamp)}
-                      </Text>
-
-                      <br />
-
-                      <Text type="secondary">
-                        Required Date: {request.dateRequired}
-                      </Text>
-                    </Col>
-                  </Row>
-                </Card>
-              ))}
-            </Col>
-
-            <Col span={8}>
-              <Title level={4}>Approved Requests:</Title>
-              {approvedRequests.length === 0 ? (
-                <Text italic type="secondary">
-                  No approved requests yet.
-                </Text>
-              ) : (
-                approvedRequests.map((request, index) => (
-                  <Card
-                    key={request.id}
-                    className="request-card"
-                    title={`Approved Request #${index + 1}`}
-                    style={{ marginBottom: "16px" }}
-                    extra={
-                      <Button size="small" onClick={() => {
-                        setSelectedApprovedRequest(request);
-                        setIsApprovedModalVisible(true);
-                      }}>
-                        View Details
-                      </Button>
-                    }
-                  >
-                    <p><Text strong>Requisition ID:</Text> {request.id}</p>
-                    <p><Text strong>Requestor:</Text> {request.userName}</p>
-                    <p><Text strong>Room:</Text> {request.room}</p>
-                    <p><Text strong>Required Date:</Text> {request.dateRequired}</p>
-                    <p><Text strong>Course:</Text> {request.courseDescription}</p>
-
-                    <Button
-                      type="primary"
-                      size="small"
-                      onClick={handlePrint}
-                      style={{ marginRight: "8px" }}
-                    >
-                      Print
-                    </Button>
-
-                    <Button
-                      danger
-                      type="default"
-                      size="small"
-                      onClick={() => {
-                        setSelectedRequest(request);
-                        handleReturn();
-                      }}
-                    >
-                      Return
-                    </Button>
+                    <Row style={{ marginTop: 8 }}>
+                      <Col span={18} style={{ textAlign: "left" }}>
+                        <Text type="secondary">
+                          Room: {request.room} | Course Code: {request.courseCode}
+                        </Text>
+                        <br />
+                        <Text type="secondary">
+                          Course: {request.courseDescription}
+                        </Text>
+                      </Col>
+                      <Col style={{ textAlign: "right" }}>
+                        <Text type="secondary">
+                          Requisition Date: {formatDate(request.timestamp)}
+                        </Text>
+                        <br />
+                        <Text type="secondary">
+                          Required Date: {request.dateRequired}
+                        </Text>
+                      </Col>
+                    </Row>
                   </Card>
-                ))
-              )}
+                ))}
+              </div>
+
             </Col>
           </Row>
         </Content>

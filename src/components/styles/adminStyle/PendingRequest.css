@@ -85,3 +85,12 @@
 .request-card:hover {
   box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.12);
 }
+
+.cards-hidden {
+  display: none;
+}
+
+.ant-table-tbody > tr:hover {
+  cursor: pointer;
+  background-color: #e6f7ff;
+}
