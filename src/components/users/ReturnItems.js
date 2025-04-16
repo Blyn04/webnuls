@@ -18,11 +18,16 @@ const ReturnItems = () => {
   useEffect(() => {
     const fetchRequestLogs = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "requestlog"));
+        const userId = localStorage.getItem("userId");
+        if (!userId) throw new Error("User ID not found");
+    
+        const userRequestLogRef = collection(db, `accounts/${userId}/userrequestlog`);
+        const querySnapshot = await getDocs(userRequestLogRef);
+    
         const logs = querySnapshot.docs.map((doc) => {
           const data = doc.data();
           const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "N/A";
-
+    
           return {
             id: doc.id,
             date: data.dateRequired ?? "N/A",
@@ -36,12 +41,11 @@ const ReturnItems = () => {
             department: data.requestList?.[0]?.department ?? "N/A",
             approvedBy: data.approvedBy,
             timestamp: timestamp,
-            raw: data, 
+            raw: data,
           };
         });
-
+    
         setHistoryData(logs);
-
       } catch (error) {
         console.error("Error fetching request logs: ", error);
       }
