@@ -952,49 +952,6 @@ const Requisition = () => {
     setShowModal(false);
   };
 
-  // const addToList = async (item) => {
-  //   // Check if itemId is available, if not generate a fallback
-  //   const itemId = item.itemId || item.id || crypto.randomUUID(); // Fallback to UUID if itemId is missing
-  
-  //   // Check if item is already in the requestList
-  //   const alreadyAdded = requestList.find((req) => req.selectedItemId === item.selectedItemId);
-  
-  //   if (alreadyAdded) {
-  //     setNotificationMessage("Item already added!");
-  //     setIsNotificationVisible(true);
-
-  //   } else {
-  //     // Add item to the list, including quantity as empty initially
-  //     const updatedRequestList = [...requestList, { ...item,  id: itemId, quantity: "" }];
-  //     setRequestList(updatedRequestList);
-  
-  //     // Save updated list to localStorage
-  //     localStorage.setItem('requestList', JSON.stringify(updatedRequestList));
-  
-  //     // Proceed to add the item to Firestore
-  //     const userId = localStorage.getItem("userId");
-  
-  //     if (userId) {
-  //       try {
-  //         const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
-  //         await addDoc(tempRequestRef, {
-  //           ...item,
-  //           id: itemId,
-  //           timestamp: Timestamp.fromDate(new Date()), // Add timestamp for record
-  //         });
-  
-  //         setNotificationMessage("Item added to temporary list");
-  //         setIsNotificationVisible(true);
-
-  //       } catch (error) {
-  //         console.error("Error adding item to temporary list:", error);
-  //         setNotificationMessage("Failed to add item to temporary list.");
-  //         setIsNotificationVisible(true);
-  //       }
-  //     }
-  //   }
-  // };
-
   const mergeData = useCallback(() => {
     const merged = [
       ...tableData,
@@ -1238,8 +1195,8 @@ const Requisition = () => {
 
   const handleItemSelect = async (selected, index) => {
     const { value: itemId } = selected;
-    const selectedItem = items.find((item) => item.id === itemId);
-  
+    const selectedItem = JSON.parse(JSON.stringify(items.find(item => item.id === itemId)));
+
     // Build new row object
     const newRow = {
       ...tableData[index],
@@ -1361,8 +1318,13 @@ const Requisition = () => {
         <Input
           type="number"
           min={1}
-          value={value}
-          onChange={(e) => updateQuantity(record.id, e.target.value)}
+          value={record.quantity}
+          onChange={(e) => {
+            const updated = tableData.map((row) =>
+              row.key === record.key ? { ...row, quantity: e.target.value } : row
+            );
+            setTableData(updated);
+          }}
         />
       ),
     },
@@ -1601,7 +1563,7 @@ const Requisition = () => {
             columns={columns}
             dataSource={mergedData}
             pagination={{ pageSize: 5 }}
-            rowKey={(record, index) => index}
+            rowKey={(record) => record.key}
           />
           </div>
 
