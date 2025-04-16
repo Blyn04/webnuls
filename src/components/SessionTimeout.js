@@ -9,7 +9,7 @@ const SessionTimeout = ({ onLogout }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const navigate = useNavigate();
 
-  const timeoutDuration = 10 * 60 * 1000; // 1 minute
+  const timeoutDuration = 1 * 60 * 1000; // 1 minute
 
   const logoutUser = async () => {
     const userId = localStorage.getItem("userId");

@@ -1560,6 +1560,7 @@ const Requisition = () => {
 
           <div className="table-request-container">
           <Table
+          className="requisition-table"
             columns={columns}
             dataSource={mergedData}
             pagination={{ pageSize: 5 }}

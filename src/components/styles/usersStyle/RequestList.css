@@ -100,3 +100,15 @@
   border: 1px solid #ddd;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+
+.pending-table .ant-table-tbody > tr:nth-child(odd) > td {
+  background-color: #fafafa; /* Light gray */
+}
+
+.pending-table .ant-table-tbody > tr:nth-child(even) > td {
+  background-color: #ffffff; /* White */
+}
+
+.pending-table .ant-table-tbody > tr:hover > td {
+  background-color: #e6f7ff; /* Light blue highlight */
+}

@@ -133,3 +133,15 @@
   margin-top: 10px;
   margin-bottom: 10px;
 }
+
+.requisition-table .ant-table-tbody > tr:nth-child(odd) > td {
+  background-color: #fafafa; /* Light gray */
+}
+
+.requisition-table .ant-table-tbody > tr:nth-child(even) > td {
+  background-color: #ffffff; /* White */
+}
+
+.requisition-table .ant-table-tbody > tr:hover > td {
+  background-color: #e6f7ff; /* Light blue highlight */
+}
