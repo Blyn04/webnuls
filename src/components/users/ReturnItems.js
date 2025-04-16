@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Table, Button, Modal, Typography, Row, Col } from "antd";
+import { Layout, Table, Button, Modal, Typography, Row, Col, Select } from "antd";
 import { db } from "../../backend/firebase/FirebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import Sidebar from "../Sidebar";
@@ -8,26 +8,30 @@ import "../styles/adminStyle/RequestLog.css";
 
 const { Content } = Layout;
 const { Text } = Typography;
+const { Option } = Select;
 
 const ReturnItems = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [historyData, setHistoryData] = useState([]);
+  const [inventoryData, setInventoryData] = useState({});
+  const [returnQuantities, setReturnQuantities] = useState({});
+  const [itemConditions, setItemConditions] = useState({});
 
   useEffect(() => {
     const fetchRequestLogs = async () => {
       try {
         const userId = localStorage.getItem("userId");
         if (!userId) throw new Error("User ID not found");
-    
+
         const userRequestLogRef = collection(db, `accounts/${userId}/userrequestlog`);
         const querySnapshot = await getDocs(userRequestLogRef);
-    
+
         const logs = querySnapshot.docs.map((doc) => {
           const data = doc.data();
           const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "N/A";
-    
+
           return {
             id: doc.id,
             date: data.dateRequired ?? "N/A",
@@ -44,7 +48,7 @@ const ReturnItems = () => {
             raw: data,
           };
         });
-    
+
         setHistoryData(logs);
       } catch (error) {
         console.error("Error fetching request logs: ", error);
@@ -77,13 +81,13 @@ const ReturnItems = () => {
     },
     {
       title: "Requestor",
-      dataIndex: "requestor", 
-      key: "requestor", 
+      dataIndex: "requestor",
+      key: "requestor",
     },
     {
       title: "Approved By",
       dataIndex: "approvedBy",
-      key: "approvedBy", 
+      key: "approvedBy",
     },
     {
       title: "",
@@ -100,15 +104,43 @@ const ReturnItems = () => {
     },
   ];
 
-  const handleViewDetails = (record) => {
+  const handleViewDetails = async (record) => {
     setSelectedRequest(record);
-    console.log("Selected Request Data:", record); 
     setModalVisible(true);
+
+    const inventoryMap = {};
+    const requestItems = record.raw?.requestList || [];
+
+    try {
+      const inventoryRef = collection(db, "inventory");
+      const inventorySnapshot = await getDocs(inventoryRef);
+      inventorySnapshot.forEach((doc) => {
+        const inv = doc.data();
+        requestItems.forEach((item) => {
+          if (inv.id === item.itemIdFromInventory) {
+            inventoryMap[item.itemIdFromInventory] = inv;
+          }
+        });
+      });
+    } catch (err) {
+      console.error("Error fetching inventory:", err);
+    }
+
+    setInventoryData(inventoryMap);
   };
 
   const closeModal = () => {
     setModalVisible(false);
     setSelectedRequest(null);
+    setReturnQuantities({});
+    setItemConditions({});
+    setInventoryData({});
+  };
+
+  const handleReturn = () => {
+    console.log("Returned Items:", returnQuantities);
+    console.log("Item Conditions:", itemConditions);
+    // You can implement Firestore update logic here to save the returned items and conditions
   };
 
   const filteredData =
@@ -128,7 +160,7 @@ const ReturnItems = () => {
             >
               All
             </Button>
-            
+
             <Button
               type={filterStatus === "Approved" ? "primary" : "default"}
               onClick={() => setFilterStatus("Approved")}
@@ -159,7 +191,14 @@ const ReturnItems = () => {
           title="📄 Requisition Slip"
           visible={modalVisible}
           onCancel={closeModal}
-          footer={[<Button key="close" onClick={closeModal}>Back</Button>]}
+          footer={[
+            <Button key="close" onClick={closeModal}>
+              Back
+            </Button>,
+            <Button key="return" type="primary" onClick={handleReturn}>
+              Return
+            </Button>,
+          ]}
           width={800}
         >
           {selectedRequest && (
@@ -185,7 +224,7 @@ const ReturnItems = () => {
               <Row gutter={[16, 8]} style={{ marginTop: 10 }}>
                 <Col span={24}>
                   <Text strong>Requested Items:</Text>
-                  <Text style={{ color: "green" }}>({selectedRequest.status})</Text>
+                  <Text style={{ color: "green" }}> ({selectedRequest.status})</Text>
                 </Col>
               </Row>
 
@@ -212,21 +251,65 @@ const ReturnItems = () => {
                     dataIndex: "quantity",
                     key: "quantity",
                   },
+                  {
+                    title: "Return Quantity",
+                    key: "returnQty",
+                    render: (_, record) => {
+                      const inventoryItem = inventoryData[record.itemId];
+                      if (inventoryItem) {
+                        return (
+                          <input
+                            type="number"
+                            min={1}
+                            max={record.quantity}
+                            value={returnQuantities[record.itemId] || ""}
+                            onChange={(e) =>
+                              setReturnQuantities((prev) => ({
+                                ...prev,
+                                [record.itemId]: e.target.value,
+                              }))
+                            }
+                            style={{ width: "80px" }}
+                          />
+                        );
+                      } else {
+                        return <span style={{ color: "red" }}>Item not found</span>;
+                      }
+                    },
+                  },
+                  {
+                    title: "Condition",
+                    key: "condition",
+                    render: (_, record) => {
+                      return (
+                        <Select
+                          value={itemConditions[record.itemId] || "Good"}
+                          onChange={(value) =>
+                            setItemConditions((prev) => ({
+                              ...prev,
+                              [record.itemId]: value,
+                            }))
+                          }
+                          style={{ width: 120 }}
+                        >
+                          <Option value="Good">Good</Option>
+                          <Option value="Damaged">Damaged</Option>
+                          <Option value="Needs Repair">Needs Repair</Option>
+                        </Select>
+                      );
+                    },
+                  },
                 ]}
                 pagination={{ pageSize: 10 }}
                 style={{ marginTop: 10 }}
               />
 
-              <Row gutter={[16, 8]} style={{ marginTop: 20 }}>
+              <Row gutter={[16, 16]} style={{ marginTop: 10 }}>
                 <Col span={12}>
-                  <Text strong>Reason of Request:</Text>
-                  <p>{selectedRequest.raw?.reason}</p>
+                  <Text strong>Reason:</Text> {selectedRequest.reason}
                 </Col>
-
-                <Col span={12}>
-                  <Text strong>Department:</Text> {selectedRequest.raw?.requestList?.[0]?.department}
-                  <br />
-                  <Text strong>Approved By:</Text> {selectedRequest.raw?.approvedBy}
+                <Col span={12} style={{ textAlign: "right" }}>
+                  <Text strong>Approved By:</Text> {selectedRequest.approvedBy ?? "N/A"}
                 </Col>
               </Row>
             </div>
