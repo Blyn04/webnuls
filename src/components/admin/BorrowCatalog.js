@@ -106,7 +106,6 @@ const BorrowCatalog = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-
       <Layout>
         <Content style={{ margin: "20px" }}>
 
@@ -127,6 +126,7 @@ const BorrowCatalog = () => {
           </Row>
 
           <Table
+            className="borrow-catalog-table"
             dataSource={filteredCatalog}
             columns={columns}
             rowKey="id"

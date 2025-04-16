@@ -42,3 +42,15 @@
   justify-content: center;
   margin-top: 20px;
 }
+
+.borrow-catalog-table .ant-table-tbody > tr:nth-child(odd) > td {
+  background-color: #fafafa; /* Light gray */
+}
+  
+.borrow-catalog-table .ant-table-tbody > tr:nth-child(even) > td {
+  background-color: #ffffff; /* White */
+}
+  
+.borrow-catalog-table .ant-table-tbody > tr:hover > td {
+  background-color: #e6f7ff; /* Light blue highlight */
+}
