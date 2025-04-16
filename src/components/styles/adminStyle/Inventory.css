@@ -99,3 +99,15 @@
 .inventory-table .ant-table-tbody td:nth-child(12) {
   width: 150px; 
 }
+
+.inventory-table .ant-table-tbody > tr:nth-child(odd) > td {
+  background-color: #fafafa; /* Light gray */
+}
+
+.inventory-table .ant-table-tbody > tr:nth-child(even) > td {
+  background-color: #ffffff; /* White */
+}
+
+.inventory-table .ant-table-tbody > tr:hover > td {
+  background-color: #e6f7ff; /* Light blue highlight */
+}

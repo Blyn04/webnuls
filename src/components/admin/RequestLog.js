@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import { Layout, Table, Button, Modal, Typography, Row, Col } from "antd";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
-import "../styles/adminStyle/History.css";
+import "../styles/adminStyle/RequestLog.css";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
 const RequestLog = () => {
-  const [pageTitle, setPageTitle] = useState("");
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
   const [historyData, setHistoryData] = useState([
     {
@@ -64,9 +66,6 @@ const RequestLog = () => {
       department: "Nursing",
     },
   ]);
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState(null);
 
   const columns = [
     {
@@ -125,13 +124,41 @@ const RequestLog = () => {
     setSelectedRequest(null);
   };
 
+  const filteredData =
+  filterStatus === "All"
+    ? historyData
+    : historyData.filter((item) => item.status === filterStatus);
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
-
       <Layout>
         <Content style={{ margin: "20px" }}>
+          <div style={{ marginBottom: 16 }}>
+            <Button
+              type={filterStatus === "All" ? "primary" : "default"}
+              onClick={() => setFilterStatus("All")}
+              style={{ marginRight: 8 }}
+            >
+              All
+            </Button>
+            <Button
+              type={filterStatus === "Approved" ? "primary" : "default"}
+              onClick={() => setFilterStatus("Approved")}
+              style={{ marginRight: 8 }}
+            >
+              Approved
+            </Button>
+            <Button
+              type={filterStatus === "Declined" ? "primary" : "default"}
+              onClick={() => setFilterStatus("Declined")}
+            >
+              Declined
+            </Button>
+          </div>
+
           <Table
-            dataSource={historyData}
+            className="request-log-table"
+            dataSource={filteredData}
             columns={columns}
             rowKey="id"
             bordered
@@ -160,6 +187,7 @@ const RequestLog = () => {
                   <Text italic>Requisition ID: {selectedRequest.requisitionId}</Text>
                 </Col>
               </Row>
+
               <Row gutter={[16, 8]} style={{ marginTop: 10 }}>
                 <Col span={12}>
                   <Text strong>Request Date:</Text> Sept. 28, 2025
@@ -168,6 +196,7 @@ const RequestLog = () => {
                   <Text strong>Required Date:</Text> Oct. 7, 2025
                 </Col>
               </Row>
+
               <Row gutter={[16, 8]} style={{ marginTop: 10 }}>
                 <Col span={24}>
                   <Text strong>Requested Items:</Text>{" "}
@@ -206,11 +235,13 @@ const RequestLog = () => {
                 pagination={{ pageSize: 10 }}
                 style={{ marginTop: 10 }}
               />
+
               <Row gutter={[16, 8]} style={{ marginTop: 20 }}>
                 <Col span={12}>
                   <Text strong>Reason of Request:</Text>
                   <p>{selectedRequest.reason}</p>
                 </Col>
+
                 <Col span={12}>
                   <Text strong>Department:</Text> {selectedRequest.department}
                   <br />
