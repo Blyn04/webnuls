@@ -194,6 +194,10 @@ const Profile = () => {
                   <p>
                     <strong>Department:</strong> {formData.department}
                   </p>
+
+                  <p>
+                    <strong>Job Title:</strong> {formData.jobTitle}
+                  </p>
   
                   <p>
                     <strong>Email:</strong> {formData.email}
