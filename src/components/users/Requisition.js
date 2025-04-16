@@ -1614,7 +1614,7 @@ const Requisition = () => {
           program={program}
           room={room}
           reason={reason}
-          requestList={requestList}
+          requestList={mergedData}
         />
 
         <SuccessModal isVisible={showModal} onClose={closeModal} />
