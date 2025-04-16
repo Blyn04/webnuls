@@ -54,6 +54,10 @@ const Inventory = () => {
   const [isItemModalVisible, setIsItemModalVisible] = useState(false);
   const [isQrModalVisible, setIsQrModalVisible] = useState(false);
   const [isViewQRModalVisible, setIsViewQRModalVisible] = useState(false);
+  const [filterCategory, setFilterCategory] = useState(null);
+  const [filterItemType, setFilterItemType] = useState(null);
+  const [filterUsageType, setFilterUsageType] = useState(null);
+  const [searchText, setSearchText] = useState('');
   const db = getFirestore();
 
   useEffect(() => {
@@ -88,6 +92,21 @@ const Inventory = () => {
   
     fetchInventory();
   }, []);  
+
+  const filteredData = dataSource.filter((item) => {
+    const matchesSearch = searchText
+      ? Object.values(item).some((val) =>
+          String(val).toLowerCase().includes(searchText.toLowerCase())
+        )
+      : true;
+  
+    return (
+      (!filterCategory || item.category === filterCategory) &&
+      (!filterItemType || item.type === filterItemType) &&
+      (!filterUsageType || item.usageType === filterUsageType) &&
+      matchesSearch
+    );
+  });  
 
   const handleAdd = async (values) => {
     if (!itemName || !values.department) {
@@ -245,27 +264,15 @@ const Inventory = () => {
 
   const columns = [
     { title: "Item ID", dataIndex: "itemId", key: "itemId" },
-    { title: "Item Name", dataIndex: "itemName", key: "itemName" },
+    { title: "Item Name", dataIndex: "itemName", key: "itemName", 
+      sorter: (a, b) => a.itemName.localeCompare(b.itemName),
+      sortDirections: ['ascend', 'descend'],
+      defaultSortOrder: 'ascend', 
+    },
     { title: "Category", dataIndex: "category", key: "category" },
     { title: "Department", dataIndex: "department", key: "department" },
     { title: "Inventory Balance", dataIndex: "quantity", key: "quantity" },
     { title: "Usage Type", dataIndex: "usageType", key: "usageType" }, 
-    // {
-    //   title: "Date of Entry",
-    //   dataIndex: "entryDate",
-    //   key: "entryDate",
-    //   render: (date) => {
-    //     return date && date !== "N/A" ? date : "N/A";
-    //   },
-    // },
-    // {
-    //   title: "Expiry Date",
-    //   dataIndex: "expiryDate",
-    //   key: "expiryDate",
-    //   render: (date) => {
-    //     return date && date !== "N/A" ? date : "N/A";
-    //   },
-    // },
     { title: "Status", dataIndex: "status", key: "status" },
     { title: "Condition", dataIndex: "condition", key: "condition" },
     {
@@ -339,23 +346,69 @@ const Inventory = () => {
       <Layout>
         <Content className="content inventory-container">
           <div className="inventory-header">
-            <Input.Search
-              placeholder="Search"
-              className="search-bar"
-              style={{ width: 300 }}
-            />
-            <Button type="default" className="filter-btn">
-              All
-            </Button>
+            <Space wrap>
+              <Input.Search
+                placeholder="Search"
+                className="search-bar"
+                style={{ width: 200 }}
+                allowClear
+                onChange={(e) => setSearchText(e.target.value)}
+              />
+
+              <Select
+                allowClear
+                placeholder="Filter by Category"
+                style={{ width: 160 }}
+                onChange={(value) => setFilterCategory(value)}
+              >
+                <Option value="Chemical">Chemical</Option>
+                <Option value="Reagent">Reagent</Option>
+                <Option value="Materials">Materials</Option>
+                <Option value="Equipment">Equipment</Option>
+              </Select>
+
+              <Select
+                allowClear
+                placeholder="Filter by Item Type"
+                style={{ width: 160 }}
+                onChange={(value) => setFilterItemType(value)}
+              >
+                <Option value="Fixed">Fixed</Option>
+                <Option value="Consumable">Consumable</Option>
+              </Select>
+
+              <Select
+                allowClear
+                placeholder="Filter by Usage Type"
+                style={{ width: 180 }}
+                onChange={(value) => setFilterUsageType(value)}
+              >
+                <Option value="Laboratory Experiment">Laboratory Experiment</Option>
+                <Option value="Research">Research</Option>
+                <Option value="Community Extension">Community Extension</Option>
+                <Option value="Others">Others</Option>
+              </Select>
+
+              <Button
+                onClick={() => {
+                  setFilterCategory(null);
+                  setFilterItemType(null);
+                  setFilterUsageType(null);
+                  setSearchText('');
+                }}
+              >
+                Reset Filters
+              </Button>
+            </Space>
           </div>
 
           <div className="form-container">
-            <Form layout="vertical" form={form} onFinish={handleAdd}>
+            <Form layout="vertical" form={form} onFinish={handleAdd}>         
               <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item 
-                    name="Item Name" 
-                    label="Item Name" 
+                <Col span={8}>
+                  <Form.Item
+                    name="Item Name"
+                    label="Item Name"
                     rules={[{ required: true, message: "Please enter Item Name!" }]}
                   >
                     <Input
@@ -367,13 +420,23 @@ const Inventory = () => {
                   </Form.Item>
                 </Col>
 
-                <Col span={12}>
+                <Col span={8}>
+                  <Form.Item
+                    name="quantity"
+                    label="Quantity"
+                    rules={[{ required: true, message: "Please enter Quantity!" }]}
+                  >
+                    <Input placeholder="Enter quantity" />
+                  </Form.Item>
+                </Col>
+
+                <Col span={8}>
                   <Form.Item
                     name="usageType"
                     label="Usage Type"
                     rules={[{ required: true, message: "Please select usage type!" }]}
                   >
-                    <Select placeholder="Select Usage Type" style={{ width: "100%" }}>
+                    <Select placeholder="Select Usage Type">
                       <Option value="Laboratory Experiment">Laboratory Experiment</Option>
                       <Option value="Research">Research</Option>
                       <Option value="Community Extension">Community Extension</Option>
@@ -384,49 +447,27 @@ const Inventory = () => {
               </Row>
 
               <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item 
-                      name="type" 
-                      label="Item Type" 
-                      rules={[
-                        {
-                        required: true,
-                        message: "Please select Item Type!",
-                        },
-                      ]}>
-                      <Select onChange={value => setItemType(value)} placeholder="Select Item Type">
-                        <Option value="Fixed">Fixed</Option>
-                        <Option value="Consumable">Consumable</Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
+                <Col span={8}>
+                  <Form.Item
+                    name="type"
+                    label="Item Type"
+                    rules={[{ required: true, message: "Please select Item Type!" }]}
+                  >
+                    <Select
+                      onChange={(value) => setItemType(value)}
+                      placeholder="Select Item Type"
+                    >
+                      <Option value="Fixed">Fixed</Option>
+                      <Option value="Consumable">Consumable</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
 
-                  <Col span={12}>
-                    <Form.Item 
-                      name="quantity" 
-                      label="Quantity" 
-                      rules={[
-                      {
-                        required: true,
-                        message: "Please enter Quantity!",
-                      },
-                    ]}>
-                      <Input placeholder="Enter quantity" />
-                    </Form.Item>
-                  </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
+                <Col span={8}>
                   <Form.Item
                     name="entryDate"
                     label="Date of Entry"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please select a date of entry!",
-                      },
-                    ]}
+                    rules={[{ required: true, message: "Please select a date of entry!" }]}
                   >
                     <DatePicker
                       format="YYYY-MM-DD"
@@ -437,16 +478,11 @@ const Inventory = () => {
                   </Form.Item>
                 </Col>
 
-                <Col span={12}>
+                <Col span={8}>
                   <Form.Item
                     name="expiryDate"
                     label="Date of Expiry"
-                    rules={[
-                      {
-                        required: false,
-                        message: "Please select a date of expiry!",
-                      },
-                    ]}
+                    rules={[{ required: false, message: "Please select a date of expiry!" }]}
                   >
                     <DatePicker
                       format="YYYY-MM-DD"
@@ -460,13 +496,11 @@ const Inventory = () => {
               </Row>
 
               <Row gutter={16}>
-                <Col span={12}>
+                <Col span={8}>
                   <Form.Item
                     name="category"
                     label="Category"
-                    rules={[
-                      { required: true, message: "Please select a category!" },
-                    ]}
+                    rules={[{ required: true, message: "Please select a category!" }]}
                   >
                     <Select placeholder="Select Category">
                       <Option value="Chemical">Chemical</Option>
@@ -477,34 +511,33 @@ const Inventory = () => {
                   </Form.Item>
                 </Col>
 
-                <Col span={12}>
+                <Col span={8}>
                   <Form.Item
                     name="labRoom"
                     label="Lab/Stock Room"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please enter Lab/Stock Room!",
-                      },
-                    ]}
+                    rules={[{ required: true, message: "Please enter Lab/Stock Room!" }]}
                   >
                     <Input placeholder="Enter Lab/Stock Room" />
                   </Form.Item>
                 </Col>
+
+                <Col span={8}>
+                  <Form.Item name="department" label="Department">
+                    <Input placeholder="Enter department" />
+                  </Form.Item>
+                </Col>
               </Row>
 
-              <Form.Item name="department" label="Department">
-                <Input placeholder="Enter department" />
+              <Form.Item>
+                <Button type="primary" htmlType="submit" className="add-btn">
+                  Add to Inventory with QR Code
+                </Button>
               </Form.Item>
-
-              <Button type="primary" htmlType="submit" className="add-btn">
-                Add to Inventory with QR Code
-              </Button>
             </Form>
           </div>
 
           <Table
-            dataSource={dataSource}
+            dataSource={filteredData}
             columns={columns}
             rowKey={(record) => record.itemId}
             bordered
@@ -521,8 +554,9 @@ const Inventory = () => {
               <div>
                 <p><strong>Item ID:</strong> {selectedRow.itemId}</p>
                 <p><strong>Item Name:</strong> {selectedRow.itemName}</p>
-                <p><strong>Category:</strong> {selectedRow.category}</p>
                 <p><strong>Quantity:</strong> {selectedRow.quantity}</p>
+                <p><strong>Category:</strong> {selectedRow.category}</p>
+                <p><strong>Item Type:</strong> {selectedRow.type}</p>
                 <p><strong>Department:</strong> {selectedRow.department}</p>
                 <p><strong>Status:</strong> {selectedRow.status}</p>
                 <p><strong>Condition:</strong> {selectedRow.condition}</p>
