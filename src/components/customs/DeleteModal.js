@@ -73,7 +73,7 @@ const DeleteModal = ({ visible, onClose, item, onDeleteSuccess, setDataSource })
       });
 
       message.success('Item deleted successfully');
-      onDeleteSuccess(item.itemName);  // Callback to update parent state
+      onDeleteSuccess(item.itemId);
       onClose();
       
     } catch (error) {

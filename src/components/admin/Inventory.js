@@ -677,12 +677,14 @@ const Inventory = () => {
               setItemToDelete(null);
             }}
             item={itemToDelete}
+            setDataSource={setDataSource} // Make sure this is passed correctly
             onDeleteSuccess={(deletedItemId) => {
               setDataSource((prev) =>
                 prev.filter((item) => item.itemId !== deletedItemId)
               );
             }}
           />
+
 
           <NotificationModal
             isVisible={isNotificationVisible}
