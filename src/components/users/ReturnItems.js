@@ -98,7 +98,7 @@ const ReturnItems = () => {
 
   const handleViewDetails = (record) => {
     setSelectedRequest(record);
-    console.log("Selected Request Data:", record); // Log to check the data
+    console.log("Selected Request Data:", record); 
     setModalVisible(true);
   };
 
