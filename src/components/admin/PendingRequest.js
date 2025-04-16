@@ -86,7 +86,7 @@ const PendingRequest = () => {
     setSelectedRequest(null);
   };
 
-  const handleApprove = async () => {
+  const handleApprove = async () => { 
     const isChecked = Object.values(checkedItems).some((checked) => checked);
   
     if (!isChecked) {
@@ -118,6 +118,7 @@ const PendingRequest = () => {
               if (inventoryDoc.exists()) {
                 itemType = inventoryDoc.data().type || "Unknown";
               }
+              
             } catch (err) {
               console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
             }
@@ -130,7 +131,7 @@ const PendingRequest = () => {
           };
         })
       );
-
+  
       const auth = getAuth();
       const currentUser = auth.currentUser;
       const userEmail = currentUser.email;
@@ -146,6 +147,7 @@ const PendingRequest = () => {
           const userData = userDoc.data();
           userName = userData.name || "Unknown";
         }
+
       } catch (error) {
         console.error("Error fetching user name:", error);
       }
@@ -165,7 +167,34 @@ const PendingRequest = () => {
       };
   
       try {
+        // First, add the request log entry to the "requestlog" collection
         await addDoc(collection(db, "requestlog"), requestLogEntry);
+  
+        // Now handle the "Fixed" items by adding them to the borrowcatalog collection
+        const fixedItems = enrichedItems.filter(item => item.itemType === "Fixed");
+        if (fixedItems.length > 0) {
+          await Promise.all(
+            fixedItems.map(async (item) => {
+              const borrowCatalogEntry = {
+                accountId: selectedRequest.accountId || "N/A",
+                userName: selectedRequest.userName || "N/A",
+                room: selectedRequest.room || "N/A",
+                courseCode: selectedRequest.courseCode || "N/A",
+                courseDescription: selectedRequest.courseDescription || "N/A",
+                dateRequired: selectedRequest.dateRequired || "N/A",
+                timestamp: selectedRequest.timestamp || new Date(),
+                requestList: [item],  // Add only the selected "Fixed" item
+                status: "Borrowed",    // Status can be "Borrowed" instead of "Approved"
+                approvedBy: userName,
+                reason: selectedRequest.reason || "No reason provided",
+              };
+  
+              // Add to borrowcatalog collection
+              await addDoc(collection(db, "borrowcatalog"), borrowCatalogEntry);
+            })
+          );
+        }
+  
         setApprovedRequests([...approvedRequests, requestLogEntry]);
         setRequests(requests.filter((req) => req.id !== selectedRequest.id));
         setCheckedItems({});
@@ -176,6 +205,7 @@ const PendingRequest = () => {
           message: "Request Approved",
           description: "Request has been approved and logged.",
         });
+
       } catch (error) {
         console.error("Error adding to requestlog:", error);
         notification.error({

@@ -1,58 +1,63 @@
-import React, { useState } from "react";
-import {
-  Layout,
-  Row,
-  Col,
-  Table,
-  Input,
-  Button,
-  Typography,
-  Modal,
-  Descriptions,
-} from "antd";
-import QRCode from "qrcode.react";
+import React, { useState, useEffect } from "react";
+import { Layout, Row, Col, Table, Input, Button, Typography, Modal } from "antd";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../backend/firebase/FirebaseConfig"; 
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/BorrowCatalog.css";
 import ApprovedRequestModal from "../customs/ApprovedRequestModal";
-
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
 const { Search } = Input;
 
 const BorrowCatalog = () => {
-  const [pageTitle, setPageTitle] = useState("");
-  const [catalog, setCatalog] = useState([
-    {
-      id: "1",
-      requestor: "Rich James Lozano",
-      itemDescription: "Microscope",
-      itemId: "Med002",
-    },
-    {
-      id: "2",
-      requestor: "Henreizh Nathan H. Aruta",
-      itemDescription: "Centrifuge",
-      itemId: "Med001",
-    },
-    {
-      id: "3",
-      requestor: "Berlene Bernabe",
-      itemDescription: "Microscope",
-      itemId: "Med002",
-    },
-    {
-      id: "4",
-      requestor: "Tristan Jay Aquino",
-      itemDescription: "Centrifuge",
-      itemId: "Med001",
-    },
-  ]);
-
+  const [catalog, setCatalog] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
+
+  useEffect(() => {
+    const fetchCatalogData = async () => {
+      try {
+        const borrowCatalogCollection = collection(db, "borrowcatalog");
+        const borrowCatalogSnapshot = await getDocs(borrowCatalogCollection);
+        const catalogData = borrowCatalogSnapshot.docs.map((doc) => {
+          const data = doc.data();
+          
+          // Format the timestamp
+          const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "N/A";
+          
+          // Ensure that requestList is always an array (fallback to empty array if undefined)
+          const requestedItems = (data.requestList || []).map(item => ({
+            itemId: item.itemIdFromInventory,
+            itemDescription: item.itemName,
+            quantity: item.quantity,
+            department: item.department,
+          }));
+    
+          return {
+            id: doc.id,
+            requestor: data.userName,
+            approvedBy: data.approvedBy,
+            timestamp, // formatted timestamp
+            requestedItems,
+            reason: data.reason,
+            dateRequired: data.dateRequired,
+            courseDescription: data.courseDescription,
+            status: data.status,
+          };
+        });
+    
+        setCatalog(catalogData);
+    
+      } catch (error) {
+        console.error("Error fetching borrow catalog:", error);
+      }
+    };
+    
+    fetchCatalogData();
+  }, []);
 
   const handleSearch = (value) => {
     setSearchQuery(value);
@@ -60,11 +65,11 @@ const BorrowCatalog = () => {
 
   const filteredCatalog = catalog.filter(
     (item) =>
-      item.requestor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.itemDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.itemId.toLowerCase().includes(searchQuery.toLowerCase())
+      (item.requestor?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (item.courseDescription?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (item.dateRequired?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
- 
+  
   const columns = [
     {
       title: "Requestor",
@@ -72,14 +77,43 @@ const BorrowCatalog = () => {
       key: "requestor",
     },
     {
-      title: "Item Description",
-      dataIndex: "itemDescription",
-      key: "itemDescription",
+      title: "Course Description",
+      dataIndex: "courseDescription",
+      key: "courseDescription",
     },
     {
-      title: "Item Id",
-      dataIndex: "itemId",
-      key: "itemId",
+      title: "Date Required",
+      dataIndex: "dateRequired",
+      key: "dateRequired",
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <Text
+          style={{
+            color: status === "Approved" ? "green" : "red",
+            fontWeight: "bold",
+          }}
+        >
+          {status}
+        </Text>
+      ),
+    },
+    {
+      title: "Items",
+      dataIndex: "requestedItems",
+      key: "requestedItems",
+      render: (requestedItems) => (
+        <div>
+          {requestedItems.map((item, index) => (
+            <div key={index}>
+              <Text>{item.itemDescription} (Qty: {item.quantity})</Text>
+            </div>
+          ))}
+        </div>
+      ),
     },
     {
       title: "",
@@ -106,21 +140,10 @@ const BorrowCatalog = () => {
     setSelectedRequest(null);
   };
 
-  const formatDate = (timestamp) => {
-    if (!timestamp || !timestamp.toDate) return "N/A";
-    const date = timestamp.toDate(); 
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Layout>
         <Content style={{ margin: "20px" }}>
-
           <Row justify="space-between" style={{ marginBottom: 16 }}>
             <Col span={8}>
               <Search
@@ -152,9 +175,7 @@ const BorrowCatalog = () => {
             selectedApprovedRequest={selectedRequest}
             setSelectedApprovedRequest={setSelectedRequest}
             columns={columns}
-            formatDate={formatDate}
           />
-
         </Content>
       </Layout>
     </Layout>

@@ -36,11 +36,12 @@ const RequestLog = () => {
             department: data.requestList?.[0]?.department ?? "N/A",
             approvedBy: data.approvedBy,
             timestamp: timestamp,
-            raw: data, // Keep full raw data for modal
+            raw: data, 
           };
         });
 
         setHistoryData(logs);
+
       } catch (error) {
         console.error("Error fetching request logs: ", error);
       }
@@ -123,6 +124,7 @@ const RequestLog = () => {
             >
               All
             </Button>
+            
             <Button
               type={filterStatus === "Approved" ? "primary" : "default"}
               onClick={() => setFilterStatus("Approved")}
@@ -130,6 +132,7 @@ const RequestLog = () => {
             >
               Approved
             </Button>
+
             <Button
               type={filterStatus === "Declined" ? "primary" : "default"}
               onClick={() => setFilterStatus("Declined")}
