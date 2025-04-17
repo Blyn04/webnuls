@@ -23,9 +23,9 @@ const RequestLog = () => {
           const data = doc.data();
           const timeFrom = data.timeFrom || "N/A";  
           const timeTo = data.timeTo || "N/A";    
-        
-          const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "N/A";
-        
+
+          const timestamp = data.timestamp ? formatTimestamp(data.timestamp) : "N/A";
+          
           return {
             id: doc.id,
             date: data.dateRequired ?? "N/A",
@@ -46,6 +46,7 @@ const RequestLog = () => {
           };
         });
 
+        // Sort logs by timestamp, with the most recent first
         const sortedLogs = logs.sort((a, b) => {
           return new Date(b.timestamp) - new Date(a.timestamp);
         });
@@ -59,6 +60,22 @@ const RequestLog = () => {
   
     fetchRequestLogs();
   }, []);  
+
+  const formatTimestamp = (timestamp) => {
+    try {
+      const date = timestamp.toDate();
+      return date.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch (e) {
+      return "N/A";
+    }
+  };
 
   const columns = [
     {
