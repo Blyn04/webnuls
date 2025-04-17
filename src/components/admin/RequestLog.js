@@ -21,8 +21,17 @@ const RequestLog = () => {
         const querySnapshot = await getDocs(collection(db, "requestlog"));
         const logs = querySnapshot.docs.map((doc) => {
           const data = doc.data();
+          console.log("Full DOC Data:", data);  // Log the entire data object
+          
+          // Log timeFrom and timeTo specifically to check if they are present
+          console.log("timeFrom from root:", data.timeFrom);
+          console.log("timeTo from root:", data.timeTo);
+        
+          const timeFrom = data.timeFrom || "N/A";  // Use timeFrom from root or "N/A"
+          const timeTo = data.timeTo || "N/A";      // Use timeTo from root or "N/A"
+        
           const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "N/A";
-
+        
           return {
             id: doc.id,
             date: data.dateRequired ?? "N/A",
@@ -36,19 +45,22 @@ const RequestLog = () => {
             department: data.requestList?.[0]?.department ?? "N/A",
             approvedBy: data.approvedBy,
             timestamp: timestamp,
-            raw: data, 
+            raw: data,
+            timeFrom,  // Use timeFrom from root
+            timeTo,    // Use timeTo from root
           };
         });
-
+  
         setHistoryData(logs);
-
+  
       } catch (error) {
         console.error("Error fetching request logs: ", error);
       }
     };
-
+  
     fetchRequestLogs();
-  }, []);
+  }, []);  
+  
 
   const columns = [
     {
@@ -164,24 +176,34 @@ const RequestLog = () => {
                 <Col span={12}>
                   <Text strong>Name:</Text> {selectedRequest.raw?.userName}
                 </Col>
+
                 <Col span={12} style={{ textAlign: "right" }}>
                   <Text italic>Requisition ID: {selectedRequest.requisitionId}</Text>
                 </Col>
               </Row>
 
-              <Row gutter={[16, 8]} style={{ marginTop: 10 }}>
+              <Row gutter={[16, 16]} style={{ marginTop: 10 }}>
                 <Col span={12}>
                   <Text strong>Request Date:</Text> {selectedRequest.timestamp}
                 </Col>
+
                 <Col span={12}>
                   <Text strong>Required Date:</Text> {selectedRequest.raw?.dateRequired}
                 </Col>
               </Row>
 
-              <Row gutter={[16, 8]} style={{ marginTop: 10 }}>
-                <Col span={24}>
+              <Row gutter={[16, 16]} style={{ marginTop: 10 }}>
+                <Col span={12}>
                   <Text strong>Requested Items:</Text>
                   <Text style={{ color: "green" }}>({selectedRequest.status})</Text>
+                </Col>
+
+                <Col span={12}>
+                  <Text strong>Time Needed: </Text>
+                  <Text>
+                    {selectedRequest.timeFrom ? selectedRequest.timeFrom : "N/A"} - 
+                    {selectedRequest.timeTo ? selectedRequest.timeTo : "N/A"}
+                  </Text>
                 </Col>
               </Row>
 

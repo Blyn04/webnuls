@@ -4,7 +4,7 @@ import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/PendingRequest.css";
 import { db } from "../../backend/firebase/FirebaseConfig"; 
-import { collection, getDocs, getDoc, doc, addDoc, query, where, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc, addDoc, query, where, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import RequisitionRequestModal from "../customs/RequisitionRequestModal";
 import ApprovedRequestModal from "../customs/ApprovedRequestModal";
@@ -35,6 +35,7 @@ const PendingRequest = () => {
         for (const docSnap of querySnapshot.docs) {
           const data = docSnap.data();
   
+          // Enrich filteredMergedData with item details
           const enrichedItems = await Promise.all(
             (data.filteredMergedData || []).map(async (item) => {
               const inventoryId = item.selectedItemId || item.selectedItem?.value;
@@ -58,10 +59,13 @@ const PendingRequest = () => {
             })
           );
   
+          // Push data with timeFrom and timeTo
           fetched.push({
             id: docSnap.id,
             ...data,
             requestList: enrichedItems,
+            timeFrom: data.timeFrom || "N/A", // Include timeFrom
+            timeTo: data.timeTo || "N/A",     // Include timeTo
           });
         }
   
@@ -73,7 +77,7 @@ const PendingRequest = () => {
     };
   
     fetchUserRequests();
-  }, []);
+  }, []);  
   
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
@@ -127,7 +131,7 @@ const PendingRequest = () => {
           return {
             ...item,
             selectedItemId,
-            itemType, // This is "Fixed" or "Consumable"
+            itemType, 
           };
         })
       );
@@ -159,6 +163,8 @@ const PendingRequest = () => {
         courseCode: selectedRequest.courseCode || "N/A",
         courseDescription: selectedRequest.courseDescription || "N/A",
         dateRequired: selectedRequest.dateRequired || "N/A",
+        timeFrom: selectedRequest.timeFrom || "N/A",  
+        timeTo: selectedRequest.timeTo || "N/A",  
         timestamp: selectedRequest.timestamp || new Date(), 
         requestList: enrichedItems, 
         status: "Approved", 
@@ -182,6 +188,8 @@ const PendingRequest = () => {
                 courseCode: selectedRequest.courseCode || "N/A",
                 courseDescription: selectedRequest.courseDescription || "N/A",
                 dateRequired: selectedRequest.dateRequired || "N/A",
+                timeFrom: selectedRequest.timeFrom || "N/A",  // Add timeFrom
+                timeTo: selectedRequest.timeTo || "N/A",  
                 timestamp: selectedRequest.timestamp || new Date(),
                 requestList: [item],  // Add only the selected "Fixed" item
                 status: "Borrowed",    // Status can be "Borrowed" instead of "Approved"
@@ -191,6 +199,9 @@ const PendingRequest = () => {
   
               // Add to borrowcatalog collection
               await addDoc(collection(db, "borrowcatalog"), borrowCatalogEntry);
+
+              // Add to the user's 'userrequestlog' subcollection
+            await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
             })
           );
         }
@@ -203,8 +214,39 @@ const PendingRequest = () => {
           timestamp: new Date(), // You can choose to use the original timestamp or the current one
         };
 
-        // Add to the user's 'userrequestlog' subcollection
-        await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
+        const logRequestOrReturn = async (
+          userId,
+          userName,
+          action,
+          requestDetails,
+          extraInfo = {} // for fields like dateRequired, approvedBy, etc.
+        ) => {
+          await addDoc(collection(db, `accounts/${userId}/historylog`), {
+            action,
+            userName,
+            timestamp: serverTimestamp(),
+            requestList: requestDetails,
+            ...extraInfo, // merge additional data like dateRequired, reason, etc.
+          });
+        };
+
+        await logRequestOrReturn(
+          selectedRequest.accountId,     // user ID
+          selectedRequest.userName,      // user name
+          "Request Approved",            // action
+          enrichedItems,                 // request list
+          {
+            approvedBy: userName, // whoever approved
+            courseCode: selectedRequest.courseCode || "N/A",
+            courseDescription: selectedRequest.courseDescription || "N/A",
+            dateRequired: selectedRequest.dateRequired,
+            reason: selectedRequest.reason,
+            room: selectedRequest.room,
+            program: selectedRequest.program,
+            timeFrom: selectedRequest.timeFrom || "N/A",  // Include timeFrom
+            timeTo: selectedRequest.timeTo || "N/A",  
+          }
+        );
 
         console.log("selectedRequest.id:", selectedRequest.id);
         console.log("selectedRequest.accountId:", selectedRequest.accountId);

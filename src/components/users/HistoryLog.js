@@ -50,17 +50,24 @@ const HistoryLog = () => {
       try {
         const userId = localStorage.getItem("userId");
         if (!userId) throw new Error("User ID not found");
-
+    
         const activityRef = collection(db, `accounts/${userId}/historylog`);
         const querySnapshot = await getDocs(activityRef);
-
+    
         const logs = querySnapshot.docs.map((doc, index) => {
           const data = doc.data();
           const logDate =
             data.cancelledAt?.toDate?.() ||
             data.timestamp?.toDate?.() ||
             new Date();
-
+    
+          const isCancelled = data.status === "CANCELLED";
+          const action = isCancelled
+            ? "Cancelled a request"
+            : data.action || "Modified a request";
+    
+          const by = action === "Request Approved" ? data.approvedBy : data.userName || "Unknown User";
+    
           return {
             key: doc.id || index.toString(),
             date: logDate.toLocaleString("en-US", {
@@ -71,24 +78,24 @@ const HistoryLog = () => {
               minute: "2-digit",
               hour12: true,
             }),
-            action:
-              data.status === "CANCELLED"
-                ? "Cancelled a request"
-                : data.action || "Modified a request",
-            by: data.userName || "Unknown User",
+            rawDate: logDate,
+            action: action,
+            by: by,
             fullData: data,
           };
         });
-
-        setActivityData(logs);
-
+    
+        const sortedLogs = logs.sort((a, b) => b.rawDate - a.rawDate);
+        setActivityData(sortedLogs);
+    
       } catch (error) {
         console.error("Failed to fetch activity logs:", error);
       }
-    };
-
+    };    
+  
     fetchActivityLogs();
   }, []);
+  
 
   const filteredData = activityData.filter(
     (item) =>
@@ -180,13 +187,28 @@ const HistoryLog = () => {
                 </Descriptions.Item>
 
                 <Descriptions.Item label="Items Requested">
-                  <ul style={{ paddingLeft: 20 }}>
-                    {selectedLog.filteredMergedData?.map((item, index) => (
-                      <li key={index}>
-                        {item.itemName} - Quantity: {item.quantity}
-                      </li>
-                    )) || "None"}
-                  </ul>
+                  {(selectedLog.filteredMergedData || selectedLog.requestList)?.length > 0 ? (
+                    <ul style={{ paddingLeft: 20 }}>
+                      {(selectedLog.filteredMergedData || selectedLog.requestList).map(
+                        (item, index) => (
+                          <li key={index} style={{ marginBottom: 10 }}>
+                            <strong>{item.itemName}</strong>
+                            <ul style={{ marginLeft: 20 }}>
+                              <li>Quantity: {item.quantity}</li>
+                              {item.category && <li>Category: {item.category}</li>}
+                              {item.condition && <li>Condition: {item.condition}</li>}
+                              {item.labRoom && <li>Lab Room: {item.labRoom}</li>}
+                              {item.usageType && <li>Usage Type: {item.usageType}</li>}
+                              {item.itemType && <li>Item Type: {item.itemType}</li>}
+                              {item.department && <li>Department: {item.department}</li>}
+                            </ul>
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  ) : (
+                    "None"
+                  )}
                 </Descriptions.Item>
               </Descriptions>
             )}
