@@ -172,6 +172,7 @@ const PendingRequest = () => {
         status: "Approved", 
         approvedBy: userName, 
         reason: selectedRequest.reason || "No reason provided",
+        program: selectedRequest.program,
       };
   
       try {
@@ -197,6 +198,7 @@ const PendingRequest = () => {
                 status: "Borrowed",    // Status can be "Borrowed" instead of "Approved"
                 approvedBy: userName,
                 reason: selectedRequest.reason || "No reason provided",
+                program: selectedRequest.program,
               };
 
               // Add to userrequestlog subcollection for the requestor's account

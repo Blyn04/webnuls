@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Row, Col, Table, Input, Button, Typography, Modal } from "antd";
+import { Layout, Row, Col, Table, Input, Button, Typography } from "antd";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../backend/firebase/FirebaseConfig"; 
 import Sidebar from "../Sidebar";
@@ -24,43 +24,62 @@ const BorrowCatalog = () => {
         const borrowCatalogSnapshot = await getDocs(borrowCatalogCollection);
         const catalogData = borrowCatalogSnapshot.docs.map((doc) => {
           const data = doc.data();
-          
-          // Format the timestamp
-          const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "N/A";
-          
-          // Ensure that requestList is always an array (fallback to empty array if undefined)
-          const requestedItems = Array.isArray(data.requestList) ? data.requestList.map(item => ({
-            itemId: item.itemIdFromInventory,
-            itemName: item.itemName,
-            quantity: item.quantity,
-            category: item.category,
-            condition: item.condition,
-            department: item.department,
-            labRoom: item.labRoom,
-          })) : [];  // Fallback to empty array if requestList is not an array
-    
+
+          const formatDate = (timestamp) => {
+            return timestamp instanceof Date ? timestamp.toLocaleDateString() : "N/A";
+          };          
+
+          const requestedItems = Array.isArray(data.requestList)
+            ? data.requestList.map((item) => ({
+                itemId: item.itemIdFromInventory,
+                itemName: item.itemName,
+                quantity: item.quantity,
+                category: item.category,
+                condition: item.condition,
+                department: item.department,
+                labRoom: item.labRoom,
+              }))
+            : [];
+
           return {
             id: doc.id,
-            requestor: data.userName,
-            approvedBy: data.approvedBy,
-            timestamp, // formatted timestamp
+            timestamp: data.timestamp || null,
+            requestor: data.userName || "N/A",
+            userName: data.userName || "N/A",
+            approvedBy: data.approvedBy || "N/A",
+            formatDate,
+            reason: data.reason || "N/A",
+            dateRequired: data.dateRequired || "N/A",
+            timeFrom: data.timeFrom || "N/A",
+            timeTo: data.timeTo || "N/A",
+            courseDescription: data.courseDescription || "N/A",
+            courseCode: data.courseCode || "N/A",
+            program: data.program || "N/A",
+            room: data.room || "N/A",
+            requestList: Array.isArray(data.requestList) ? data.requestList : [],
             requestedItems,
-            reason: data.reason,
-            dateRequired: data.dateRequired,
-            courseDescription: data.courseDescription,
-            status: data.status,
+            status: data.status || "Pending",
           };
         });
-  
-        setCatalog(catalogData);
-  
+
+        const sortedCatalogData = catalogData.sort((a, b) => {
+          if (a.timestamp && b.timestamp) {
+            const timeA = a.timestamp.seconds * 1000 + a.timestamp.nanoseconds / 1000000;
+            const timeB = b.timestamp.seconds * 1000 + b.timestamp.nanoseconds / 1000000;
+            return timeB - timeA;  // Sort by precise timestamp including nanoseconds, most recent first
+          }
+          return 0;
+        });
+
+        setCatalog(sortedCatalogData);
+
       } catch (error) {
         console.error("Error fetching borrow catalog:", error);
       }
     };
-    
+
     fetchCatalogData();
-  }, []);  
+  }, []);
 
   const handleSearch = (value) => {
     setSearchQuery(value);
@@ -68,11 +87,11 @@ const BorrowCatalog = () => {
 
   const filteredCatalog = catalog.filter(
     (item) =>
-      (item.requestor?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.courseDescription?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.dateRequired?.toLowerCase().includes(searchQuery.toLowerCase()))
+      item.requestor?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.courseDescription?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.dateRequired?.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   const columns = [
     {
       title: "Requestor",
@@ -105,25 +124,11 @@ const BorrowCatalog = () => {
       ),
     },
     {
-      title: "Items",
-      dataIndex: "requestedItems",
-      key: "requestedItems",
-      render: (requestedItems) => (
-        <div>
-          {requestedItems.map((item, index) => (
-            <div key={index}>
-              <Text>{item.itemDescription} (Qty: {item.quantity})</Text>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    {
       title: "",
       key: "action",
       render: (_, record) => (
         <a
-          href={`#`}
+          href="#"
           className="view-details"
           onClick={() => handleViewDetails(record)}
         >
@@ -134,10 +139,10 @@ const BorrowCatalog = () => {
   ];
 
   const handleViewDetails = (record) => {
-    console.log("Selected Record:", record);  // Check the structure of the record
+    console.log("Selected Record:", record);
     setSelectedRequest(record);
     setIsModalVisible(true);
-  };  
+  };
 
   const handleCancel = () => {
     setIsModalVisible(false);
@@ -145,9 +150,40 @@ const BorrowCatalog = () => {
   };
 
   const formatDate = (timestamp) => {
-    return timestamp ? new Date(timestamp.seconds * 1000).toLocaleDateString() : "N/A";
+    if (!timestamp) return "N/A";
+  
+    try {
+      // If it's a Firestore Timestamp object
+      if (timestamp.seconds) {
+        const date = new Date(timestamp.seconds * 1000);
+        return date.toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+      }
+  
+      // If it's already a string or Date object
+      const date = new Date(timestamp);
+      if (isNaN(date)) return "N/A";
+      
+      return date.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      
+    } catch (e) {
+      return "N/A";
+    }
   };
-
+  
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Layout>
