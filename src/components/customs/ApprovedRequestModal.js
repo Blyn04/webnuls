@@ -12,6 +12,9 @@ const ApprovedRequestModal = ({
   formatDate,
 }) => {
   
+  // Add a fallback for when `selectedApprovedRequest` or its `requestList` is undefined
+  const requestedItems = selectedApprovedRequest?.requestList || [];
+
   return (
     <Modal
       title={
@@ -51,9 +54,9 @@ const ApprovedRequestModal = ({
 
           <Title level={5} style={{ marginTop: 20 }}>Requested Items:</Title>
           <Table
-            dataSource={selectedApprovedRequest.requestList}
+            dataSource={requestedItems}  // Use the fallback array
             columns={columns.filter(col => col.dataIndex !== "check")}
-            rowKey="id"
+            rowKey="itemId"  // Ensure itemId is unique
             pagination={false}
             bordered
           />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Row, Col, Card, Button, Typography, Space, Modal, Table, notification } from "antd";
+import { Layout, Row, Col, Card, Button, Typography, Space, Modal, Table, notification, Input } from "antd";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/PendingRequest.css";
@@ -23,6 +23,8 @@ const PendingRequest = () => {
   const [requests, setRequests] = useState([]);
   const [selectedApprovedRequest, setSelectedApprovedRequest] = useState(null);
   const [isApprovedModalVisible, setIsApprovedModalVisible] = useState(false);
+  const [isRejectModalVisible, setIsRejectModalVisible] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
 
   useEffect(() => {
     const fetchUserRequests = async () => {
@@ -196,23 +198,23 @@ const PendingRequest = () => {
                 approvedBy: userName,
                 reason: selectedRequest.reason || "No reason provided",
               };
+
+              // Add to userrequestlog subcollection for the requestor's account
+              const userRequestLogEntry = {
+                ...requestLogEntry,
+                status: "Approved", 
+                approvedBy: userName,
+                timestamp: new Date(), // You can choose to use the original timestamp or the current one
+              };
   
               // Add to borrowcatalog collection
               await addDoc(collection(db, "borrowcatalog"), borrowCatalogEntry);
 
               // Add to the user's 'userrequestlog' subcollection
-            await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
+              await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
             })
           );
         }
-  
-        // Add to userrequestlog subcollection for the requestor's account
-        const userRequestLogEntry = {
-          ...requestLogEntry,
-          status: "Approved", 
-          approvedBy: userName,
-          timestamp: new Date(), // You can choose to use the original timestamp or the current one
-        };
 
         const logRequestOrReturn = async (
           userId,
@@ -291,23 +293,145 @@ const PendingRequest = () => {
     }
   };
 
-  const handleReturn = () => {
+  const handleReject = () => {
+    // Open the rejection reason modal
+    setIsRejectModalVisible(true);
+  };
+
+  const handleRejectSubmit = async () => {
+    const isChecked = Object.values(checkedItems).some((checked) => checked);
+  
+    if (!isChecked) {
+      setNotificationMessage("No Items selected");
+      setIsNotificationVisible(true);
+      return;
+    }
+  
     if (selectedRequest) {
-      setRequests([...requests, selectedRequest]);
-      setApprovedRequests(
-        approvedRequests.filter((req) => req.id !== selectedRequest.id)
+      const filteredItems = selectedRequest.requestList.filter((item, index) => {
+        const key = `${selectedRequest.id}-${index}`;
+        return checkedItems[key];
+      });
+  
+      if (filteredItems.length === 0) {
+        setNotificationMessage("No Items selected");
+        setIsNotificationVisible(true);
+        return;
+      }
+  
+      const enrichedItems = await Promise.all(
+        filteredItems.map(async (item) => {
+          const selectedItemId = item.selectedItemId || item.selectedItem?.value;
+          let itemType = "Unknown";
+  
+          if (selectedItemId) {
+            try {
+              const inventoryDoc = await getDoc(doc(db, "inventory", selectedItemId));
+              if (inventoryDoc.exists()) {
+                itemType = inventoryDoc.data().type || "Unknown";
+              }
+            } catch (err) {
+              console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
+            }
+          }
+  
+          return {
+            ...item,
+            selectedItemId,
+            itemType,
+          };
+        })
       );
+  
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      const userEmail = currentUser.email;
+  
+      // Fetch the user name from Firestore
+      let userName = "Unknown";
+      try {
+        const userQuery = query(collection(db, "accounts"), where("email", "==", userEmail));
+        const userSnapshot = await getDocs(userQuery);
+  
+        if (!userSnapshot.empty) {
+          const userDoc = userSnapshot.docs[0];
+          const userData = userDoc.data();
+          userName = userData.name || "Unknown";
+        }
+      } catch (error) {
+        console.error("Error fetching user name:", error);
+      }
+  
+      const rejectLogEntry = {
+        accountId: selectedRequest.accountId || "N/A",
+        userName: selectedRequest.userName || "N/A",
+        room: selectedRequest.room || "N/A",
+        courseCode: selectedRequest.courseCode || "N/A",
+        courseDescription: selectedRequest.courseDescription || "N/A",
+        dateRequired: selectedRequest.dateRequired || "N/A",
+        timeFrom: selectedRequest.timeFrom || "N/A",  
+        timeTo: selectedRequest.timeTo || "N/A",  
+        timestamp: selectedRequest.timestamp || new Date(),
+        requestList: enrichedItems, 
+        status: "Rejected", 
+        rejectedBy: userName, 
+        reason: rejectReason || "No reason provided",
+        program: selectedRequest.program,
+      };
+  
+      try {
+        // Add to rejection log (requestlog collection)
+        await addDoc(collection(db, "requestlog"), rejectLogEntry);
 
-      setIsModalVisible(false);
-      setSelectedRequest(null);
+        // Add to historylog subcollection for the user
+        await addDoc(
+          collection(db, "accounts", selectedRequest.accountId, "historylog"), 
+          {
+            ...rejectLogEntry, 
+            action: "Request Rejected", 
+            timestamp: serverTimestamp(),
+          }
+        );        
+  
+        // Delete rejected request from userrequests
+        await deleteDoc(doc(db, "userrequests", selectedRequest.id));
+  
+        // Delete from subcollection with matching timestamp and selectedItemId
+        const subCollectionRef = collection(db, "accounts", selectedRequest.accountId, "userRequests");
+        const subDocsSnap = await getDocs(subCollectionRef);
 
-      setTimeout(() => {
-        notification.success({
-          message: "Request Returned",
-          description: `Request ID ${selectedRequest.id} has been returned to the requestor.`,
-          duration: 3,
+        subDocsSnap.forEach(async (docSnap) => {
+          const data = docSnap.data();
+          const match = (
+            data.timestamp?.seconds === selectedRequest.timestamp?.seconds &&
+            data.filteredMergedData?.[0]?.selectedItemId === selectedRequest.filteredMergedData?.[0]?.selectedItemId
+          );
+
+          if (match) {
+            console.log("✅ Deleting from subcollection:", docSnap.id);
+            await deleteDoc(doc(db, "accounts", selectedRequest.accountId, "userRequests", docSnap.id));
+          }
         });
-      }, 100);
+  
+        // Update state
+        setRequests(requests.filter((req) => req.id !== selectedRequest.id));
+        setCheckedItems({});
+        setIsRejectModalVisible(false);
+        setRejectReason(""); 
+        setIsModalVisible(false);
+  
+        notification.success({
+          message: "Request Rejected",
+          description: "Request has been rejected and logged.",
+        });
+
+      } catch (error) {
+        console.error("Error adding rejection log:", error);
+        notification.error({
+          message: "Rejection Failed",
+          description: "There was an error logging the rejected request.",
+        });
+      }
     }
   };
 
@@ -465,11 +589,25 @@ const PendingRequest = () => {
           </Row>
         </Content>
 
+        <Modal
+        title="Reject Reason"
+        visible={isRejectModalVisible}
+        onCancel={() => setIsRejectModalVisible(false)}
+        onOk={handleRejectSubmit}
+      >
+        <Input.TextArea
+          rows={4}
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          placeholder="Please provide a reason for rejection"
+        />
+      </Modal>
+
         <RequisitionRequestModal
           isModalVisible={isModalVisible}
           handleCancel={handleCancel}
           handleApprove={handleApprove}
-          handleReturn={handleReturn}
+          handleReturn={handleReject}
           selectedRequest={selectedRequest}
           columns={columns}
           formatDate={formatDate}

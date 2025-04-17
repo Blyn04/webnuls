@@ -29,12 +29,15 @@ const BorrowCatalog = () => {
           const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "N/A";
           
           // Ensure that requestList is always an array (fallback to empty array if undefined)
-          const requestedItems = (data.requestList || []).map(item => ({
+          const requestedItems = Array.isArray(data.requestList) ? data.requestList.map(item => ({
             itemId: item.itemIdFromInventory,
-            itemDescription: item.itemName,
+            itemName: item.itemName,
             quantity: item.quantity,
+            category: item.category,
+            condition: item.condition,
             department: item.department,
-          }));
+            labRoom: item.labRoom,
+          })) : [];  // Fallback to empty array if requestList is not an array
     
           return {
             id: doc.id,
@@ -48,16 +51,16 @@ const BorrowCatalog = () => {
             status: data.status,
           };
         });
-    
+  
         setCatalog(catalogData);
-    
+  
       } catch (error) {
         console.error("Error fetching borrow catalog:", error);
       }
     };
     
     fetchCatalogData();
-  }, []);
+  }, []);  
 
   const handleSearch = (value) => {
     setSearchQuery(value);
@@ -131,13 +134,18 @@ const BorrowCatalog = () => {
   ];
 
   const handleViewDetails = (record) => {
+    console.log("Selected Record:", record);  // Check the structure of the record
     setSelectedRequest(record);
     setIsModalVisible(true);
-  };
+  };  
 
   const handleCancel = () => {
     setIsModalVisible(false);
     setSelectedRequest(null);
+  };
+
+  const formatDate = (timestamp) => {
+    return timestamp ? new Date(timestamp.seconds * 1000).toLocaleDateString() : "N/A";
   };
 
   return (
@@ -175,6 +183,7 @@ const BorrowCatalog = () => {
             selectedApprovedRequest={selectedRequest}
             setSelectedApprovedRequest={setSelectedRequest}
             columns={columns}
+            formatDate={formatDate}
           />
         </Content>
       </Layout>

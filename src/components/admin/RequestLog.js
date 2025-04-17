@@ -21,14 +21,8 @@ const RequestLog = () => {
         const querySnapshot = await getDocs(collection(db, "requestlog"));
         const logs = querySnapshot.docs.map((doc) => {
           const data = doc.data();
-          console.log("Full DOC Data:", data);  // Log the entire data object
-          
-          // Log timeFrom and timeTo specifically to check if they are present
-          console.log("timeFrom from root:", data.timeFrom);
-          console.log("timeTo from root:", data.timeTo);
-        
-          const timeFrom = data.timeFrom || "N/A";  // Use timeFrom from root or "N/A"
-          const timeTo = data.timeTo || "N/A";      // Use timeTo from root or "N/A"
+          const timeFrom = data.timeFrom || "N/A";  
+          const timeTo = data.timeTo || "N/A";    
         
           const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "N/A";
         
@@ -44,14 +38,19 @@ const RequestLog = () => {
             reason: data.reason ?? "No reason provided",
             department: data.requestList?.[0]?.department ?? "N/A",
             approvedBy: data.approvedBy,
+            rejectedBy: data.rejectedBy, // Include rejectedBy field
             timestamp: timestamp,
             raw: data,
             timeFrom,  // Use timeFrom from root
             timeTo,    // Use timeTo from root
           };
         });
+
+        const sortedLogs = logs.sort((a, b) => {
+          return new Date(b.timestamp) - new Date(a.timestamp);
+        });
   
-        setHistoryData(logs);
+        setHistoryData(sortedLogs);
   
       } catch (error) {
         console.error("Error fetching request logs: ", error);
@@ -60,7 +59,6 @@ const RequestLog = () => {
   
     fetchRequestLogs();
   }, []);  
-  
 
   const columns = [
     {
@@ -89,9 +87,14 @@ const RequestLog = () => {
       key: "requestor", 
     },
     {
-      title: "Approved By",
-      dataIndex: "approvedBy",
-      key: "approvedBy", 
+      title: "By",  // Change column title from "Approved By" to "By"
+      key: "by",
+      render: (text, record) => {
+        // Conditionally render approvedBy or rejectedBy based on status
+        return (
+          <Text>{record.status === "Approved" ? record.approvedBy : record.rejectedBy}</Text>
+        );
+      }
     },
     {
       title: "",
@@ -159,7 +162,7 @@ const RequestLog = () => {
             columns={columns}
             rowKey="id"
             bordered
-            pagination={{ pageSize: 5 }}
+            pagination={{ pageSize: 10 }}
           />
         </Content>
 
