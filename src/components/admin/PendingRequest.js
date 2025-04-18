@@ -470,7 +470,7 @@ const PendingRequest = () => {
           "Request Rejected",            // action
           rejectedItems,                 // request list
           {
-            approvedBy: userName, // whoever rejected
+            rejectedBy: userName, // whoever rejected
             courseCode: selectedRequest.courseCode || "N/A",
             courseDescription: selectedRequest.courseDescription || "N/A",
             dateRequired: selectedRequest.dateRequired,
