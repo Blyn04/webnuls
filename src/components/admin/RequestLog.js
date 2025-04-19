@@ -263,8 +263,20 @@ const RequestLog = () => {
 
                 <Col span={12}>
                   <Text strong>Department:</Text> {selectedRequest.raw?.requestList?.[0]?.department}
+
                   <br />
-                  <Text strong>Approved By:</Text> {selectedRequest.raw?.approvedBy}
+                  
+                  {selectedRequest.raw?.status === 'Approved' && (
+                    <>
+                      <Text strong>Approved By:</Text> {selectedRequest.raw?.approvedBy}
+                    </>
+                  )}
+
+                  {selectedRequest.raw?.status === 'Rejected' && (
+                    <>
+                      <Text strong>Rejected By:</Text> {selectedRequest.raw?.rejectedBy}
+                    </>
+                  )}
                 </Col>
               </Row>
             </div>
