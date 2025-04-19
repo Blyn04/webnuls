@@ -8,7 +8,7 @@ import {
   Descriptions,
 } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "../../backend/firebase/FirebaseConfig";
 import "../styles/usersStyle/ActivityLog.css";
 
@@ -45,22 +45,73 @@ const ActivityLog = () => {
   const [selectedLog, setSelectedLog] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  // useEffect(() => {
+  //   const fetchActivityLogs = async () => {
+  //     try {
+  //       const userId = localStorage.getItem("userId");
+  //       if (!userId) throw new Error("User ID not found");
+
+  //       const activityRef = collection(db, `accounts/${userId}/activitylog`);
+  //       const querySnapshot = await getDocs(activityRef);
+
+  //       const logs = querySnapshot.docs.map((doc, index) => {
+  //         const data = doc.data();
+  //         const logDate =
+  //           data.cancelledAt?.toDate?.() ||
+  //           data.timestamp?.toDate?.() ||
+  //           new Date();
+        
+  //         return {
+  //           key: doc.id || index.toString(),
+  //           date: logDate.toLocaleString("en-US", {
+  //             year: "numeric",
+  //             month: "short",
+  //             day: "numeric",
+  //             hour: "numeric",
+  //             minute: "2-digit",
+  //             hour12: true,
+  //           }),
+  //           action:
+  //             data.status === "CANCELLED"
+  //               ? "Cancelled a request"
+  //               : data.action || "Modified a request",
+  //           by: data.userName || "Unknown User",
+  //           fullData: data,
+  //         };
+  //       });        
+
+  //       logs.sort((a, b) => {
+  //         const dateA = new Date(a.fullData.timestamp?.toDate?.() || a.fullData.cancelledAt?.toDate?.() || 0);
+  //         const dateB = new Date(b.fullData.timestamp?.toDate?.() || b.fullData.cancelledAt?.toDate?.() || 0);
+  //         return dateB - dateA; 
+  //       });        
+
+  //       setActivityData(logs);
+
+  //     } catch (error) {
+  //       console.error("Failed to fetch activity logs:", error);
+  //     }
+  //   };
+
+  //   fetchActivityLogs();
+  // }, []);
+
   useEffect(() => {
-    const fetchActivityLogs = async () => {
-      try {
-        const userId = localStorage.getItem("userId");
-        if (!userId) throw new Error("User ID not found");
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
 
-        const activityRef = collection(db, `accounts/${userId}/activitylog`);
-        const querySnapshot = await getDocs(activityRef);
+    const activityRef = collection(db, `accounts/${userId}/activitylog`);
 
+    const unsubscribe = onSnapshot(
+      activityRef,
+      (querySnapshot) => {
         const logs = querySnapshot.docs.map((doc, index) => {
           const data = doc.data();
           const logDate =
             data.cancelledAt?.toDate?.() ||
             data.timestamp?.toDate?.() ||
             new Date();
-        
+
           return {
             key: doc.id || index.toString(),
             date: logDate.toLocaleString("en-US", {
@@ -78,22 +129,24 @@ const ActivityLog = () => {
             by: data.userName || "Unknown User",
             fullData: data,
           };
-        });        
+        });
 
+        // Sort logs by newest first
         logs.sort((a, b) => {
           const dateA = new Date(a.fullData.timestamp?.toDate?.() || a.fullData.cancelledAt?.toDate?.() || 0);
           const dateB = new Date(b.fullData.timestamp?.toDate?.() || b.fullData.cancelledAt?.toDate?.() || 0);
-          return dateB - dateA; 
-        });        
+          return dateB - dateA;
+        });
 
         setActivityData(logs);
-
-      } catch (error) {
-        console.error("Failed to fetch activity logs:", error);
+      },
+      (error) => {
+        console.error("Real-time activity log listener failed:", error);
       }
-    };
+    );
 
-    fetchActivityLogs();
+    // Cleanup the listener when the component unmounts
+    return () => unsubscribe();
   }, []);
 
   const filteredData = activityData.filter(

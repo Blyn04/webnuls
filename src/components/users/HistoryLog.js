@@ -8,7 +8,7 @@ import {
   Descriptions,
 } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "../../backend/firebase/FirebaseConfig";
 import "../styles/usersStyle/ActivityLog.css";
 
@@ -45,34 +45,90 @@ const HistoryLog = () => {
   const [selectedLog, setSelectedLog] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  // useEffect(() => {
+  //   const fetchActivityLogs = async () => {
+  //     try {
+  //       const userId = localStorage.getItem("userId");
+  //       if (!userId) throw new Error("User ID not found");
+    
+  //       const activityRef = collection(db, `accounts/${userId}/historylog`);
+  //       const querySnapshot = await getDocs(activityRef);
+    
+  //       const logs = querySnapshot.docs.map((doc, index) => {
+  //         const data = doc.data();
+  //         const logDate =
+  //           data.cancelledAt?.toDate?.() ||
+  //           data.timestamp?.toDate?.() ||
+  //           new Date();
+    
+  //         const isCancelled = data.status === "CANCELLED";
+  //         const action = isCancelled
+  //           ? "Cancelled a request"
+  //           : data.action || "Modified a request";
+    
+  //         const by = action === "Request Approved"
+  //           ? data.approvedBy
+  //           : action === "Request Rejected"
+  //           ? data.rejectedBy
+  //           : data.userName || "Unknown User";
+
+    
+  //         return {
+  //           key: doc.id || index.toString(),
+  //           date: logDate.toLocaleString("en-US", {
+  //             year: "numeric",
+  //             month: "short",
+  //             day: "numeric",
+  //             hour: "numeric",
+  //             minute: "2-digit",
+  //             hour12: true,
+  //           }),
+  //           rawDate: logDate,
+  //           action: action,
+  //           by: by,
+  //           fullData: data,
+  //         };
+  //       });
+    
+  //       const sortedLogs = logs.sort((a, b) => b.rawDate - a.rawDate);
+  //       setActivityData(sortedLogs);
+    
+  //     } catch (error) {
+  //       console.error("Failed to fetch activity logs:", error);
+  //     }
+  //   };    
+  
+  //   fetchActivityLogs();
+  // }, []);
+
   useEffect(() => {
-    const fetchActivityLogs = async () => {
-      try {
-        const userId = localStorage.getItem("userId");
-        if (!userId) throw new Error("User ID not found");
-    
-        const activityRef = collection(db, `accounts/${userId}/historylog`);
-        const querySnapshot = await getDocs(activityRef);
-    
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+  
+    const activityRef = collection(db, `accounts/${userId}/historylog`);
+  
+    const unsubscribe = onSnapshot(
+      activityRef,
+      (querySnapshot) => {
         const logs = querySnapshot.docs.map((doc, index) => {
           const data = doc.data();
           const logDate =
             data.cancelledAt?.toDate?.() ||
             data.timestamp?.toDate?.() ||
             new Date();
-    
+  
           const isCancelled = data.status === "CANCELLED";
           const action = isCancelled
             ? "Cancelled a request"
             : data.action || "Modified a request";
-    
-          const by = action === "Request Approved"
-            ? data.approvedBy
-            : action === "Request Rejected"
-            ? data.rejectedBy
-            : data.userName || "Unknown User";
-
-    
+  
+          const by =
+            action === "Request Approved"
+              ? data.approvedBy
+              : action === "Request Rejected"
+              ? data.rejectedBy
+              : data.userName || "Unknown User";
+  
           return {
             key: doc.id || index.toString(),
             date: logDate.toLocaleString("en-US", {
@@ -89,18 +145,18 @@ const HistoryLog = () => {
             fullData: data,
           };
         });
-    
+  
         const sortedLogs = logs.sort((a, b) => b.rawDate - a.rawDate);
         setActivityData(sortedLogs);
-    
-      } catch (error) {
-        console.error("Failed to fetch activity logs:", error);
+      },
+      (error) => {
+        console.error("Real-time activity log listener failed:", error);
       }
-    };    
+    );
   
-    fetchActivityLogs();
+    // Cleanup the listener when the component unmounts
+    return () => unsubscribe();
   }, []);
-  
 
   const filteredData = activityData.filter(
     (item) =>
