@@ -23,7 +23,7 @@ const SessionTimeout = ({ onLogout }) => {
     if (userId) {
       try {
         await addDoc(collection(db, `accounts/${userId}/activitylog`), {
-          action: "User Logged Out",
+          action: "User Logged Out (Website)",
           userName,
           timestamp: serverTimestamp(),
         });
