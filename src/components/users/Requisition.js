@@ -1276,7 +1276,7 @@ const Requisition = () => {
             showSearch
             placeholder="Select item"
             style={{ width: 100 }}
-            dropdownStyle={{ width: 550 }}
+            dropdownStyle={{ width: 700 }}
             optionFilterProp="label"
             labelInValue
             value={record.selectedItem || undefined}
@@ -1560,7 +1560,7 @@ const Requisition = () => {
 
           <div className="table-request-container">
           <Table
-          className="requisition-table"
+            className="requisition-table"
             columns={columns}
             dataSource={mergedData}
             pagination={{ pageSize: 5 }}
