@@ -45,6 +45,7 @@ const ActivityLog = () => {
   const [selectedLog, setSelectedLog] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  // NOT REAL TIME
   // useEffect(() => {
   //   const fetchActivityLogs = async () => {
   //     try {
