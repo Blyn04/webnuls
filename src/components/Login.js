@@ -303,7 +303,7 @@ const Login = () => {
           localStorage.setItem("userPosition", userData.role || "User");
 
           await addDoc(collection(db, `accounts/${userDoc.id}/activitylog`), {
-            action: "User Logged In",
+            action: "User Logged In (Website)",
             userName: userData.name || "User",
             timestamp: serverTimestamp(),
           });          
