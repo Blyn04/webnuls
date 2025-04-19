@@ -806,7 +806,7 @@ import {
 import moment from "moment";
 import dayjs from 'dayjs';
 import { useLocation, useNavigate } from "react-router-dom";
-import { getFirestore, collection, addDoc, Timestamp, getDocs, updateDoc, doc, deleteDoc,setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { getFirestore, collection, addDoc, Timestamp, getDocs, updateDoc, doc, deleteDoc,setDoc, getDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { getAuth } from 'firebase/auth';
 import { db } from "../../backend/firebase/FirebaseConfig";
 import Sidebar from "../Sidebar";
@@ -894,8 +894,69 @@ const Requisition = () => {
       }
     };
   
+    
     fetchRequestList();
   }, []);  
+
+  // REAL TIME UPDATE TEMREQ
+  // useEffect(() => {
+  //   const userId = localStorage.getItem("userId");
+
+  //   const fetchRequestList = async () => {
+  //     if (userId) {
+  //       try {
+  //         const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+  //         const querySnapshot = await getDocs(tempRequestRef);
+  //         const tempRequestList = querySnapshot.docs.map((doc) => {
+  //           const data = doc.data();
+  //           return {
+  //             ...data,
+  //             selectedItem: {
+  //               value: data.selectedItemId,
+  //               label: data.selectedItemLabel, // <-- This restores the label after refresh
+  //             },
+  //           };
+  //         });
+
+  //         setRequestList(tempRequestList);
+  //         localStorage.setItem("requestList", JSON.stringify(tempRequestList));
+
+  //       } catch (error) {
+  //         console.error("Error fetching request list:", error);
+  //       }
+  //     }
+  //   };
+
+  //   fetchRequestList(); // run initial fetch
+
+  //   // Real-time listener
+  //   let unsubscribe;
+  //   if (userId) {
+  //     const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+  //     unsubscribe = onSnapshot(tempRequestRef, (querySnapshot) => {
+  //       const tempRequestList = querySnapshot.docs.map((doc) => {
+  //         const data = doc.data();
+  //         return {
+  //           ...data,
+  //           selectedItem: {
+  //             value: data.selectedItemId,
+  //             label: data.selectedItemLabel,
+  //           },
+  //         };
+  //       });
+
+  //       setRequestList(tempRequestList);
+  //       localStorage.setItem("requestList", JSON.stringify(tempRequestList));
+  //     }, (error) => {
+  //       console.error("Real-time listener error:", error);
+  //     });
+  //   }
+
+  //   // Clean up real-time listener on unmount
+  //   return () => {
+  //     if (unsubscribe) unsubscribe();
+  //   };
+  // }, []);
 
   useEffect(() => {
     const fetchItems = async () => {
