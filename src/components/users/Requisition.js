@@ -1207,7 +1207,7 @@ const Requisition = () => {
       selectedItemId: itemId,
       itemName: selectedItem.itemName,
       category: selectedItem.category,
-      quantity: selectedItem.quantity,
+      quantity: tableData[index]?.quantity || 1,
       labRoom: selectedItem.labRoom,
       status: selectedItem.status,
       condition: selectedItem.condition,
@@ -1242,6 +1242,7 @@ const Requisition = () => {
           id: itemId,
           selectedItemId: itemId,
           selectedItemLabel: selectedItem.itemName,
+          quantity: newRow.quantity,
           timestamp: Timestamp.fromDate(new Date()),
         });
   
@@ -1319,15 +1320,41 @@ const Requisition = () => {
           type="number"
           min={1}
           value={record.quantity}
-          onChange={(e) => {
+          onChange={async (e) => {
+            const newQuantity = e.target.value;
+    
+            // Update local tableData
             const updated = tableData.map((row) =>
-              row.key === record.key ? { ...row, quantity: e.target.value } : row
+              row.key === record.key ? { ...row, quantity: newQuantity } : row
             );
             setTableData(updated);
+    
+            // Update requestList too (optional but keeps both in sync)
+            const updatedRequestList = requestList.map((row) =>
+              row.selectedItemId === record.selectedItemId ? { ...row, quantity: newQuantity } : row
+            );
+            setRequestList(updatedRequestList);
+            localStorage.setItem("requestList", JSON.stringify(updatedRequestList));
+    
+            // Update Firestore
+            const userId = localStorage.getItem("userId");
+            if (userId) {
+              const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+    
+              // Find the doc with this item's ID
+              const snapshot = await getDocs(tempRequestRef);
+              const docToUpdate = snapshot.docs.find(doc => doc.data().selectedItemId === record.selectedItemId);
+    
+              if (docToUpdate) {
+                await updateDoc(doc(db, "accounts", userId, "temporaryRequests", docToUpdate.id), {
+                  quantity: newQuantity,
+                });
+              }
+            }
           }}
         />
       ),
-    },
+    },    
     {
       title: "Lab Room",
       dataIndex: "labRoom",
