@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Layout, Table, Button, Modal, Typography, Row, Col } from "antd";
 import { db } from "../../backend/firebase/FirebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/RequestLog.css";
@@ -15,51 +15,104 @@ const RequestLog = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [historyData, setHistoryData] = useState([]);
 
-  useEffect(() => {
-    const fetchRequestLogs = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "requestlog"));
-        const logs = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          const timeFrom = data.timeFrom || "N/A";  
-          const timeTo = data.timeTo || "N/A";    
+  // useEffect(() => {
+  //   const fetchRequestLogs = async () => {
+  //     try {
+  //       const querySnapshot = await getDocs(collection(db, "requestlog"));
+  //       const logs = querySnapshot.docs.map((doc) => {
+  //         const data = doc.data();
+  //         const timeFrom = data.timeFrom || "N/A";  
+  //         const timeTo = data.timeTo || "N/A";    
 
-          const timestamp = data.timestamp ? formatTimestamp(data.timestamp) : "N/A";
+  //         const timestamp = data.timestamp ? formatTimestamp(data.timestamp) : "N/A";
           
-          return {
-            id: doc.id,
-            date: data.dateRequired ?? "N/A",
-            status: data.status ?? "Pending",
-            requestor: data.userName ?? "Unknown",
-            requestedItems: data.requestList
-              ? data.requestList.map((item) => item.itemName).join(", ")
-              : "No items",
-            requisitionId: doc.id,
-            reason: data.reason ?? "No reason provided",
-            department: data.requestList?.[0]?.department ?? "N/A",
-            approvedBy: data.approvedBy,
-            rejectedBy: data.rejectedBy, // Include rejectedBy field
-            timestamp: timestamp,
-            raw: data,
-            timeFrom,  // Use timeFrom from root
-            timeTo,    // Use timeTo from root
-          };
+  //         return {
+  //           id: doc.id,
+  //           date: data.dateRequired ?? "N/A",
+  //           status: data.status ?? "Pending",
+  //           requestor: data.userName ?? "Unknown",
+  //           requestedItems: data.requestList
+  //             ? data.requestList.map((item) => item.itemName).join(", ")
+  //             : "No items",
+  //           requisitionId: doc.id,
+  //           reason: data.reason ?? "No reason provided",
+  //           department: data.requestList?.[0]?.department ?? "N/A",
+  //           approvedBy: data.approvedBy,
+  //           rejectedBy: data.rejectedBy, // Include rejectedBy field
+  //           timestamp: timestamp,
+  //           raw: data,
+  //           timeFrom,  // Use timeFrom from root
+  //           timeTo,    // Use timeTo from root
+  //         };
+  //       });
+
+  //       // Sort logs by timestamp, with the most recent first
+  //       const sortedLogs = logs.sort((a, b) => {
+  //         return new Date(b.timestamp) - new Date(a.timestamp);
+  //       });
+  
+  //       setHistoryData(sortedLogs);
+  
+  //     } catch (error) {
+  //       console.error("Error fetching request logs: ", error);
+  //     }
+  //   };
+  
+  //   fetchRequestLogs();
+  // }, []);  
+
+  useEffect(() => {
+    const fetchRequestLogs = () => {
+      try {
+        // Set up the real-time listener using onSnapshot
+        const requestLogRef = collection(db, "requestlog");
+
+        const unsubscribe = onSnapshot(requestLogRef, (querySnapshot) => {
+          const logs = querySnapshot.docs.map((doc) => {
+            const data = doc.data();
+            const timeFrom = data.timeFrom || "N/A";  
+            const timeTo = data.timeTo || "N/A";    
+
+            const timestamp = data.timestamp ? formatTimestamp(data.timestamp) : "N/A";
+            
+            return {
+              id: doc.id,
+              date: data.dateRequired ?? "N/A",
+              status: data.status ?? "Pending",
+              requestor: data.userName ?? "Unknown",
+              requestedItems: data.requestList
+                ? data.requestList.map((item) => item.itemName).join(", ")
+                : "No items",
+              requisitionId: doc.id,
+              reason: data.reason ?? "No reason provided",
+              department: data.requestList?.[0]?.department ?? "N/A",
+              approvedBy: data.approvedBy,
+              rejectedBy: data.rejectedBy, // Include rejectedBy field
+              timestamp: timestamp,
+              raw: data,
+              timeFrom,  // Use timeFrom from root
+              timeTo,    // Use timeTo from root
+            };
+          });
+
+          // Sort logs by timestamp, with the most recent first
+          const sortedLogs = logs.sort((a, b) => {
+            return new Date(b.timestamp) - new Date(a.timestamp);
+          });
+  
+          setHistoryData(sortedLogs);
         });
 
-        // Sort logs by timestamp, with the most recent first
-        const sortedLogs = logs.sort((a, b) => {
-          return new Date(b.timestamp) - new Date(a.timestamp);
-        });
-  
-        setHistoryData(sortedLogs);
-  
+        // Cleanup listener when component unmounts
+        return () => unsubscribe();
+        
       } catch (error) {
         console.error("Error fetching request logs: ", error);
       }
     };
-  
+
     fetchRequestLogs();
-  }, []);  
+  }, []);
 
   const formatTimestamp = (timestamp) => {
     try {

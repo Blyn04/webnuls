@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Layout, Row, Col, Table, Input, Button, Typography } from "antd";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "../../backend/firebase/FirebaseConfig"; 
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
@@ -17,62 +17,133 @@ const BorrowCatalog = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
 
+  // useEffect(() => {
+  //   const fetchCatalogData = async () => {
+  //     try {
+  //       const borrowCatalogCollection = collection(db, "borrowcatalog");
+  //       const borrowCatalogSnapshot = await getDocs(borrowCatalogCollection);
+  //       const catalogData = borrowCatalogSnapshot.docs.map((doc) => {
+  //         const data = doc.data();
+
+  //         const formatDate = (timestamp) => {
+  //           return timestamp instanceof Date ? timestamp.toLocaleDateString() : "N/A";
+  //         };          
+
+  //         const requestedItems = Array.isArray(data.requestList)
+  //           ? data.requestList.map((item) => ({
+  //               itemId: item.itemIdFromInventory,
+  //               itemName: item.itemName,
+  //               quantity: item.quantity,
+  //               category: item.category,
+  //               condition: item.condition,
+  //               department: item.department,
+  //               labRoom: item.labRoom,
+  //             }))
+  //           : [];
+
+  //         return {
+  //           id: doc.id,
+  //           timestamp: data.timestamp || null,
+  //           requestor: data.userName || "N/A",
+  //           userName: data.userName || "N/A",
+  //           approvedBy: data.approvedBy || "N/A",
+  //           formatDate,
+  //           reason: data.reason || "N/A",
+  //           dateRequired: data.dateRequired || "N/A",
+  //           timeFrom: data.timeFrom || "N/A",
+  //           timeTo: data.timeTo || "N/A",
+  //           courseDescription: data.courseDescription || "N/A",
+  //           courseCode: data.courseCode || "N/A",
+  //           program: data.program || "N/A",
+  //           room: data.room || "N/A",
+  //           requestList: Array.isArray(data.requestList) ? data.requestList : [],
+  //           requestedItems,
+  //           status: data.status || "Pending",
+  //         };
+  //       });
+
+  //       const sortedCatalogData = catalogData.sort((a, b) => {
+  //         if (a.timestamp && b.timestamp) {
+  //           const timeA = a.timestamp.seconds * 1000 + a.timestamp.nanoseconds / 1000000;
+  //           const timeB = b.timestamp.seconds * 1000 + b.timestamp.nanoseconds / 1000000;
+  //           return timeB - timeA;  // Sort by precise timestamp including nanoseconds, most recent first
+  //         }
+  //         return 0;
+  //       });
+
+  //       setCatalog(sortedCatalogData);
+
+  //     } catch (error) {
+  //       console.error("Error fetching borrow catalog:", error);
+  //     }
+  //   };
+
+  //   fetchCatalogData();
+  // }, []);
+
   useEffect(() => {
-    const fetchCatalogData = async () => {
+    const fetchCatalogData = () => {
       try {
-        const borrowCatalogCollection = collection(db, "borrowcatalog");
-        const borrowCatalogSnapshot = await getDocs(borrowCatalogCollection);
-        const catalogData = borrowCatalogSnapshot.docs.map((doc) => {
-          const data = doc.data();
+        // Set up real-time listener using onSnapshot
+        const borrowCatalogRef = collection(db, "borrowcatalog");
 
-          const formatDate = (timestamp) => {
-            return timestamp instanceof Date ? timestamp.toLocaleDateString() : "N/A";
-          };          
+        const unsubscribe = onSnapshot(borrowCatalogRef, (snapshot) => {
+          const catalogData = snapshot.docs.map((doc) => {
+            const data = doc.data();
 
-          const requestedItems = Array.isArray(data.requestList)
-            ? data.requestList.map((item) => ({
-                itemId: item.itemIdFromInventory,
-                itemName: item.itemName,
-                quantity: item.quantity,
-                category: item.category,
-                condition: item.condition,
-                department: item.department,
-                labRoom: item.labRoom,
-              }))
-            : [];
+            const formatDate = (timestamp) => {
+              return timestamp instanceof Date ? timestamp.toLocaleDateString() : "N/A";
+            };
 
-          return {
-            id: doc.id,
-            timestamp: data.timestamp || null,
-            requestor: data.userName || "N/A",
-            userName: data.userName || "N/A",
-            approvedBy: data.approvedBy || "N/A",
-            formatDate,
-            reason: data.reason || "N/A",
-            dateRequired: data.dateRequired || "N/A",
-            timeFrom: data.timeFrom || "N/A",
-            timeTo: data.timeTo || "N/A",
-            courseDescription: data.courseDescription || "N/A",
-            courseCode: data.courseCode || "N/A",
-            program: data.program || "N/A",
-            room: data.room || "N/A",
-            requestList: Array.isArray(data.requestList) ? data.requestList : [],
-            requestedItems,
-            status: data.status || "Pending",
-          };
+            const requestedItems = Array.isArray(data.requestList)
+              ? data.requestList.map((item) => ({
+                  itemId: item.itemIdFromInventory,
+                  itemName: item.itemName,
+                  quantity: item.quantity,
+                  category: item.category,
+                  condition: item.condition,
+                  department: item.department,
+                  labRoom: item.labRoom,
+                }))
+              : [];
+
+            return {
+              id: doc.id,
+              timestamp: data.timestamp || null,
+              requestor: data.userName || "N/A",
+              userName: data.userName || "N/A",
+              approvedBy: data.approvedBy || "N/A",
+              formatDate,
+              reason: data.reason || "N/A",
+              dateRequired: data.dateRequired || "N/A",
+              timeFrom: data.timeFrom || "N/A",
+              timeTo: data.timeTo || "N/A",
+              courseDescription: data.courseDescription || "N/A",
+              courseCode: data.courseCode || "N/A",
+              program: data.program || "N/A",
+              room: data.room || "N/A",
+              requestList: Array.isArray(data.requestList) ? data.requestList : [],
+              requestedItems,
+              status: data.status || "Pending",
+            };
+          });
+
+          // Sort catalog data by timestamp, most recent first
+          const sortedCatalogData = catalogData.sort((a, b) => {
+            if (a.timestamp && b.timestamp) {
+              const timeA = a.timestamp.seconds * 1000 + a.timestamp.nanoseconds / 1000000;
+              const timeB = b.timestamp.seconds * 1000 + b.timestamp.nanoseconds / 1000000;
+              return timeB - timeA;
+            }
+            return 0;
+          });
+
+          setCatalog(sortedCatalogData);
         });
 
-        const sortedCatalogData = catalogData.sort((a, b) => {
-          if (a.timestamp && b.timestamp) {
-            const timeA = a.timestamp.seconds * 1000 + a.timestamp.nanoseconds / 1000000;
-            const timeB = b.timestamp.seconds * 1000 + b.timestamp.nanoseconds / 1000000;
-            return timeB - timeA;  // Sort by precise timestamp including nanoseconds, most recent first
-          }
-          return 0;
-        });
-
-        setCatalog(sortedCatalogData);
-
+        // Cleanup listener when component unmounts
+        return () => unsubscribe();
+        
       } catch (error) {
         console.error("Error fetching borrow catalog:", error);
       }
