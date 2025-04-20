@@ -11,7 +11,7 @@ import {
   Descriptions,
 } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "../../backend/firebase/FirebaseConfig";
 import "../styles/usersStyle/SearchItems.css";
 
@@ -82,24 +82,59 @@ const SearchItems = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  // useEffect(() => {
+  //   const fetchInventory = async () => {
+  //     try {
+  //       const snapshot = await getDocs(collection(db, "inventory"));
+  //       const items = snapshot.docs.map((doc) => {
+  //         const data = doc.data();
+  //         return {
+  //           key: doc.id,
+  //           description: data.itemName || "Unnamed Item",
+  //           quantity: data.quantity || 0,
+  //           status: data.status || "Unknown",
+  //           category: data.category || "Uncategorized",
+  //           room: data.labRoom || "No Room Info",
+  //           ...data, // Include all data for modal use
+  //         };
+  //       });
+  //       setInventoryData(items);
+  //       setFilteredData(items);
+        
+  //     } catch (err) {
+  //       console.error("Error fetching inventory data:", err);
+  //     }
+  //   };
+
+  //   fetchInventory();
+  // }, []);
+
   useEffect(() => {
-    const fetchInventory = async () => {
+    const fetchInventory = () => {
       try {
-        const snapshot = await getDocs(collection(db, "inventory"));
-        const items = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            key: doc.id,
-            description: data.itemName || "Unnamed Item",
-            quantity: data.quantity || 0,
-            status: data.status || "Unknown",
-            category: data.category || "Uncategorized",
-            room: data.labRoom || "No Room Info",
-            ...data, // Include all data for modal use
-          };
+        // Set up real-time listener using onSnapshot
+        const inventoryRef = collection(db, "inventory");
+
+        const unsubscribe = onSnapshot(inventoryRef, (snapshot) => {
+          const items = snapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              key: doc.id,
+              description: data.itemName || "Unnamed Item",
+              quantity: data.quantity || 0,
+              status: data.status || "Unknown",
+              category: data.category || "Uncategorized",
+              room: data.labRoom || "No Room Info",
+              ...data, // Include all data for modal use
+            };
+          });
+
+          setInventoryData(items);
+          setFilteredData(items); // You can implement additional filtering if needed
         });
-        setInventoryData(items);
-        setFilteredData(items);
+
+        // Cleanup listener when component unmounts
+        return () => unsubscribe();
         
       } catch (err) {
         console.error("Error fetching inventory data:", err);
@@ -107,7 +142,7 @@ const SearchItems = () => {
     };
 
     fetchInventory();
-  }, []);
+  }, []); 
 
   useEffect(() => {
     let data = [...inventoryData];
