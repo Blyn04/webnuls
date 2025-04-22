@@ -1,6 +1,6 @@
 /* Default header styles */
 .header {
-  background-color: white;
+  background-color: rgb(255, 255, 255);
   padding: 0 20px;
   display: flex;
   justify-content: space-between;
