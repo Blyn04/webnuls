@@ -24,6 +24,7 @@ import {
   doc,
   onSnapshot
 } from "firebase/firestore";
+import { debounce } from 'lodash';
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/superAdminStyle/AccountManagement.css";
@@ -50,6 +51,11 @@ const AccountManagement = () => {
   const navigate = useNavigate();
   const [modalMessage, setModalMessage] = useState("");
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [filteredAccounts, setFilteredAccounts] = useState([]);
 
   useEffect(() => {
     const loginSuccessFlag = sessionStorage.getItem("loginSuccess");
@@ -63,6 +69,25 @@ const AccountManagement = () => {
       navigate(".", { replace: true, state: newState });
     }
   }, [location.state, navigate]);
+
+  useEffect(() => {
+    const accountsCollection = collection(db, 'accounts');
+  
+    const unsubscribe = onSnapshot(accountsCollection, (querySnapshot) => {
+      const accountList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+  
+      setAccounts(accountList);
+      
+    }, (error) => {
+      console.error("Error fetching accounts in real-time: ", error);
+      message.error("Failed to load accounts.");
+    });
+  
+    return () => unsubscribe(); // Clean up the listener on unmount
+  }, []);
 
   // useEffect(() => {
   //   const fetchAccounts = async () => {
@@ -85,27 +110,16 @@ const AccountManagement = () => {
   // }, []);
 
   useEffect(() => {
-    const accountsCollection = collection(db, 'accounts');
-  
-    const unsubscribe = onSnapshot(accountsCollection, (querySnapshot) => {
-      const accountList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-  
-      setAccounts(accountList);
-      
-    }, (error) => {
-      console.error("Error fetching accounts in real-time: ", error);
-      message.error("Failed to load accounts.");
-    });
-  
-    return () => unsubscribe(); // Clean up the listener on unmount
+    fetchAdminCredentials();
   }, []);
 
   useEffect(() => {
-    fetchAdminCredentials();
-  }, []);
+    handleSearch();
+  }, [searchTerm, roleFilter, statusFilter, departmentFilter]);
+  
+  useEffect(() => {
+    setFilteredAccounts(accounts); 
+  }, [accounts]);
 
   useEffect(() => {
     const handleBackButton = (event) => {
@@ -125,6 +139,34 @@ const AccountManagement = () => {
     setShowModal(false);
     sessionStorage.removeItem("loginSuccess");
   };  
+
+  const handleSearch = () => {
+    let filteredData = [...accounts]; // Start with all accounts
+    
+    if (searchTerm) {
+      filteredData = filteredData.filter(
+        (account) =>
+          account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          account.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+  
+    if (roleFilter) {
+      filteredData = filteredData.filter((account) => account.role === roleFilter);
+    }
+  
+    if (statusFilter) {
+      filteredData = filteredData.filter(
+        (account) => (statusFilter === "Active" ? !account.disabled : account.disabled)
+      );
+    }
+  
+    if (departmentFilter) {
+      filteredData = filteredData.filter((account) => account.department === departmentFilter);
+    }
+  
+    setFilteredAccounts(filteredData); 
+  };
 
   const fetchAdminCredentials = async () => {
     try {
@@ -156,57 +198,6 @@ const AccountManagement = () => {
 
     setIsModalVisible(true);
   };
-
-  // const handleSave = async (values) => {
-  //   const isDuplicate = accounts.some(
-  //     (acc) =>
-  //       acc.id !== (editingAccount?.id || null) &&
-  //       (acc.name.toLowerCase() === values.name.toLowerCase() ||
-  //         acc.email.toLowerCase() === values.email.toLowerCase())
-  //   );
-  
-  //   if (isDuplicate) {
-  //     setModalMessage("An account with the same name or email already exists!");
-  //     setIsNotificationVisible(true);
-  //     return;
-  //   }
-
-  //   if (editingAccount) {
-  //     try {
-  //       const accountRef = doc(db, "accounts", editingAccount.id);
-  //       await updateDoc(accountRef, values);
-  
-  //       const updatedAccounts = accounts.map((acc) =>
-  //         acc.id === editingAccount.id ? { ...acc, ...values } : acc
-  //       );
-
-  //       setAccounts(updatedAccounts);
-  //       setModalMessage("Account updated successfully!");
-  //       setIsNotificationVisible(true);
-
-  //     } catch (error) {
-  //       console.error("Error updating account:", error);
-  //       message.error("Failed to update account.");
-  //     }
-
-  //   } else {
-  //     try {
-  //       const docRef = await addDoc(collection(db, "accounts"), values);
-  //       const newAccount = { ...values, id: docRef.id };
-  
-  //       setAccounts([...accounts, newAccount]);
-  //       setModalMessage("Account added successfully!");
-  //       setIsNotificationVisible(true);
-
-  //     } catch (error) {
-  //       console.error("Error adding account:", error);
-  //       setModalMessage("Failed to update account.");
-  //       setIsNotificationVisible(true);
-  //     }
-  //   }
-  
-  //   setIsModalVisible(false);
-  // };
 
   const handleSave = async (values) => {
     // Sanitize input by trimming extra spaces and lowering the case
@@ -263,20 +254,6 @@ const AccountManagement = () => {
     setIsModalVisible(false);
   };  
   
-  // const handleDelete = async (id) => {
-  //   try {
-  //     await deleteDoc(doc(db, "accounts", id));
-  //     const updatedAccounts = accounts.filter((acc) => acc.id !== id);
-  //     setAccounts(updatedAccounts);
-  //     setModalMessage("Account deleted successfully!");
-  //     setIsNotificationVisible(true);
-
-  //   } catch (error) {
-  //     console.error("Error deleting account:", error);
-  //     message.error("Failed to delete account.");
-  //   }
-  // };
-
   const handleDisable = async (id) => {
     try {
       // 1. Mark the account as disabled in Firestore
@@ -376,32 +353,6 @@ const AccountManagement = () => {
         </Tag>
       ),
     },
-    // {
-    //   title: "Actions",
-    //   key: "actions",
-    //   render: (text, record) => (
-    //     <>
-    //       <Button
-    //         type="link"
-    //         icon={<EditOutlined />}
-    //         onClick={() => confirmEdit(record)}
-    //       />
-          
-    //       <Popconfirm
-    //         title="Are you sure you want to delete this account?"
-    //         onConfirm={() => confirmDelete(record.id)} 
-    //         okText="Yes"
-    //         cancelText="No"
-    //       >
-    //         <Button
-    //           type="link"
-    //           danger
-    //           icon={<DeleteOutlined />}
-    //         />
-    //       </Popconfirm>
-    //     </>
-    //   ),
-    // },
     {
       title: "Status",
       key: "status",
@@ -420,7 +371,7 @@ const AccountManagement = () => {
             type="link"
             icon={<EditOutlined />}
             onClick={() => confirmEdit(record)}
-            disabled={record.disabled} // Optionally disable edit if account is disabled
+            disabled={record.disabled} 
           />
           
           {record.disabled ? (
@@ -464,8 +415,50 @@ const AccountManagement = () => {
             </Button>
           </div>
 
+          <div className="filters">
+            <Input
+              placeholder="Search by name or email"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+
+            <Select
+              placeholder="Select Role"
+              value={roleFilter}
+              onChange={(value) => setRoleFilter(value)}
+             allowClear
+            >
+              <Option value="Admin1">Admin1</Option>
+              <Option value="Admin2">Admin2</Option>
+              <Option value="User">User</Option>
+            </Select>
+
+            <Select
+              placeholder="Select Status"
+              value={statusFilter}
+              onChange={(value) => setStatusFilter(value)}
+              allowClear
+            >
+              <Option value="Active">Active</Option>
+              <Option value="Disabled">Disabled</Option>
+            </Select>
+
+            <Select
+              placeholder="Select Department"
+              value={departmentFilter}
+              onChange={(value) => setDepartmentFilter(value)}
+              allowClear
+            >
+              <Option value="Nursing">Nursing</Option>
+              <Option value="Medical Technology">Medical Technology</Option>
+              <Option value="Dentistry">Dentistry</Option>
+              <Option value="Pharmacy">Pharmacy</Option>
+            </Select>
+          </div>
+
           <Table
-            dataSource={accounts}
+            // dataSource={accounts}
+            dataSource={filteredAccounts}
             columns={columns}
             rowKey="id"
             className="account-table"

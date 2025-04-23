@@ -177,6 +177,7 @@ const PendingAccounts = () => {
                 dataSource={requests}
                 pagination={{ pageSize: 5 }}
                 columns={columns}
+                className="pending-accounts-table"
                 rowSelection={{
                   type: "checkbox",
                   selectedRowKeys: selectedRequests,
@@ -191,6 +192,7 @@ const PendingAccounts = () => {
                 >
                   Approve Selected
                 </Button>
+
                 <Button
                   type="danger"
                   onClick={handleReject}

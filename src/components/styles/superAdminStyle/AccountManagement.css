@@ -36,3 +36,58 @@
   background-color: #40a9ff;
   border-color: #40a9ff;
 }
+
+.ant-select {
+  width: 200px; /* Set the desired width */
+}
+
+.ant-select-dropdown {
+  border-radius: 8px; /* Rounded corners for the dropdown */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  border: 1px solid #d9d9d9; /* Light border for dropdown */
+  background-color: #fff; /* White background */
+  padding: 8px 0; /* Space around items */
+}
+
+.ant-select-item {
+  padding: 10px 16px; /* Padding inside each item */
+  transition: background-color 0.2s ease; /* Smooth hover effect */
+}
+
+.ant-select-item:hover {
+  background-color: #f0f0f0; /* Light grey on hover */
+  cursor: pointer;
+}
+
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: #e6f7ff; /* Blue background for selected item */
+  color: #1890ff; /* Blue text color for selected item */
+}
+
+.ant-select-clear {
+  color: #1890ff; /* Blue clear button */
+  font-size: 14px;
+}
+
+.ant-select-open .ant-select-selector {
+  border-color: #1890ff; /* Highlight border when dropdown is opened */
+  box-shadow: 0 0 4px rgba(24, 144, 255, 0.2); /* Light blue shadow */
+}
+
+.ant-select-focused .ant-select-selector {
+  border-color: #1890ff; /* Blue border when focused */
+  box-shadow: 0 0 4px rgba(24, 144, 255, 0.2); /* Light blue shadow */
+}
+
+.pending-accounts-table .ant-table-tbody > tr:nth-child(odd) > td {
+  background-color: #fafafa; /* Light gray */
+}
+
+.pending-accounts-table .ant-table-tbody > tr:nth-child(even) > td {
+  background-color: #ffffff; /* White */
+}
+
+.pending-accounts-table .ant-table-tbody > tr:hover > td {
+  background-color: #e6f7ff; /* Light blue highlight */
+}
+
