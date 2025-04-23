@@ -26,6 +26,7 @@ import BorrowCatalog from './admin/BorrowCatalog';
 import History from './admin/History';
 import Profile from './Profile';
 import AccountManagement from './superAdmin/AccountManagement';
+import PendingAccounts from './superAdmin/PendingAccounts';
 import Requisition from './users/Requisition';
 import RequestList from './users/RequestList';
 import ActivityLog from './users/ActivityLog';
@@ -169,6 +170,11 @@ const LayoutMain = () => {
         setPageTitle("Activivty Log");
         break;
 
+      case "/main/pending-accounts":
+        setSelectedKey("17");
+        setPageTitle("Pending Accounts");
+        break;
+
       default:
         setSelectedKey("1");
         setPageTitle("Dashboard");
@@ -227,6 +233,11 @@ const LayoutMain = () => {
       key: "/main/accounts",
       icon: <UserOutlined />,
       label: "Accounts",
+    },
+    {
+      key: "/main/pending-accounts",
+      icon: <UserOutlined />,
+      label: "Pending Accounts",
     },
     {
       key: "logout",
@@ -408,6 +419,7 @@ const LayoutMain = () => {
             {/* Superadmin-only routes */}
             <Route element={<ProtectedRoute allowedRoles={["super-admin"]} />}>
               <Route path="/accounts" element={<AccountManagement />} />
+              <Route path="/pending-accounts" element={<PendingAccounts/>} />
             </Route>
 
             {/* Admin-only routes */}
