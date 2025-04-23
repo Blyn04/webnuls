@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Layout, Row, Col, Button, Typography, Space, Table, notification } from "antd";
 import { db } from "../../backend/firebase/FirebaseConfig"; 
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore"; 
+import { collection, getDocs, doc, updateDoc, addDoc, deleteDoc, getDoc } from "firebase/firestore"; 
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -52,21 +52,44 @@ const PendingAccounts = () => {
       await Promise.all(
         selectedRequests.map(async (requestId) => {
           const requestRef = doc(db, "pendingaccounts", requestId);
-          await updateDoc(requestRef, { status: "approved" });
+          const requestSnapshot = await getDoc(requestRef);
+          const requestData = requestSnapshot.data();
+          
+          // Step 1: Check if the user already exists in 'accounts' collection by UID
+          const existingUserRef = doc(db, "accounts", requestData.uid);  // Use 'uid' as unique identifier
+          const existingUserSnapshot = await getDoc(existingUserRef);
+  
+          // If the document already exists in 'accounts', skip this request
+          if (existingUserSnapshot.exists()) {
+            console.log("User already exists in accounts. Skipping...");
+            return; // Skip this iteration
+          }
+  
+          // Step 2: Copy the approved request to the 'accounts' collection
+          const newAccountRef = collection(db, "accounts");
+          await addDoc(newAccountRef, {
+            ...requestData,
+            status: "approved",  // Set status to 'approved'
+            approvedAt: new Date(),  // Add timestamp for approval
+          });
+  
+          // Step 3: Remove the document from the 'pendingaccounts' collection
+          await deleteDoc(requestRef); // Delete after copying
         })
       );
+  
       notification.success({
         message: "Requests Approved",
-        description: "The selected account requests have been approved.",
+        description: "The selected account requests have been approved and moved to the accounts collection.",
       });
+  
+      // Remove the approved requests from the UI
       setRequests((prevRequests) =>
-        prevRequests.map((request) =>
-          selectedRequests.includes(request.id)
-            ? { ...request, status: "approved" }
-            : request
-        )
+        prevRequests.filter((request) => !selectedRequests.includes(request.id))
       );
+  
       setSelectedRequests([]); // Clear selected rows
+      
     } catch (error) {
       console.error("Error approving request: ", error);
       notification.error({
@@ -75,27 +98,33 @@ const PendingAccounts = () => {
       });
     }
   };
-
+  
   const handleReject = async () => {
     try {
       await Promise.all(
         selectedRequests.map(async (requestId) => {
           const requestRef = doc(db, "pendingaccounts", requestId);
-          await updateDoc(requestRef, { status: "rejected" });
+          
+          // Step 1: Remove the document from the 'pendingaccounts' collection
+          await deleteDoc(requestRef); // Delete the document
+  
+          // Optionally, you can also update the status to "rejected" before deletion, if needed.
+          // await updateDoc(requestRef, { status: "rejected" });
         })
       );
+  
       notification.success({
         message: "Requests Rejected",
-        description: "The selected account requests have been rejected.",
+        description: "The selected account requests have been rejected and removed from the pending list.",
       });
+  
+      // Remove the rejected requests from the UI
       setRequests((prevRequests) =>
-        prevRequests.map((request) =>
-          selectedRequests.includes(request.id)
-            ? { ...request, status: "rejected" }
-            : request
-        )
+        prevRequests.filter((request) => !selectedRequests.includes(request.id))
       );
-      setSelectedRequests([]); // Clear selected rows
+  
+      setSelectedRequests([]); // Clear selected 
+      
     } catch (error) {
       console.error("Error rejecting request: ", error);
       notification.error({
@@ -103,7 +132,7 @@ const PendingAccounts = () => {
         description: "Failed to reject the selected requests.",
       });
     }
-  };
+  };  
 
   const columns = [
     {

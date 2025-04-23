@@ -22,6 +22,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  onSnapshot
 } from "firebase/firestore";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
@@ -63,24 +64,43 @@ const AccountManagement = () => {
     }
   }, [location.state, navigate]);
 
-  useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "accounts"));
-        const accountList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+  // useEffect(() => {
+  //   const fetchAccounts = async () => {
+  //     try {
+  //       const querySnapshot = await getDocs(collection(db, "accounts"));
+  //       const accountList = querySnapshot.docs.map((doc) => ({
+  //         id: doc.id,
+  //         ...doc.data(),
+  //       }));
 
-        setAccounts(accountList);
+  //       setAccounts(accountList);
 
-      } catch (error) {
-        console.error("Error fetching accounts:", error);
-        message.error("Failed to load accounts.");
-      }
-    };
+  //     } catch (error) {
+  //       console.error("Error fetching accounts:", error);
+  //       message.error("Failed to load accounts.");
+  //     }
+  //   };
   
-    fetchAccounts();
+  //   fetchAccounts();
+  // }, []);
+
+  useEffect(() => {
+    const accountsCollection = collection(db, 'accounts');
+  
+    const unsubscribe = onSnapshot(accountsCollection, (querySnapshot) => {
+      const accountList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+  
+      setAccounts(accountList);
+      
+    }, (error) => {
+      console.error("Error fetching accounts in real-time: ", error);
+      message.error("Failed to load accounts.");
+    });
+  
+    return () => unsubscribe(); // Clean up the listener on unmount
   }, []);
 
   useEffect(() => {
