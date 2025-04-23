@@ -397,41 +397,40 @@ const LayoutMain = () => {
             <Route path="/admin-activity-log" element={<ProtectedRoute element={<AdminActivityLog/>} />} />
           </Routes> */}
 
-        <Routes>
-          {/* Routes accessible to all logged-in users */}
-          <Route element={<ProtectedRoute allowedRoles={["admin", "user", "super-admin"]} />}>
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/activity-log" element={<ActivityLog />} />
-            <Route path="/history-log" element={<HistoryLog />} />
-          </Route>
+          <Routes>
+            {/* Routes accessible to all logged-in users */}
+            <Route element={<ProtectedRoute allowedRoles={["admin", "user", "super-admin"]} />}>
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/activity-log" element={<ActivityLog />} />
+              <Route path="/history-log" element={<HistoryLog />} />
+            </Route>
 
-          {/* Superadmin-only routes */}
-          <Route element={<ProtectedRoute allowedRoles={["super-admin"]} />}>
-            <Route path="/accounts" element={<AccountManagement />} />
-          </Route>
+            {/* Superadmin-only routes */}
+            <Route element={<ProtectedRoute allowedRoles={["super-admin"]} />}>
+              <Route path="/accounts" element={<AccountManagement />} />
+            </Route>
 
-          {/* Admin-only routes */}
-          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/pending-request" element={<PendingRequest />} />
-            <Route path="/borrow-catalog" element={<BorrowCatalog />} />
-            <Route path="/request-log" element={<RequestLog />} />
-            <Route path="/admin-activity-log" element={<AdminActivityLog />} />
-          </Route>
+            {/* Admin-only routes */}
+            <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/pending-request" element={<PendingRequest />} />
+              <Route path="/borrow-catalog" element={<BorrowCatalog />} />
+              <Route path="/request-log" element={<RequestLog />} />
+              <Route path="/admin-activity-log" element={<AdminActivityLog />} />
+            </Route>
 
-          {/* User-only routes */}
-          <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
-            <Route path="/requisition" element={<Requisition />} />
-            <Route path="/request-list" element={<RequestList />} />
-            <Route path="/search-items" element={<SearchItems />} />
-            <Route path="/capex-request" element={<CapexRequest />} />
-            <Route path="/return-items" element={<ReturnItems />} />
-          </Route>
+            {/* User-only routes */}
+            <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
+              <Route path="/requisition" element={<Requisition />} />
+              <Route path="/request-list" element={<RequestList />} />
+              <Route path="/search-items" element={<SearchItems />} />
+              <Route path="/capex-request" element={<CapexRequest />} />
+              <Route path="/return-items" element={<ReturnItems />} />
+            </Route>
 
-          <Route path="/not-authorized" element={<NotAuthorized />} />
-        </Routes>
-
+            <Route path="/not-authorized" element={<NotAuthorized />} />
+          </Routes>
         </Content>
         
         <CustomModal
