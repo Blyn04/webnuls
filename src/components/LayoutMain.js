@@ -38,6 +38,7 @@ import ProtectedRoute from './ProtectedRoute';
 import HistoryLog from './users/HistoryLog';
 import RequestLog from './admin/RequestLog';
 import AdminActivityLog from './admin/AdminActivityLog';
+import NotAuthorized from './NotAuthorized';
 
 const { Header, Sider, Content } = Layout;
 
@@ -194,17 +195,6 @@ const LayoutMain = () => {
   
     if (isMobile) setMobileOpen(false);
   };  
-
-  // const handleSignOut = () => {
-  //   // localStorage.clear();
-  //   // navigate("/", { replace: true });
-  //   localStorage.removeItem("userId");  
-  //   localStorage.removeItem("userEmail");
-  //   localStorage.removeItem("userName");
-  //   localStorage.removeItem("userDepartment");
-  //   localStorage.removeItem("userPosition");
-  //   navigate("/", { replace: true });
-  // };
 
   const handleSignOut = async () => {
     const userId = localStorage.getItem("userId");
@@ -388,7 +378,7 @@ const LayoutMain = () => {
             borderRadius: borderRadiusLG,
           }}
         >
-          <Routes>
+          {/* <Routes>
             <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
             <Route path="/inventory" element={<ProtectedRoute element={<Inventory />} />} />
             <Route path="/pending-request" element={<ProtectedRoute element={<PendingRequest />} />} />
@@ -405,7 +395,43 @@ const LayoutMain = () => {
             <Route path="/history-log" element={<ProtectedRoute element={<HistoryLog/>} />} />
             <Route path="/request-log" element={<ProtectedRoute element={<RequestLog/>} />} />
             <Route path="/admin-activity-log" element={<ProtectedRoute element={<AdminActivityLog/>} />} />
-          </Routes>
+          </Routes> */}
+
+        <Routes>
+          {/* Routes accessible to all logged-in users */}
+          <Route element={<ProtectedRoute allowedRoles={["admin", "user", "super-admin"]} />}>
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/activity-log" element={<ActivityLog />} />
+            <Route path="/history-log" element={<HistoryLog />} />
+          </Route>
+
+          {/* Superadmin-only routes */}
+          <Route element={<ProtectedRoute allowedRoles={["super-admin"]} />}>
+            <Route path="/accounts" element={<AccountManagement />} />
+          </Route>
+
+          {/* Admin-only routes */}
+          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/pending-request" element={<PendingRequest />} />
+            <Route path="/borrow-catalog" element={<BorrowCatalog />} />
+            <Route path="/request-log" element={<RequestLog />} />
+            <Route path="/admin-activity-log" element={<AdminActivityLog />} />
+          </Route>
+
+          {/* User-only routes */}
+          <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
+            <Route path="/requisition" element={<Requisition />} />
+            <Route path="/request-list" element={<RequestList />} />
+            <Route path="/search-items" element={<SearchItems />} />
+            <Route path="/capex-request" element={<CapexRequest />} />
+            <Route path="/return-items" element={<ReturnItems />} />
+          </Route>
+
+          <Route path="/not-authorized" element={<NotAuthorized />} />
+        </Routes>
+
         </Content>
         
         <CustomModal

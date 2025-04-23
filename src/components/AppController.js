@@ -39,23 +39,9 @@ const AppWrapper = () => {
       {shouldShowTimeout && <SessionTimeout onLogout={handleSignOut} />}
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
-        <Route path="/inventory" element={<ProtectedRoute element={<Inventory />} />} />
-        <Route path="/pending-request" element={<ProtectedRoute element={<PendingRequest />} />} />
-        <Route path="/borrow-catalog" element={<ProtectedRoute element={<BorrowCatalog />} />} />
-        <Route path="/history" element={<ProtectedRoute element={<History />} />} />
-        <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
-        <Route path="/accounts" element={<ProtectedRoute element={<AccountManagement />} />} />
-        <Route path="/requisition" element={<ProtectedRoute element={<Requisition />} />} />
-        <Route path="/request-list" element={<ProtectedRoute element={<RequestList />} />} />
-        <Route path="/activity-log" element={<ProtectedRoute element={<ActivityLog />} />} />
-        <Route path="/search-items" element={<ProtectedRoute element={<SearchItems />} />} />
-        <Route path="/capex-request" element={<ProtectedRoute element={<CapexRequest />} />} />
-        <Route path="/return-items" element={<ProtectedRoute element={<ReturnItems />} />} />
-        <Route path="/main/*" element={<ProtectedRoute element={<LayoutMain />} />} />
-        <Route path="/history-log" element={<ProtectedRoute element={<HistoryLog/>} />} />
-        <Route path="/request-log" element={<ProtectedRoute element={<RequestLog/>} />} />
-        <Route path="/admin-activity-log" element={<ProtectedRoute element={<AdminActivityLog/>} />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/main/*" element={<LayoutMain />} />
+        </Route>
       </Routes>
     </>
   );

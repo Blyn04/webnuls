@@ -275,7 +275,7 @@ const Login = () => {
           localStorage.setItem("userEmail", userData.email);
           localStorage.setItem("userName", userName);
           localStorage.setItem("userDepartment", userData.department || "Admin");
-          localStorage.setItem("userPosition", "Super Admin");
+          localStorage.setItem("userPosition", "super-admin");
   
           navigate("/main/accounts", { state: { loginSuccess: true, role: "super-admin" } });
   
@@ -314,7 +314,9 @@ const Login = () => {
           localStorage.setItem("userEmail", userData.email);
           localStorage.setItem("userName", userName);
           localStorage.setItem("userDepartment", userData.department || "");
-          localStorage.setItem("userPosition", userData.role || "User");
+          // localStorage.setItem("userPosition", userData.role || "User");
+          localStorage.setItem("userPosition", role);
+          console.log(localStorage.getItem("userPosition"));
 
           await addDoc(collection(db, `accounts/${userDoc.id}/activitylog`), {
             action: "User Logged In (Website)",
@@ -710,6 +712,7 @@ const Login = () => {
                   required
                 />
               </div>
+
               <div className="form-group">
                 <label>Email</label>
                 <input
@@ -720,6 +723,7 @@ const Login = () => {
                   required
                 />
               </div>
+
               <div className="form-group">
                 <label>Job Title</label>
                 <input
@@ -730,6 +734,7 @@ const Login = () => {
                   required
                 />
               </div>
+
               <div className="form-group">
                 <label>Department</label>
                 <input
@@ -740,6 +745,7 @@ const Login = () => {
                   required
                 />
               </div>
+
               <div className="form-group password-group">
                 <label>Password</label>
                 <div className="password-wrapper">
@@ -758,6 +764,7 @@ const Login = () => {
                   </span>
                 </div>
               </div>
+              
               <div className="form-group password-group">
                 <label>Confirm Password</label>
                 <div className="password-wrapper">
