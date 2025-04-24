@@ -12,13 +12,15 @@ const AppHeader = ({ pageTitle, onToggleSidebar, isSidebarCollapsed }) => {
 
   const role = location.state?.role || localStorage.getItem("role");
   const [userName, setUserName] = useState("User");
+  const [jobTitle, setJobTitle] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 408);
 
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
-    if (storedName) {
-      setUserName(storedName);
-    }
+    const storedJobTitle = localStorage.getItem("userPosition");
+
+    if (storedName) setUserName(storedName);
+    if (storedJobTitle) setJobTitle(storedJobTitle);
 
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 408);
@@ -51,7 +53,12 @@ const AppHeader = ({ pageTitle, onToggleSidebar, isSidebarCollapsed }) => {
           className={`user-profile ${isMobile ? "profile-mobile" : ""}`}
           onClick={goToProfile}
         >
-          {!isMobile && <span style={{ marginRight: 8 }}>Hi, {userName}!</span>}
+          {!isMobile && (
+            <div className="user-info">
+              <div className="user-name">Hi, {userName}!</div>
+              <div className="user-title">{jobTitle}</div>
+            </div>
+          )}
           <Avatar icon={<UserOutlined />} />
         </div>
       )}
