@@ -95,15 +95,14 @@
   background-color: #e6f7ff;
 }
 
-.account-table .ant-table-tbody > tr:nth-child(odd) > td {
+.pending-accounts-table .ant-table-tbody > tr:nth-child(odd) > td {
   background-color: #fafafa; /* Light gray */
 }
 
-.account-table .ant-table-tbody > tr:nth-child(even) > td {
+.pending-accounts-table .ant-table-tbody > tr:nth-child(even) > td {
   background-color: #ffffff; /* White */
 }
 
-.account-table .ant-table-tbody > tr:hover > td {
+.pending-accounts-table .ant-table-tbody > tr:hover > td {
   background-color: #e6f7ff; /* Light blue highlight */
 }
-

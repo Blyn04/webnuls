@@ -79,15 +79,14 @@
   box-shadow: 0 0 4px rgba(24, 144, 255, 0.2); /* Light blue shadow */
 }
 
-.pending-accounts-table .ant-table-tbody > tr:nth-child(odd) > td {
+.account-table .ant-table-tbody > tr:nth-child(odd) > td {
   background-color: #fafafa; /* Light gray */
 }
 
-.pending-accounts-table .ant-table-tbody > tr:nth-child(even) > td {
+.account-table .ant-table-tbody > tr:nth-child(even) > td {
   background-color: #ffffff; /* White */
 }
 
-.pending-accounts-table .ant-table-tbody > tr:hover > td {
+.account-table .ant-table-tbody > tr:hover > td {
   background-color: #e6f7ff; /* Light blue highlight */
 }
-
