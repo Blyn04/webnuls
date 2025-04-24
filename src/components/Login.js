@@ -14,6 +14,8 @@ import { collection, query, where, getDocs, doc, updateDoc, Timestamp, addDoc, s
 import { notification, Modal } from "antd";
 import bcrypt from "bcryptjs";
 import "./styles/Login.css";
+
+import trybg2 from './try-bg.svg'
 import NotificationModal from "./customs/NotifcationModal";
 
 const Login = () => {
@@ -35,12 +37,16 @@ const Login = () => {
   const [signUpData, setSignUpData] = useState({
     name: "",
     email: "",
+    employeeId: '',
     password: "",
     jobTitle: "",
     department: "",
     confirmPassword: "",
   });
   const navigate = useNavigate();
+
+
+  const [animateInputs, setAnimateInputs] = useState(false);
 
   useEffect(() => {
     const handleBackButton = (event) => {
@@ -61,14 +67,26 @@ const Login = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSignUpChange = (event) => {
-    const { name, value } = event.target;
-    setSignUpData((prevData) => ({
-      ...prevData,
-      [name]: value,  // Dynamically updates the jobTitle value
-    }));
+  const handleSignUpChange = (e) => {
+    const { name, value } = e.target;
+    setSignUpData({ ...signUpData, [name]: value });
   };  
 
+  const signUpAnimate = (e) =>{
+    if(signUpMode === true){
+      setSignUpMode(false)
+
+      setAnimateInputs(true);
+      setTimeout(() => setAnimateInputs(false), 1000);
+    }
+    else if(signUpMode ===false){
+      setSignUpMode(true)
+
+      setAnimateInputs(true);
+      setTimeout(() => setAnimateInputs(false), 1000);
+    }
+  }
+  
   const checkUserAndLogin = async () => {
     setIsLoading(true);
   
@@ -312,72 +330,8 @@ const Login = () => {
     }
   };
 
-  // const handleSignUp = async () => {
-  //   const { name, email, password, confirmPassword, jobTitle, department } = signUpData;
-  
-  //   // Step 1: Ensure the email domain is valid
-  //   const validDomains = ["nu-moa.edu.ph", "students.nu-moa.edu.ph"];
-  //   const emailDomain = email.split('@')[1];
-  
-  //   if (!validDomains.includes(emailDomain)) {
-  //     setError("Invalid email domain. Only @nu-moa.edu.ph and @students.nu-moa.edu.ph are allowed.");
-  //     return;
-  //   }
-  
-  //   // Step 2: Ensure passwords match
-  //   if (password !== confirmPassword) {
-  //     setError("Passwords do not match.");
-  //     return;
-  //   }
-  
-  //   try {
-  //     // Step 3: Create the Firebase user with email and password
-  //     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  //     const firebaseUser = userCredential.user;
-  
-  //     // Step 4: Determine the role based on the job title
-  //     let role = "user";  // Default role is 'user'
-  
-  //     if (jobTitle.toLowerCase() === "dean") {
-  //       role = "admin1";  // Dean is Admin1
-
-  //     } else if (jobTitle.toLowerCase() === "laboratory custodian") {
-  //       role = "admin2";  // Laboratory Custodian is Admin2
-        
-  //     } else if (jobTitle.toLowerCase() === "faculty") {
-  //       role = "user";  // Faculty is User
-  //     }
-  
-  //     // Step 5: Create a new document in the 'pendingaccounts' collection
-  //     const sanitizedData = {
-  //       name: name.trim().toLowerCase(),
-  //       email: email.trim().toLowerCase(),
-  //       jobTitle,
-  //       department,
-  //       role,  // Assign role based on job title
-  //       createdAt: serverTimestamp(),
-  //       status: "pending", // Mark as pending
-  //       uid: firebaseUser.uid,
-  //     };
-  
-  //     // Add user data to 'pendingaccounts' collection
-  //     await addDoc(collection(db, "pendingaccounts"), sanitizedData);
-  
-  //     // Step 6: Don't allow login yet, navigate to a "Pending" page or show a message
-  //     navigate("/pending", { state: { message: "Your account is pending approval." } });
-  
-  //   } catch (error) {
-  //     console.error("Sign up error:", error.message);
-  //     if (error.code === "auth/email-already-in-use") {
-  //       setError("Email already in use.");
-  //     } else {
-  //       setError("Failed to create account. Try again.");
-  //     }
-  //   }
-  // };  
-
   const handleSignUp = async () => {
-    const { name, email, password, confirmPassword, jobTitle, department } = signUpData;
+    const { name, email, employeeId, password, confirmPassword, jobTitle, department } = signUpData;
     const auth = getAuth();
   
     // Step 1: Ensure the email domain is valid
@@ -404,8 +358,10 @@ const Login = () => {
       let role = "user";  // Default role is 'user'
       if (jobTitle.toLowerCase() === "dean") {
         role = "admin1";  // Dean is Admin1
+
       } else if (jobTitle.toLowerCase() === "laboratory custodian") {
-        role = "admin2";  // Laboratory Custodian is Admin2
+        role = "admin2";  // Laboratory Custodian is 
+        
       } else if (jobTitle.toLowerCase() === "faculty") {
         role = "user";  // Faculty is User
       }
@@ -414,6 +370,7 @@ const Login = () => {
       const sanitizedData = {
         name: name.trim().toLowerCase(),
         email: email.trim().toLowerCase(),
+        employeeId: employeeId.trim().replace(/[^\d-]/g, ''),
         jobTitle,
         department,
         role,  // Assign role based on job title
@@ -433,6 +390,7 @@ const Login = () => {
       setSignUpData({
         name: "",
         email: "",
+        employeeId: '',
         password: "",
         confirmPassword: "",
         jobTitle: "",
@@ -485,14 +443,21 @@ const Login = () => {
   };  
 
   return (
-    <div className="login-container">
+    <div className="login-container" >
       <div className="login-box">
-        <h2 className="login-title">
+        
+        <div className="container2">
+        <div className="image-div">
+            <img src={trybg2} alt="This is the image"></img>
+          </div>
+        
+
+        <div className="form-div">
+        <h2 className= {signUpMode ?  "create-account-title": "login-title" }>
           {signUpMode ? "Create an Account" : isNewUser ? "Set Your Password" : "Login"}
         </h2>
-        {error && <p className="error-message">{error}</p>}
-
         <form
+          className={signUpMode ? "form-wrapper slide-in": "form-wrapper slide-in2"}
           onSubmit={(e) => {
             e.preventDefault();
             signUpMode
@@ -521,6 +486,17 @@ const Login = () => {
                   type="email"
                   name="email"
                   value={signUpData.email}
+                  onChange={handleSignUpChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Employee ID</label>
+                <input
+                  type="text"
+                  name="employeeId"
+                  value={signUpData.employeeId}
                   onChange={handleSignUpChange}
                   required
                 />
@@ -627,6 +603,8 @@ const Login = () => {
                   >
                     {showPassword ? "🔒" : "👁️"}
                   </span>
+
+                  {error && <p className="error-message" >{error}</p>}
                 </div>
               </div>
 
@@ -656,7 +634,9 @@ const Login = () => {
             </>
           )}
 
-          <button type="submit" className="login-btn" disabled={isLoading}>
+          <div></div>
+
+          <button type="submit" className= {signUpMode ? "signup-btn" : "login-btn"} disabled={isLoading}>
             {isLoading ? (
               <div className="loader"></div>
             ) : signUpMode ? (
@@ -669,28 +649,36 @@ const Login = () => {
           </button>
         </form>
 
+        <div className= { signUpMode? "bottom-label-div2":"bottom-label-div"}>
+
         {!signUpMode && !isNewUser && (
           <p
             className="forgot-password-link"
+            style={{marginTop: '20px', cursor: 'pointer'}}
             onClick={() => setIsForgotPasswordModalVisible(true)}
           >
             Forgot Password?
           </p>
         )}
 
-        <p className="switch-mode">
+        <p className="switch-mode" >
           {signUpMode ? (
             <>
               Already have an account?{" "}
-              <span onClick={() => setSignUpMode(false)}>Login here</span>
+              <span onClick={() => signUpAnimate()}>Login here</span>
             </>
           ) : (
             <>
               Don’t have an account?{" "}
-              <span onClick={() => setSignUpMode(true)}>Sign up here</span>
+              <span onClick={() => signUpAnimate()}>Sign up here</span>
             </>
           )}
         </p>
+        </div>
+
+
+        </div>
+        </div>
       </div>
 
       {isForgotPasswordModalVisible && (
