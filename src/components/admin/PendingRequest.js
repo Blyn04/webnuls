@@ -4,7 +4,7 @@ import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/PendingRequest.css";
 import { db } from "../../backend/firebase/FirebaseConfig"; 
-import { collection, getDocs, getDoc, doc, addDoc, query, where, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc, addDoc, query, where, deleteDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import RequisitionRequestModal from "../customs/RequisitionRequestModal";
 import ApprovedRequestModal from "../customs/ApprovedRequestModal";
@@ -26,60 +26,113 @@ const PendingRequest = () => {
   const [isRejectModalVisible, setIsRejectModalVisible] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
 
+  // useEffect(() => {
+  //   const fetchUserRequests = async () => {
+  //     try {
+  //       const userRequestRef = collection(db, "userrequests");
+  //       const querySnapshot = await getDocs(userRequestRef);
+  
+  //       const fetched = [];
+  
+  //       for (const docSnap of querySnapshot.docs) {
+  //         const data = docSnap.data();
+  
+  //         // Enrich filteredMergedData with item details
+  //         const enrichedItems = await Promise.all(
+  //           (data.filteredMergedData || []).map(async (item) => {
+  //             const inventoryId = item.selectedItemId || item.selectedItem?.value;
+  //             let itemId = "N/A";
+  
+  //             if (inventoryId) {
+  //               try {
+  //                 const invDoc = await getDoc(doc(db, `inventory/${inventoryId}`));
+  //                 if (invDoc.exists()) {
+  //                   itemId = invDoc.data().itemId || "N/A";
+  //                 }
+  //               } catch (err) {
+  //                 console.error(`Error fetching inventory item ${inventoryId}:`, err);
+  //               }
+  //             }
+  
+  //             return {
+  //               ...item,
+  //               itemIdFromInventory: itemId,
+  //             };
+  //           })
+  //         );
+  
+  //         // Push data with timeFrom and timeTo
+  //         fetched.push({
+  //           id: docSnap.id,
+  //           ...data,
+  //           requestList: enrichedItems,
+  //           timeFrom: data.timeFrom || "N/A", // Include timeFrom
+  //           timeTo: data.timeTo || "N/A",     // Include timeTo
+  //         });
+  //       }
+  
+  //       setRequests(fetched);
+  
+  //     } catch (error) {
+  //       console.error("Error fetching requests: ", error);
+  //     }
+  //   };
+  
+  //   fetchUserRequests();
+  // }, []);  
+
   useEffect(() => {
-    const fetchUserRequests = async () => {
-      try {
-        const userRequestRef = collection(db, "userrequests");
-        const querySnapshot = await getDocs(userRequestRef);
+    const userRequestRef = collection(db, "userrequests");
   
-        const fetched = [];
+    const unsubscribe = onSnapshot(userRequestRef, async (querySnapshot) => {
+      const fetched = [];
   
-        for (const docSnap of querySnapshot.docs) {
-          const data = docSnap.data();
+      for (const docSnap of querySnapshot.docs) {
+        const data = docSnap.data();
   
-          // Enrich filteredMergedData with item details
-          const enrichedItems = await Promise.all(
-            (data.filteredMergedData || []).map(async (item) => {
-              const inventoryId = item.selectedItemId || item.selectedItem?.value;
-              let itemId = "N/A";
+        // Enrich filteredMergedData with item details
+        const enrichedItems = await Promise.all(
+          (data.filteredMergedData || []).map(async (item) => {
+            const inventoryId = item.selectedItemId || item.selectedItem?.value;
+            let itemId = "N/A";
   
-              if (inventoryId) {
-                try {
-                  const invDoc = await getDoc(doc(db, `inventory/${inventoryId}`));
-                  if (invDoc.exists()) {
-                    itemId = invDoc.data().itemId || "N/A";
-                  }
-                } catch (err) {
-                  console.error(`Error fetching inventory item ${inventoryId}:`, err);
+            if (inventoryId) {
+              try {
+                const invDoc = await getDoc(doc(db, `inventory/${inventoryId}`));
+                if (invDoc.exists()) {
+                  itemId = invDoc.data().itemId || "N/A";
                 }
+                
+              } catch (err) {
+                console.error(`Error fetching inventory item ${inventoryId}:`, err);
               }
+            }
   
-              return {
-                ...item,
-                itemIdFromInventory: itemId,
-              };
-            })
-          );
+            return {
+              ...item,
+              itemIdFromInventory: itemId,
+            };
+          })
+        );
   
-          // Push data with timeFrom and timeTo
-          fetched.push({
-            id: docSnap.id,
-            ...data,
-            requestList: enrichedItems,
-            timeFrom: data.timeFrom || "N/A", // Include timeFrom
-            timeTo: data.timeTo || "N/A",     // Include timeTo
-          });
-        }
-  
-        setRequests(fetched);
-  
-      } catch (error) {
-        console.error("Error fetching requests: ", error);
+        // Push data with timeFrom and timeTo
+        fetched.push({
+          id: docSnap.id,
+          ...data,
+          requestList: enrichedItems,
+          timeFrom: data.timeFrom || "N/A",
+          timeTo: data.timeTo || "N/A",
+        });
       }
-    };
   
-    fetchUserRequests();
-  }, []);  
+      setRequests(fetched);
+
+    }, (error) => {
+      console.error("Error fetching requests in real-time: ", error);
+    });
+  
+    return () => unsubscribe(); // Clean up listener on component unmount
+  }, []);
   
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
