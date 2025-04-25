@@ -454,7 +454,7 @@ const PendingRequest = () => {
         dateRequired: selectedRequest.dateRequired || "N/A",
         timeFrom: selectedRequest.timeFrom || "N/A",  
         timeTo: selectedRequest.timeTo || "N/A",  
-        timestamp: selectedRequest.timestamp || new Date(), 
+        timestamp: new Date(),
         requestList: enrichedItems, 
         status: "Approved", 
         approvedBy: userName, 
