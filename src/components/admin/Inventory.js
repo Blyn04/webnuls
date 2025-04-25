@@ -104,7 +104,7 @@ const Inventory = () => {
     return (
       (!filterCategory || item.category === filterCategory) &&
       (!filterItemType || item.type === filterItemType) &&
-      (!filterUsageType || item.usageType === filterUsageType) &&
+      // (!filterUsageType || item.usageType === filterUsageType) &&
       matchesSearch
     );
   });  
@@ -154,7 +154,7 @@ const Inventory = () => {
       type: values.type,
       status: "Available",
       condition: "Good",  
-      usageType: values.usageType,
+      // usageType: values.usageType,
     };
   
     const encryptedData = CryptoJS.AES.encrypt(
@@ -199,7 +199,7 @@ const Inventory = () => {
       quantity: record.quantity,
       status: record.status,
       condition: record.condition, 
-      usageType: record.usageType,
+      // usageType: record.usageType,
     });
     setIsEditModalVisible(true);
   };
@@ -212,7 +212,7 @@ const Inventory = () => {
       quantity: values.quantity ?? 0,
       status: values.status ?? "Available",
       condition: values.condition ?? "Good",
-      usageType: values.usageType ?? "",
+      // usageType: values.usageType ?? "",
     };
   
     try {
@@ -273,7 +273,7 @@ const Inventory = () => {
     { title: "Category", dataIndex: "category", key: "category" },
     { title: "Department", dataIndex: "department", key: "department" },
     { title: "Inventory Balance", dataIndex: "quantity", key: "quantity" },
-    { title: "Usage Type", dataIndex: "usageType", key: "usageType" }, 
+    // { title: "Usage Type", dataIndex: "usageType", key: "usageType" }, 
     { title: "Status", dataIndex: "status", key: "status" },
     { title: "Condition", dataIndex: "condition", key: "condition" },
     {
@@ -378,7 +378,7 @@ const Inventory = () => {
                 <Option value="Consumable">Consumable</Option>
               </Select>
 
-              <Select
+              {/* <Select
                 allowClear
                 placeholder="Filter by Usage Type"
                 style={{ width: 180 }}
@@ -388,13 +388,13 @@ const Inventory = () => {
                 <Option value="Research">Research</Option>
                 <Option value="Community Extension">Community Extension</Option>
                 <Option value="Others">Others</Option>
-              </Select>
+              </Select> */}
 
               <Button
                 onClick={() => {
                   setFilterCategory(null);
                   setFilterItemType(null);
-                  setFilterUsageType(null);
+                  // setFilterUsageType(null);
                   setSearchText('');
                 }}
               >
@@ -431,7 +431,7 @@ const Inventory = () => {
                   </Form.Item>
                 </Col>
 
-                <Col span={8}>
+                {/* <Col span={8}>
                   <Form.Item
                     name="usageType"
                     label="Usage Type"
@@ -444,7 +444,7 @@ const Inventory = () => {
                       <Option value="Others">Others</Option>
                     </Select>
                   </Form.Item>
-                </Col>
+                </Col> */}
               </Row>
 
               <Row gutter={16}>
@@ -608,7 +608,7 @@ const Inventory = () => {
                   </Form.Item>
                 </Col>
 
-                <Row gutter={16}>
+                {/* <Row gutter={16}>
                 <Col span={24}>
                   <Form.Item name="usageType" label="Usage Type">
                     <Select placeholder="Select Usage Type">
@@ -619,7 +619,7 @@ const Inventory = () => {
                     </Select>
                   </Form.Item>
                 </Col>
-               </Row>
+               </Row> */}
 
                 <Col span={12}>
                   <Form.Item

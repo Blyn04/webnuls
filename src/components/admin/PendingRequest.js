@@ -471,7 +471,7 @@ const PendingRequest = () => {
         dateRequired: selectedRequest.dateRequired || "N/A",
         timeFrom: selectedRequest.timeFrom || "N/A",  
         timeTo: selectedRequest.timeTo || "N/A",  
-        timestamp: selectedRequest.timestamp || new Date(),
+        timestamp: new Date(),
         requestList: rejectedItems, 
         status: "Rejected", 
         rejectedBy: userName, 
@@ -512,6 +512,7 @@ const PendingRequest = () => {
           program: selectedRequest.program,
           timeFrom: selectedRequest.timeFrom || "N/A",  // Include timeFrom
           timeTo: selectedRequest.timeTo || "N/A",  
+          timestamp: new Date(),
         }
       );
 
@@ -532,6 +533,7 @@ const PendingRequest = () => {
             program: selectedRequest.program,
             timeFrom: selectedRequest.timeFrom || "N/A",  // Include timeFrom
             timeTo: selectedRequest.timeTo || "N/A",  
+            timestamp: new Date(),
           }
         );
       }
@@ -559,7 +561,7 @@ const PendingRequest = () => {
                 dateRequired: selectedRequest.dateRequired || "N/A",
                 timeFrom: selectedRequest.timeFrom || "N/A",  // Add timeFrom
                 timeTo: selectedRequest.timeTo || "N/A",  
-                timestamp: selectedRequest.timestamp || new Date(),
+                timestamp: new Date(),
                 requestList: [item],  // Add only the selected "Fixed" item
                 status: "Borrowed",    // Status can be "Borrowed" instead of "Approved"
                 approvedBy: userName,

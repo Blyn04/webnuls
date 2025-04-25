@@ -46,7 +46,8 @@ const RequisitionReqestModal = ({
               <Text strong>Room:</Text> {selectedRequest.room}<br />
               <Text strong>Course Code:</Text> {selectedRequest.courseCode}<br />
               <Text strong>Course Description:</Text> {selectedRequest.courseDescription}<br />
-              <Text strong>Program:</Text> {selectedRequest.program}
+              <Text strong>Program:</Text> {selectedRequest.program}<br />
+              <Text strong>Usage Type:</Text> {selectedRequest.usageType}
             </Col>
           </Row>
 

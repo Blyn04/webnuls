@@ -9,6 +9,7 @@ const FinalizeRequestModal = ({
   timeFrom,
   timeTo,
   program,
+  usageType,
   room,
   reason,
   requestList = [],
@@ -26,6 +27,7 @@ const FinalizeRequestModal = ({
       <p><strong>Date Required:</strong> {dateRequired || "N/A"}</p>
       <p><strong>Time From:</strong> {timeFrom || "N/A"} &nbsp; <strong>To:</strong> {timeTo || "N/A"}</p>
       <p><strong>Program:</strong> {program || "N/A"}</p>
+      <p><strong>Usage Type:</strong> {usageType || "N/A"}</p>
       <p><strong>Room:</strong> {room || "N/A"}</p>
       <p><strong>Reason:</strong> {reason || "N/A"}</p>
 
