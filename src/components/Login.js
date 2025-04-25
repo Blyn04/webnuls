@@ -15,8 +15,8 @@ import { notification, Modal } from "antd";
 import bcrypt from "bcryptjs";
 import "./styles/Login.css";
 
-import trybg2 from './try-bg.svg'
-import NotificationModal from "./customs/NotifcationModal";
+import trybg2 from '../try-bg2.svg'
+import NotificationModal from "./customs/NotificationModal";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -196,7 +196,7 @@ const Login = () => {
   
           await updateDoc(userDoc.ref, { loginAttempts: 0 });
   
-          let role = (userData.role || "user").toLowerCase();
+          let role = (userData.role || "user").toLowerCase().trim().replace(/[\s_]/g, '-');
           if (role === "admin1" || role === "admin2") {
             role = "admin";
           }
@@ -218,6 +218,10 @@ const Login = () => {
   
           switch (role) {
             case "admin":
+              navigate("/main/dashboard", { state: { loginSuccess: true, role } });
+              break;
+
+            case "super-user":
               navigate("/main/dashboard", { state: { loginSuccess: true, role } });
               break;
 
@@ -303,6 +307,10 @@ const Login = () => {
             navigate("/main/dashboard", { state: { loginSuccess: true, role: "admin" } });
             break;
 
+          case "super-user":
+            navigate("/main/dashboard", { state: { loginSuccess: true, role: "admin" } });
+            break;
+
           case "user":
             navigate("/main/requisition", { state: { loginSuccess: true, role: "user" } });
             break;
@@ -357,10 +365,10 @@ const Login = () => {
       // Step 4: Determine the role based on the job title
       let role = "user";  // Default role is 'user'
       if (jobTitle.toLowerCase() === "dean") {
-        role = "admin1";  // Dean is Admin1
+        role = "admin";  // Dean is Admin1
 
-      } else if (jobTitle.toLowerCase() === "laboratory custodian") {
-        role = "admin2";  // Laboratory Custodian is 
+      } else if (jobTitle.toLowerCase().includes("custodian")) {
+        role = "super-user"; 
         
       } else if (jobTitle.toLowerCase() === "faculty") {
         role = "user";  // Faculty is User
@@ -401,6 +409,7 @@ const Login = () => {
       console.error("Sign up error:", error.message);
       if (error.code === "auth/email-already-in-use") {
         setError("Email already in use.");
+        
       } else {
         setError("Failed to create account. Try again.");
       }

@@ -29,7 +29,7 @@ import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/superAdminStyle/AccountManagement.css";
 import SuccessModal from "../customs/SuccessModal"; 
-import NotificationModal from "../customs/NotifcationModal";
+import NotificationModal from "../customs/NotificationModal";
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -88,26 +88,6 @@ const AccountManagement = () => {
   
     return () => unsubscribe(); // Clean up the listener on unmount
   }, []);
-
-  // useEffect(() => {
-  //   const fetchAccounts = async () => {
-  //     try {
-  //       const querySnapshot = await getDocs(collection(db, "accounts"));
-  //       const accountList = querySnapshot.docs.map((doc) => ({
-  //         id: doc.id,
-  //         ...doc.data(),
-  //       }));
-
-  //       setAccounts(accountList);
-
-  //     } catch (error) {
-  //       console.error("Error fetching accounts:", error);
-  //       message.error("Failed to load accounts.");
-  //     }
-  //   };
-  
-  //   fetchAccounts();
-  // }, []);
 
   useEffect(() => {
     fetchAdminCredentials();
@@ -497,6 +477,20 @@ const AccountManagement = () => {
               </Form.Item>
 
               <Form.Item
+                name="employeeId"
+                label="Employee ID"
+                rules={[
+                  { required: true, message: "Please input Employee ID!" },
+                  {
+                    pattern: /^\d{2}-\d{4}$/,
+                    message: "Format must be like 12-0430",
+                  },
+                ]}
+              >
+                <Input placeholder="e.g., 12-0430" />
+              </Form.Item>
+
+              <Form.Item
                 name="department"
                 label="Department"
                 rules={[
@@ -517,34 +511,34 @@ const AccountManagement = () => {
               </Form.Item>
 
               <Form.Item
-                name="role"
-                label="Role"
+                name="jobTitle"
+                label="Job Title"
                 rules={[{ required: true, message: "Please select a role" }]}
               >
                 <Select
                   placeholder="Select Role"
                   onChange={(value) => {
                     form.setFieldsValue({
-                      jobTitle:
-                        value === "Admin1"
-                          ? "Dean"
-                          : value === "Admin2"
-                          ? "Laboratory Custodian"
-                          : value === "User"
-                          ? "Faculty"
+                      role:
+                        value === "Dean"
+                          ? "admin"
+                          : value === "Laboratory Custodian"
+                          ? "super-user"
+                          : value === "Faculty"
+                          ? "User"
                           : "",
                     });
                   }}
                 >
-                  <Option value="Admin1">Admin1</Option>
-                  <Option value="Admin2">Admin2</Option>
-                  <Option value="User">User</Option>
+                  <Option value="Dean">Dean</Option>
+                  <Option value="Laboratory Custodian">Laboratory Custodian</Option>
+                  <Option value="Faculty">Faculty</Option>
                 </Select>
               </Form.Item>
 
               <Form.Item
-                name="jobTitle"
-                label="Job Title"
+                name="role"
+                label="Role"
                 rules={[{ required: true, message: "Job title is required" }]}
               >
                 <Input disabled />

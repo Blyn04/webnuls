@@ -286,6 +286,45 @@ const LayoutMain = () => {
     },
   ];
 
+  const superUserMenuItems = [
+    {
+      key: "/main/dashboard",
+      icon: <DashboardOutlined />,
+      label: "Dashboard",
+    },
+    {
+      key: "/main/inventory",
+      icon: <UnorderedListOutlined />,
+      label: "Inventory",
+    },
+    {
+      key: "/main/pending-request",
+      icon: <FileTextOutlined />,
+      label: "Pending Requests",
+    },
+    {
+      key: "/main/borrow-catalog",
+      icon: <AppstoreOutlined />,
+      label: "Borrow Catalog",
+    },
+    {
+      key: "/main/admin-activity-log",
+      icon: <HistoryOutlined />,
+      label: "Activity Log",
+    },
+    {
+      key: "/main/request-log",
+      icon: <HistoryOutlined />,
+      label: "Request Log",
+    },
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Sign Out",
+      danger: true,
+    },
+  ];
+
   const userMenuItems = [
     {
       key: "/main/requisition",
@@ -335,6 +374,8 @@ const LayoutMain = () => {
       ? superAdminMenuItems
       : role === "admin"
       ? adminMenuItems
+      : role === "super-user"
+      ? superUserMenuItems
       : userMenuItems;
 
   return (
@@ -410,7 +451,7 @@ const LayoutMain = () => {
 
           <Routes>
             {/* Routes accessible to all logged-in users */}
-            <Route element={<ProtectedRoute allowedRoles={["admin", "user", "super-admin"]} />}>
+            <Route element={<ProtectedRoute allowedRoles={["admin", "user", "super-admin", "super-user"]} />}>
               <Route path="/profile" element={<Profile />} />
               <Route path="/activity-log" element={<ActivityLog />} />
               <Route path="/history-log" element={<HistoryLog />} />
@@ -423,7 +464,7 @@ const LayoutMain = () => {
             </Route>
 
             {/* Admin-only routes */}
-            <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+            <Route element={<ProtectedRoute allowedRoles={["admin", "super-user"]} />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/pending-request" element={<PendingRequest />} />

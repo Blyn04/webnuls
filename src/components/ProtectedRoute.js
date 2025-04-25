@@ -11,7 +11,7 @@
 
 import { Navigate, Outlet } from "react-router-dom";
 
-const ProtectedRoute = ({ allowedRoles = ["user", "admin", "super-admin"] }) => {
+const ProtectedRoute = ({ allowedRoles = ["user", "admin", "super-admin", "super-user"] }) => {
   const userEmail = localStorage.getItem("userEmail");
   const userRole = (localStorage.getItem("userPosition") || "").trim().toLowerCase();
   console.log("Allowed roles:", allowedRoles);
