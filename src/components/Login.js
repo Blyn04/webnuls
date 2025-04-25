@@ -15,7 +15,7 @@ import { notification, Modal } from "antd";
 import bcrypt from "bcryptjs";
 import "./styles/Login.css";
 
-import trybg2 from '../try-bg2.svg'
+import trybg2 from './try-bg.svg'
 import NotificationModal from "./customs/NotificationModal";
 
 const Login = () => {

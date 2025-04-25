@@ -23,7 +23,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../backend/firebase/FirebaseConfig";
 import { getAuth } from "firebase/auth";
-import NotificationModal from "../customs/NotifcationModal"; 
+import NotificationModal from "../customs/NotificationModal"; 
 
 const { Content } = Layout;
 const { Title } = Typography;
