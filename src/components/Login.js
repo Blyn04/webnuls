@@ -358,23 +358,64 @@ const Login = () => {
     }
   
     try {
-      // Step 3: Create the Firebase user with email and password
+      // Step 3: Check if the employeeId already exists in Firestore in both 'pendingaccounts' and 'accounts'
+      const employeeQueryPending = query(
+        collection(db, "pendingaccounts"),
+        where("employeeId", "==", employeeId.trim())
+      );
+      const employeeQueryAccounts = query(
+        collection(db, "accounts"),
+        where("employeeId", "==", employeeId.trim())
+      );
+  
+      const emailQueryPending = query(
+        collection(db, "pendingaccounts"),
+        where("email", "==", email.trim().toLowerCase())
+      );
+      const emailQueryAccounts = query(
+        collection(db, "accounts"),
+        where("email", "==", email.trim().toLowerCase())
+      );
+  
+      const [
+        employeeSnapshotPending,
+        employeeSnapshotAccounts,
+        emailSnapshotPending,
+        emailSnapshotAccounts,
+      ] = await Promise.all([
+        getDocs(employeeQueryPending),
+        getDocs(employeeQueryAccounts),
+        getDocs(emailQueryPending),
+        getDocs(emailQueryAccounts),
+      ]);
+  
+      if (!employeeSnapshotPending.empty || !employeeSnapshotAccounts.empty) {
+        setError("This employee ID is already registered.");
+        return;
+      }
+  
+      if (!emailSnapshotPending.empty || !emailSnapshotAccounts.empty) {
+        setError("This email is already registered.");
+        return;
+      }
+  
+      // Step 4: Create the Firebase user with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
   
-      // Step 4: Determine the role based on the job title
+      // Step 5: Determine the role based on the job title
       let role = "user";  // Default role is 'user'
       if (jobTitle.toLowerCase() === "dean") {
-        role = "admin";  // Dean is Admin1
-
+        role = "admin";
+        
       } else if (jobTitle.toLowerCase().includes("custodian")) {
         role = "super-user"; 
-        
+
       } else if (jobTitle.toLowerCase() === "faculty") {
-        role = "user";  // Faculty is User
+        role = "user"; 
       }
   
-      // Step 5: Create a new document in the 'pendingaccounts' collection
+      // Step 6: Create a new document in the 'pendingaccounts' collection
       const sanitizedData = {
         name: name.trim().toLowerCase(),
         email: email.trim().toLowerCase(),
@@ -390,7 +431,7 @@ const Login = () => {
       // Add user data to 'pendingaccounts' collection
       await addDoc(collection(db, "pendingaccounts"), sanitizedData);
   
-      // Step 6: Set the modal message and show the modal
+      // Step 7: Set the modal message and show the modal
       setModalMessage("Successfully Registered! Please check your email for further instructions. Your account is pending approval from the ITSO.");
       setIsModalVisible(true); // Open the modal
   
@@ -407,14 +448,16 @@ const Login = () => {
   
     } catch (error) {
       console.error("Sign up error:", error.message);
+
       if (error.code === "auth/email-already-in-use") {
         setError("Email already in use.");
-        
+
       } else {
         setError("Failed to create account. Try again.");
       }
     }
   };
+  
   
   const handleForgotPassword = async () => {
     if (!forgotPasswordEmail) {
