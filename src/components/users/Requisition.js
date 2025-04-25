@@ -684,7 +684,7 @@ const Requisition = () => {
             <div className="date-time-container">
 
             <div className="date-required">
-              <strong>Date Required:</strong>
+              <strong>Date Needed:</strong>
               <DatePicker
                 value={dateRequired ? dayjs(dateRequired, "YYYY-MM-DD") : null}
                 onChange={(date, dateString) => setDateRequired(dateString)}
@@ -743,7 +743,7 @@ const Requisition = () => {
 
                 {timeFrom && timeTo && (
                   <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
-                    Time Needed: {timeFrom} - {timeTo}
+                    Time Needed: From {timeFrom} To {timeTo}
                   </p>
                 )}
               </div>
