@@ -325,11 +325,11 @@ const AccountManagement = () => {
       key: "department",
     },
     {
-      title: "Role",
-      dataIndex: "role",
-      render: (role) => (
-        <Tag color={role === "Admin1" ? "volcano" : role === "Admin2" ? "geekblue" : "green"}>
-          {role.toLowerCase()}
+      title: "Job Title",
+      dataIndex: "jobTitle",
+      render: (jobTitle) => (
+        <Tag color={jobTitle === "Dean" ? "volcano" : jobTitle === "Laboratory Custodian" ? "geekblue" : "green"}>
+          {jobTitle.toLowerCase()}
         </Tag>
       ),
     },
@@ -408,8 +408,8 @@ const AccountManagement = () => {
               onChange={(value) => setRoleFilter(value)}
              allowClear
             >
-              <Option value="Admin1">Admin1</Option>
-              <Option value="Admin2">Admin2</Option>
+              <Option value="admin">Admin</Option>
+              <Option value="super-user">super-user</Option>
               <Option value="User">User</Option>
             </Select>
 
