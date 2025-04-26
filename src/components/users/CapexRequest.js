@@ -31,6 +31,9 @@ const CapexRequest = () => {
   const [notificationVisible, setNotificationVisible] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
   const [isFinalizeModalVisible, setIsFinalizeModalVisible] = useState(false);
+  const [capexHistory, setCapexHistory] = useState([]);
+  const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [selectedRowDetails, setSelectedRowDetails] = useState(null);
 
   const currentYear = new Date().getFullYear();
   const nextYear = currentYear + 1;
@@ -69,6 +72,25 @@ const CapexRequest = () => {
     return () => unsubscribe(); // Detach listener when component unmounts
   }, []);
 
+
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+  
+    const capexHistoryRef = collection(db, `accounts/${userId}/capexrequests`);
+    
+    const unsubscribeHistory = onSnapshot(capexHistoryRef, (snapshot) => {
+      const historyData = snapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+  
+      setCapexHistory(historyData);
+    });
+  
+    return () => unsubscribeHistory(); // Cleanup
+  }, []);  
+
   const logRequestOrReturn = async (userId, userName, action, requestDetails) => {
     await addDoc(collection(db, `accounts/${userId}/activitylog`), {
       action, // e.g. "Requested Items" or "Returned Items"
@@ -87,6 +109,11 @@ const CapexRequest = () => {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
+
+  const handleView = (record) => {
+    setSelectedRowDetails(record); 
+    setViewModalVisible(true); 
+  };  
 
   const calculateTotalPrice = (data) => {
     const total = data.reduce(
@@ -178,6 +205,73 @@ const CapexRequest = () => {
       setNotificationVisible(true);
     }
   };
+
+  const editRow = (record) => {
+    setEditingRow(record);
+    form.setFieldsValue(record);
+    setIsModalVisible(true);
+  };
+
+  const handleSubmit = async () => {
+    if (dataSource.length === 0) {
+      setNotificationMessage("Please add at least one item to submit");
+      setNotificationVisible(true);
+      return;
+    }
+  
+    const userId = localStorage.getItem("userId");
+    const userName = localStorage.getItem("userName");
+  
+    try {
+      // Step 1: Add to root collection "capexrequestlist"
+      const capexRequestRef = await addDoc(collection(db, "capexrequestlist"), {
+        userId,
+        userName,
+        totalPrice,
+        createdAt: serverTimestamp(),
+        items: dataSource,
+      });
+  
+      // Step 2: Add to user's "capexrequests" subcollection
+      await addDoc(collection(db, `accounts/${userId}/capexrequests`), {
+        capexRequestId: capexRequestRef.id,
+        userId,
+        userName,
+        totalPrice,
+        createdAt: serverTimestamp(),
+        items: dataSource,
+      });
+  
+      // Step 3: Fetch all documents inside "temporaryCapexRequest" and delete them
+      const tempCapexSnapshot = await getDocs(collection(db, `accounts/${userId}/temporaryCapexRequest`));
+      const deletePromises = tempCapexSnapshot.docs.map((docSnapshot) => 
+        deleteDoc(doc(db, `accounts/${userId}/temporaryCapexRequest/${docSnapshot.id}`))
+      );
+      await Promise.all(deletePromises);
+  
+      // Step 4: Log
+      await logRequestOrReturn(userId, userName, "Sent a Capex Request", dataSource);
+  
+      // Step 5: Success actions
+      setNotificationMessage("CAPEX Request submitted successfully!");
+      setNotificationVisible(true);
+  
+      setDataSource([]);
+      setTotalPrice(0);
+      setIsFinalizeModalVisible(false);
+  
+    } catch (error) {
+      console.error("Error submitting CAPEX request:", error);
+      setNotificationMessage("Failed to submit CAPEX request");
+      setNotificationVisible(true);
+    }
+  };  
+
+  const handleRequestCancel = () => {
+    setDataSource([]);
+    setTotalPrice(0);
+    message.info("CAPEX Request cancelled.");
+  };
   
   const columns = [
     {
@@ -255,72 +349,29 @@ const CapexRequest = () => {
     },
   ];
 
-  const editRow = (record) => {
-    setEditingRow(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
-  };
-
-  const handleSubmit = async () => {
-    if (dataSource.length === 0) {
-      setNotificationMessage("Please add at least one item to submit");
-      setNotificationVisible(true);
-      return;
-    }
-  
-    const userId = localStorage.getItem("userId");
-    const userName = localStorage.getItem("userName");
-  
-    try {
-      // Step 1: Add to root collection "capexrequestlist"
-      const capexRequestRef = await addDoc(collection(db, "capexrequestlist"), {
-        userId,
-        userName,
-        totalPrice,
-        createdAt: serverTimestamp(),
-        items: dataSource,
-      });
-  
-      // Step 2: Add to user's "capexrequests" subcollection
-      await addDoc(collection(db, `accounts/${userId}/capexrequests`), {
-        capexRequestId: capexRequestRef.id,
-        userId,
-        userName,
-        totalPrice,
-        createdAt: serverTimestamp(),
-        items: dataSource,
-      });
-  
-      // Step 3: Fetch all documents inside "temporaryCapexRequest" and delete them
-      const tempCapexSnapshot = await getDocs(collection(db, `accounts/${userId}/temporaryCapexRequest`));
-      const deletePromises = tempCapexSnapshot.docs.map((docSnapshot) => 
-        deleteDoc(doc(db, `accounts/${userId}/temporaryCapexRequest/${docSnapshot.id}`))
-      );
-      await Promise.all(deletePromises);
-  
-      // Step 4: Log
-      await logRequestOrReturn(userId, userName, "Sent a Capex Request", dataSource);
-  
-      // Step 5: Success actions
-      setNotificationMessage("CAPEX Request submitted successfully!");
-      setNotificationVisible(true);
-  
-      setDataSource([]);
-      setTotalPrice(0);
-      setIsFinalizeModalVisible(false);
-  
-    } catch (error) {
-      console.error("Error submitting CAPEX request:", error);
-      setNotificationMessage("Failed to submit CAPEX request");
-      setNotificationVisible(true);
-    }
-  };  
-
-  const handleRequestCancel = () => {
-    setDataSource([]);
-    setTotalPrice(0);
-    message.info("CAPEX Request cancelled.");
-  };
+  const historyColumns = [
+    {
+      title: "Submission Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (createdAt) => createdAt?.toDate().toLocaleString(),
+    },
+    {
+      title: "Total Price",
+      dataIndex: "totalPrice",
+      key: "totalPrice",
+      render: (price) => `₱${price?.toLocaleString()}`,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (text, record) => (
+        <Button type="link" onClick={() => handleView(record)}>
+          View
+        </Button>
+      ),
+    },
+  ];  
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -350,6 +401,13 @@ const CapexRequest = () => {
             pagination={false}
             bordered
             className="capex-table"
+            onRow={(record) => ({
+              onClick: () => {
+                setSelectedRowDetails(record);
+                setViewModalVisible(true);
+              },
+            })}
+            
           />
 
           <div className="total-price-container">
@@ -426,8 +484,56 @@ const CapexRequest = () => {
               </Form.Item>
             </Form>
           </Modal>
+
+          <div style={{ marginTop: "50px" }}>
+            <h2>Submitted CAPEX History</h2>
+            <Table
+              dataSource={capexHistory}
+              columns={historyColumns}
+              rowKey="id"
+              pagination={{ pageSize: 5 }}
+              bordered
+              className="capex-history-table"
+            />
+          </div>
+
         </Content>
       </Layout>
+
+      <Modal
+        title="CAPEX Request Details"
+        visible={viewModalVisible}
+        onCancel={() => setViewModalVisible(false)}
+        footer={null}
+      >
+        {selectedRowDetails && (
+          <div>
+            <p><strong>User Name:</strong> {selectedRowDetails.userName}</p>
+            <p><strong>Total Price:</strong> ₱{selectedRowDetails.totalPrice?.toLocaleString()}</p>
+            <p><strong>Submission Date:</strong> {selectedRowDetails.createdAt?.toDate().toLocaleString()}</p>
+
+            <h3>Items:</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ border: '1px solid #ddd', padding: '8px' }}>Item Description</th>
+                  <th style={{ border: '1px solid #ddd', padding: '8px' }}>Quantity</th>
+                  <th style={{ border: '1px solid #ddd', padding: '8px' }}>Estimated Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedRowDetails.items?.map((item, index) => (
+                  <tr key={index}>
+                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.itemDescription}</td>
+                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.qty}</td>
+                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>₱{item.estimatedCost?.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Modal>
       
       <FinalizeCapexModal
         visible={isFinalizeModalVisible}
