@@ -95,6 +95,7 @@ const RequestList = () => {
           items: enrichedItems,
           status: "PENDING",
           message: data.reason || "",
+          usageType: data.usageType || "",
         });
       }
 
@@ -261,16 +262,6 @@ const RequestList = () => {
         </span>
       ),
     },
-    {
-      title: "Usage Type",
-      dataIndex: "usageType",
-      key: "usageType",
-      render: (usageType) => (
-        <span style={{ fontStyle: "italic", color: "#1890ff" }}>
-          {usageType}
-        </span>
-      ),
-    },
   ];
 
   return (
@@ -314,6 +305,7 @@ const RequestList = () => {
               <Button key="close" onClick={handleModalClose}>
                 Close
               </Button>,
+              
               <Button
                 key="cancel"
                 danger
@@ -333,6 +325,7 @@ const RequestList = () => {
                 <p><strong>Course Code:</strong> {selectedRequest.courseCode}</p>
                 <p><strong>Course Description:</strong> {selectedRequest.courseDescription}</p>
                 <p><strong>Room:</strong> {selectedRequest.room}</p>
+                <p><strong>Usage Type:</strong> {selectedRequest.usageType}</p>
                 <Title level={5}>Requested Items:</Title>
                 <Table
                   columns={itemColumns}
