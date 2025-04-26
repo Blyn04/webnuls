@@ -379,6 +379,7 @@ const Login = () => {
         collection(db, "pendingaccounts"),
         where("email", "==", email.trim().toLowerCase())
       );
+      
       const emailQueryAccounts = query(
         collection(db, "accounts"),
         where("email", "==", email.trim().toLowerCase())
@@ -464,7 +465,6 @@ const Login = () => {
       }
     }
   };
-  
   
   const handleForgotPassword = async () => {
     if (!forgotPasswordEmail) {
