@@ -22,7 +22,9 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  onSnapshot
+  onSnapshot,
+  query,
+  where,
 } from "firebase/firestore";
 import { debounce } from 'lodash';
 import Sidebar from "../Sidebar";
@@ -186,6 +188,20 @@ const AccountManagement = () => {
       name: values.name.trim().toLowerCase(),
       email: values.email.trim().toLowerCase(),
     };
+
+    // Check if the employeeId already exists in the 'accounts' collection
+    const employeeQuery = query(
+      collection(db, "accounts"),
+      where("employeeId", "==", sanitizedValues.employeeId.trim())
+    );
+    
+    const employeeSnapshot = await getDocs(employeeQuery);
+    
+    if (!employeeSnapshot.empty && employeeSnapshot.docs[0].id !== (editingAccount?.id || null)) {
+      setModalMessage("This employee ID is already in use!");
+      setIsNotificationVisible(true);
+      return;
+    }
   
     // Check for duplicates, ensuring all names and emails are unique
     const isDuplicate = accounts.some(
@@ -476,7 +492,7 @@ const AccountManagement = () => {
                 <Input placeholder="Enter Email" />
               </Form.Item>
 
-              <Form.Item
+              {/* <Form.Item
                 name="employeeId"
                 label="Employee ID"
                 rules={[
@@ -488,6 +504,28 @@ const AccountManagement = () => {
                 ]}
               >
                 <Input placeholder="e.g., 12-0430" />
+              </Form.Item> */}
+
+              <Form.Item
+                name="employeeId"
+                label="Employee ID"
+                rules={[
+                  { required: true, message: "Please input Employee ID!" },
+                  {
+                    pattern: /^\d{2}-\d{4}$/,
+                    message: "Format must be like 12-0430",
+                  },
+                ]}
+              >
+                <Input 
+                  placeholder="e.g., 12-0430"
+                  maxLength={7}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const onlyNumbersAndDash = value.replace(/[^0-9-]/g, ""); // Remove non-numeric/non-dash
+                    e.target.value = onlyNumbersAndDash; // Set corrected value back
+                  }}
+                />
               </Form.Item>
 
               <Form.Item
