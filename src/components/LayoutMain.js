@@ -40,6 +40,7 @@ import HistoryLog from './users/HistoryLog';
 import RequestLog from './admin/RequestLog';
 import AdminActivityLog from './admin/AdminActivityLog';
 import NotAuthorized from './NotAuthorized';
+import CapexList from './admin/CapexList';
 
 const { Header, Sider, Content } = Layout;
 
@@ -175,6 +176,11 @@ const LayoutMain = () => {
         setPageTitle("Pending Accounts");
         break;
 
+      case "/main/capex-request-list":
+        setSelectedKey("18");
+        setPageTitle("Capex Request List");
+        break;
+
       default:
         setSelectedKey("1");
         setPageTitle("Dashboard");
@@ -277,6 +283,11 @@ const LayoutMain = () => {
       key: "/main/request-log",
       icon: <HistoryOutlined />,
       label: "Request Log",
+    },
+    {
+      key: "/main/capex-request-list",
+      icon: <HistoryOutlined />,
+      label: "Capex Request List",
     },
     {
       key: "logout",
@@ -433,7 +444,7 @@ const LayoutMain = () => {
 
           <Routes>
             {/* Routes accessible to all logged-in users */}
-            <Route element={<ProtectedRoute allowedRoles={["admin", "user", "super-admin", "super-user"]} />}>
+            <Route element={<ProtectedRoute allowedRoles={["admin", "user", "super-admin", "super-user"]} />} >
               <Route path="/profile" element={<Profile />} />
               <Route path="/activity-log" element={<ActivityLog />} />
               <Route path="/history-log" element={<HistoryLog />} />
@@ -442,7 +453,7 @@ const LayoutMain = () => {
             {/* Superadmin-only routes */}
             <Route element={<ProtectedRoute allowedRoles={["super-admin"]} />}>
               <Route path="/accounts" element={<AccountManagement />} />
-              <Route path="/pending-accounts" element={<PendingAccounts/>} />
+              <Route path="/pending-accounts" element={<PendingAccounts />} />
             </Route>
 
             {/* Admin-only routes */}
@@ -455,13 +466,17 @@ const LayoutMain = () => {
               <Route path="/admin-activity-log" element={<AdminActivityLog />} />
             </Route>
 
+            <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+              <Route path="/capex-request-list" element={<CapexList/>} />
+            </Route>
+
             {/* User-only routes */}
             <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
               <Route path="/requisition" element={<Requisition />} />
               <Route path="/request-list" element={<RequestList />} />
               <Route path="/search-items" element={<SearchItems />} />
-              <Route path="/capex-request" element={<CapexRequest />} />
               <Route path="/return-items" element={<ReturnItems />} />
+              <Route path="/capex-request" element={<CapexRequest />} />
             </Route>
 
             <Route path="/not-authorized" element={<NotAuthorized />} />

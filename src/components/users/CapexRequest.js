@@ -18,6 +18,7 @@ import "../styles/usersStyle/CapexRequest.css";
 import { getAuth } from "firebase/auth";
 import NotificationModal from "../customs/NotificationModal"; 
 import FinalizeCapexModal from "../customs/FinalizeCapexModal";
+import "../styles/usersStyle/CapexRequest.css";
 
 const { Content } = Layout;
 
@@ -373,6 +374,36 @@ const CapexRequest = () => {
     },
   ];  
 
+  const itemsColumns = [
+    {
+      title: "Item Description",
+      dataIndex: "itemDescription",
+      key: "itemDescription",
+    },
+    {
+      title: "Justification",
+      dataIndex: "justification",
+      key: "justification",
+    },
+    {
+      title: "Quantity",
+      dataIndex: "qty",
+      key: "qty",
+    },
+    {
+      title: "Estimated Cost",
+      dataIndex: "estimatedCost",
+      key: "estimatedCost",
+      render: (cost) => `₱${cost?.toLocaleString()}`,
+    },
+    {
+      title: "Total Price",
+      dataIndex: "totalPrice",
+      key: "totalPrice",
+      render: (price) => `₱${price?.toLocaleString()}`,
+    },
+  ];
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Layout className="site-layout">
@@ -505,6 +536,7 @@ const CapexRequest = () => {
         visible={viewModalVisible}
         onCancel={() => setViewModalVisible(false)}
         footer={null}
+        width={800}
       >
         {selectedRowDetails && (
           <div>
@@ -513,24 +545,12 @@ const CapexRequest = () => {
             <p><strong>Submission Date:</strong> {selectedRowDetails.createdAt?.toDate().toLocaleString()}</p>
 
             <h3>Items:</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={{ border: '1px solid #ddd', padding: '8px' }}>Item Description</th>
-                  <th style={{ border: '1px solid #ddd', padding: '8px' }}>Quantity</th>
-                  <th style={{ border: '1px solid #ddd', padding: '8px' }}>Estimated Cost</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedRowDetails.items?.map((item, index) => (
-                  <tr key={index}>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.itemDescription}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.qty}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>₱{item.estimatedCost?.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <Table
+              dataSource={selectedRowDetails.items}
+              columns={itemsColumns}
+              pagination={false}
+              rowKey="itemDescription" 
+            />
           </div>
         )}
       </Modal>

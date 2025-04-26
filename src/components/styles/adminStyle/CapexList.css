@@ -1,0 +1,180 @@
+/* Capex List Component Styles */
+.capex-list-layout {
+  min-height: 100vh;
+}
+
+.capex-list-content {
+  margin: 20px;
+}
+
+.capex-list-cards-hidden {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.capex-list-request-card {
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}
+
+.capex-list-request-card .ant-row {
+  margin-bottom: 10px;
+}
+
+.capex-list-view-btn {
+  color: #1890ff;
+}
+
+.capex-list-view-btn:hover {
+  text-decoration: underline;
+}
+
+.capex-list-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.capex-list-card-header .requestor-info {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.capex-list-card-header .capex-list-view-btn {
+  color: #1890ff;
+}
+
+.capex-list-card-header .capex-list-view-btn:hover {
+  text-decoration: underline;
+}
+
+.capex-list-card-details {
+  margin-top: 10px;
+}
+
+.capex-list-card-details .request-info {
+  text-align: left;
+}
+
+.capex-list-card-details .request-info span {
+  font-weight: bold;
+}
+
+.capex-list-card-details .date-info {
+  text-align: right;
+}
+
+.capex-list-card-details .date-info span {
+  font-weight: bold;
+  color: #555;
+}
+
+.capex-list-table-header {
+  font-weight: bold;
+}
+
+.capex-list-table-row {
+  background-color: #fafafa;
+}
+
+.capex-list-table-row:hover {
+  background-color: #f0f0f0;
+}
+
+.capex-list-table-footer {
+  font-weight: bold;
+  background-color: #f9f9f9;
+}
+
+.capex-list-table-footer td {
+  padding: 10px 0;
+  text-align: right;
+}
+
+.capex-list-table-footer td span {
+  font-weight: bold;
+  color: #555;
+}
+
+.capex-list-ant-table-wrapper {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.capex-list-ant-table-thead > tr > th {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.capex-list-ant-table-tbody > tr > td {
+  padding: 12px;
+}
+
+.capex-list-ant-table-tbody > tr:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+
+.capex-list-ant-table-tbody > tr:nth-child(even) {
+  background-color: #fff;
+}
+
+.capex-list-ant-table-tbody > tr:hover {
+  background-color: #e6f7ff;
+}
+
+.capex-list-ant-checkbox-wrapper {
+  display: inline-block;
+  padding-left: 10px;
+}
+
+.capex-list-ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.capex-list-ant-checkbox-inner {
+  border-radius: 4px;
+}
+
+.capex-list-ant-checkbox-inner:after {
+  background-color: #fff;
+}
+
+/* Modal Styles */
+.capex-list-ant-modal {
+  border-radius: 10px;
+}
+
+.capex-list-ant-modal-header {
+  background-color: #1890ff;
+  color: #fff;
+  padding: 16px;
+}
+
+.capex-list-ant-modal-title {
+  font-size: 20px;
+}
+
+.capex-list-ant-modal-footer {
+  padding: 20px 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.capex-list-ant-btn {
+  border-radius: 5px;
+}
+
+.capex-list-ant-btn-primary {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.capex-list-ant-btn-primary:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
