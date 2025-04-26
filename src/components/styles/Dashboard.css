@@ -46,3 +46,58 @@
   width: 100% !important;
   height: 100% !important;
 }
+
+/* Summary Cards */
+.summary-card {
+  color: white;
+  border: none;
+}
+
+.summary-card-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.summary-card-icon {
+  font-size: 36px;
+}
+
+/* List Styles */
+.ant-list-item {
+  padding: 8px 0;
+}
+
+/* Table Header */
+.ant-table-thead > tr > th {
+  font-weight: bold;
+}
+
+/* Fix spacing */
+.content {
+  padding: 30px;
+  background-color: #f0f2f5;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.calendar-wrapper {
+  width: 100%;
+  padding: 0 24px; /* optional, just for some side space */
+}
+
+/* Make sure the internal Calendar fills */
+.calendar-wrapper .ant-picker-calendar {
+  width: 100% !important;
+}
+
+/* Optional: make the calendar header and panel stretch nicely */
+.calendar-wrapper .ant-picker-calendar-header,
+.calendar-wrapper .ant-picker-panel {
+  width: 100% !important;
+}
+
+
