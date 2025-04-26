@@ -550,6 +550,7 @@ const CapexRequest = () => {
               columns={itemsColumns}
               pagination={false}
               rowKey="itemDescription" 
+              className="capex-modal-table"
             />
           </div>
         )}
