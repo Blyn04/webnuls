@@ -157,7 +157,7 @@ const LayoutMain = () => {
 
       case "/main/history-log":
         setSelectedKey("14");
-        setPageTitle("History Log");
+        setPageTitle("Status Board");
         break;
 
       case "/main/request-log":
@@ -349,7 +349,7 @@ const LayoutMain = () => {
     {
       key: "/main/history-log",
       icon: <ClockCircleOutlined />,
-      label: "History Log",
+      label: "Status Board",
     },
     {
       key: "/main/capex-request",
@@ -430,24 +430,6 @@ const LayoutMain = () => {
             borderRadius: borderRadiusLG,
           }}
         >
-          {/* <Routes>
-            <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
-            <Route path="/inventory" element={<ProtectedRoute element={<Inventory />} />} />
-            <Route path="/pending-request" element={<ProtectedRoute element={<PendingRequest />} />} />
-            <Route path="/borrow-catalog" element={<ProtectedRoute element={<BorrowCatalog />} />} />
-            <Route path="/history" element={<ProtectedRoute element={<History />} />} />
-            <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
-            <Route path="/accounts" element={<ProtectedRoute element={<AccountManagement />} />} />
-            <Route path="/requisition" element={<ProtectedRoute element={<Requisition />} />} />
-            <Route path="/request-list" element={<ProtectedRoute element={<RequestList />} />} />
-            <Route path="/activity-log" element={<ProtectedRoute element={<ActivityLog />} />} />
-            <Route path="/search-items" element={<ProtectedRoute element={<SearchItems />} />} />
-            <Route path="/capex-request" element={<ProtectedRoute element={<CapexRequest />} />} />
-            <Route path="/return-items" element={<ProtectedRoute element={<ReturnItems />} />} />
-            <Route path="/history-log" element={<ProtectedRoute element={<HistoryLog/>} />} />
-            <Route path="/request-log" element={<ProtectedRoute element={<RequestLog/>} />} />
-            <Route path="/admin-activity-log" element={<ProtectedRoute element={<AdminActivityLog/>} />} />
-          </Routes> */}
 
           <Routes>
             {/* Routes accessible to all logged-in users */}
