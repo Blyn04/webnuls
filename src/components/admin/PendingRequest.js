@@ -348,166 +348,467 @@ const PendingRequest = () => {
   //   }
   // };
 
-  const handleApprove = async () => {  
-    const isChecked = Object.values(checkedItems).some((checked) => checked);
+  // const handleApprove = async () => {  
+  //   const isChecked = Object.values(checkedItems).some((checked) => checked);
   
-    if (!isChecked) {
+  //   if (!isChecked) {
+  //     setNotificationMessage("No Items selected");
+  //     setIsNotificationVisible(true);
+  //     return;
+  //   }
+  
+  //   if (selectedRequest) {
+  //     // Filter checked items and prepare for approval
+  //     const filteredItems = selectedRequest.requestList.filter((item, index) => {
+  //       const key = `${selectedRequest.id}-${index}`;
+  //       return checkedItems[key];
+  //     });
+  
+  //     if (filteredItems.length === 0) {
+  //       setNotificationMessage("No Items selected");
+  //       setIsNotificationVisible(true);
+  //       return;
+  //     }
+  
+  //     const enrichedItems = await Promise.all(
+  //       filteredItems.map(async (item) => {
+  //         const selectedItemId = item.selectedItemId || item.selectedItem?.value;
+  //         let itemType = "Unknown";
+  
+  //         if (selectedItemId) {
+  //           try {
+  //             const inventoryDoc = await getDoc(doc(db, "inventory", selectedItemId));
+  //             if (inventoryDoc.exists()) {
+  //               itemType = inventoryDoc.data().type || "Unknown";
+  //             }
+              
+  //           } catch (err) {
+  //             console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
+  //           }
+  //         }
+  
+  //         return {
+  //           ...item,
+  //           selectedItemId,
+  //           itemType, 
+  //         };
+  //       })
+  //     );
+  
+  //     // Filter out unchecked items (for rejection)
+  //     const uncheckedItems = selectedRequest.requestList.filter((item, index) => {
+  //       const key = `${selectedRequest.id}-${index}`;
+  //       return !checkedItems[key]; // This will get the unchecked items
+  //     });
+  
+  //     // Process rejected items
+  //     const rejectedItems = await Promise.all(
+  //       uncheckedItems.map(async (item) => {
+  //         const selectedItemId = item.selectedItemId || item.selectedItem?.value;
+  //         let itemType = "Unknown";
+  
+  //         if (selectedItemId) {
+  //           try {
+  //             const inventoryDoc = await getDoc(doc(db, "inventory", selectedItemId));
+  //             if (inventoryDoc.exists()) {
+  //               itemType = inventoryDoc.data().type || "Unknown";
+  //             }
+  //           } catch (err) {
+  //             console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
+  //           }
+  //         }
+  
+  //         return {
+  //           ...item,
+  //           selectedItemId,
+  //           itemType, 
+  //         };
+  //       })
+  //     );
+  
+  //     const auth = getAuth();
+  //     const currentUser = auth.currentUser;
+  //     const userEmail = currentUser.email;
+  
+  //     // Fetch the user name from Firestore
+  //     let userName = "Unknown";
+  //     try {
+  //       const userQuery = query(collection(db, "accounts"), where("email", "==", userEmail));
+  //       const userSnapshot = await getDocs(userQuery);
+  
+  //       if (!userSnapshot.empty) {
+  //         const userDoc = userSnapshot.docs[0];
+  //         const userData = userDoc.data();
+  //         userName = userData.name || "Unknown";
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching user name:", error);
+  //     }
+  
+  //     const requestLogEntry = {
+  //       accountId: selectedRequest.accountId || "N/A",
+  //       userName: selectedRequest.userName || "N/A",
+  //       room: selectedRequest.room || "N/A",
+  //       courseCode: selectedRequest.courseCode || "N/A",
+  //       courseDescription: selectedRequest.courseDescription || "N/A",
+  //       dateRequired: selectedRequest.dateRequired || "N/A",
+  //       timeFrom: selectedRequest.timeFrom || "N/A",  
+  //       timeTo: selectedRequest.timeTo || "N/A",  
+  //       timestamp: new Date(),
+  //       requestList: enrichedItems, 
+  //       status: "Approved", 
+  //       approvedBy: userName, 
+  //       reason: selectedRequest.reason || "No reason provided",
+  //       program: selectedRequest.program,
+  //     };
+  
+  //     const rejectLogEntry = {
+  //       accountId: selectedRequest.accountId || "N/A",
+  //       userName: selectedRequest.userName || "N/A",
+  //       room: selectedRequest.room || "N/A",
+  //       courseCode: selectedRequest.courseCode || "N/A",
+  //       courseDescription: selectedRequest.courseDescription || "N/A",
+  //       dateRequired: selectedRequest.dateRequired || "N/A",
+  //       timeFrom: selectedRequest.timeFrom || "N/A",  
+  //       timeTo: selectedRequest.timeTo || "N/A",  
+  //       timestamp: new Date(),
+  //       requestList: rejectedItems, 
+  //       status: "Rejected", 
+  //       rejectedBy: userName, 
+  //       reason: "Item not selected for approval",
+  //       program: selectedRequest.program,
+  //     };
+  
+  //     // Log approved items in historylog subcollection
+  //     const logRequestOrReturn = async (
+  //       userId,
+  //       userName,
+  //       action,
+  //       requestDetails,
+  //       extraInfo = {} // for fields like dateRequired, approvedBy, etc.
+  //     ) => {
+  //       await addDoc(collection(db, `accounts/${userId}/historylog`), {
+  //         action,
+  //         userName,
+  //         timestamp: serverTimestamp(),
+  //         requestList: requestDetails,
+  //         ...extraInfo, // merge additional data like dateRequired, reason, etc.
+  //       });
+  //     };
+
+  //     // Log approved items
+  //     await logRequestOrReturn(
+  //       selectedRequest.accountId,     // user ID
+  //       selectedRequest.userName,      // user name
+  //       "Request Approved",            // action
+  //       enrichedItems,                 // request list
+  //       {
+  //         approvedBy: userName, // whoever approved
+  //         courseCode: selectedRequest.courseCode || "N/A",
+  //         courseDescription: selectedRequest.courseDescription || "N/A",
+  //         dateRequired: selectedRequest.dateRequired,
+  //         reason: selectedRequest.reason,
+  //         room: selectedRequest.room,
+  //         program: selectedRequest.program,
+  //         timeFrom: selectedRequest.timeFrom || "N/A",  // Include timeFrom
+  //         timeTo: selectedRequest.timeTo || "N/A",  
+  //         timestamp: new Date(),
+  //       }
+  //     );
+
+  //     // Log rejected items
+  //     if (rejectedItems.length > 0) {
+  //       await logRequestOrReturn(
+  //         selectedRequest.accountId,     // user ID
+  //         selectedRequest.userName,      // user name
+  //         "Request Rejected",            // action
+  //         rejectedItems,                 // request list
+  //         {
+  //           rejectedBy: userName, // whoever rejected
+  //           courseCode: selectedRequest.courseCode || "N/A",
+  //           courseDescription: selectedRequest.courseDescription || "N/A",
+  //           dateRequired: selectedRequest.dateRequired,
+  //           reason: "Item not selected for approval",  // Reason for rejection
+  //           room: selectedRequest.room,
+  //           program: selectedRequest.program,
+  //           timeFrom: selectedRequest.timeFrom || "N/A",  // Include timeFrom
+  //           timeTo: selectedRequest.timeTo || "N/A",  
+  //           timestamp: new Date(),
+  //         }
+  //       );
+  //     }
+  
+  //     try {
+  //       // Add to requestlog for approval
+  //       await addDoc(collection(db, "requestlog"), requestLogEntry);
+  
+  //       // Add to requestlog for rejection
+  //       if (rejectedItems.length > 0) {
+  //         await addDoc(collection(db, "requestlog"), rejectLogEntry);
+  //       }
+  
+  //       // Proceed with borrow catalog logic for approved items
+  //       const fixedItems = enrichedItems.filter(item => item.itemType === "Fixed");
+  //       if (fixedItems.length > 0) {
+  //         await Promise.all(
+  //           fixedItems.map(async (item) => {
+  //             const borrowCatalogEntry = {
+  //               accountId: selectedRequest.accountId || "N/A",
+  //               userName: selectedRequest.userName || "N/A",
+  //               room: selectedRequest.room || "N/A",
+  //               courseCode: selectedRequest.courseCode || "N/A",
+  //               courseDescription: selectedRequest.courseDescription || "N/A",
+  //               dateRequired: selectedRequest.dateRequired || "N/A",
+  //               timeFrom: selectedRequest.timeFrom || "N/A",  // Add timeFrom
+  //               timeTo: selectedRequest.timeTo || "N/A",  
+  //               timestamp: new Date(),
+  //               requestList: [item],  // Add only the selected "Fixed" item
+  //               status: "Borrowed",    // Status can be "Borrowed" instead of "Approved"
+  //               approvedBy: userName,
+  //               reason: selectedRequest.reason || "No reason provided",
+  //               program: selectedRequest.program,
+  //             };
+  
+  //             // Add to userrequestlog subcollection for the requestor's account
+  //             const userRequestLogEntry = {
+  //               ...requestLogEntry,
+  //               status: "Approved", 
+  //               approvedBy: userName,
+  //               timestamp: new Date(), // You can choose to use the original timestamp or the current one
+  //             };
+  
+  //             // Add to borrowcatalog collection
+  //             await addDoc(collection(db, "borrowcatalog"), borrowCatalogEntry);
+  
+  //             // Add to the user's 'userrequestlog' subcollection
+  //             await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
+  //           })
+  //         );
+  //       }
+  
+  //       await deleteDoc(doc(db, "userrequests", selectedRequest.id));
+  
+  //       // Cleanup the user requests subcollection
+  //       const subCollectionRef = collection(db, "accounts", selectedRequest.accountId, "userRequests");
+  //       const subDocsSnap = await getDocs(subCollectionRef);
+  
+  //       subDocsSnap.forEach(async (docSnap) => {
+  //         const data = docSnap.data();
+  //         const match = (
+  //           data.timestamp?.seconds === selectedRequest.timestamp?.seconds &&
+  //           data.filteredMergedData?.[0]?.selectedItemId === selectedRequest.filteredMergedData?.[0]?.selectedItemId
+  //         );
+  
+  //         if (match) {
+  //           console.log("✅ Deleting from subcollection:", docSnap.id);
+  //           await deleteDoc(doc(db, "accounts", selectedRequest.accountId, "userRequests", docSnap.id));
+  //         }
+  //       });
+  
+  //       setApprovedRequests([...approvedRequests, requestLogEntry]);
+  //       setRequests(requests.filter((req) => req.id !== selectedRequest.id));
+  //       setCheckedItems({});
+  //       setIsModalVisible(false);
+  //       setSelectedRequest(null);
+  
+  //       notification.success({
+  //         message: "Request Approved",
+  //         description: "Request has been approved and logged.",
+  //       });
+  
+  //     } catch (error) {
+  //       console.error("Error adding to requestlog:", error);
+  //       notification.error({
+  //         message: "Approval Failed",
+  //         description: "There was an error logging the approved request.",
+  //       });
+  //     }
+  //   }
+  // };
+
+  const handleApprove = async () => {  
+  const isChecked = Object.values(checkedItems).some((checked) => checked);
+
+  if (!isChecked) {
+    setNotificationMessage("No Items selected");
+    setIsNotificationVisible(true);
+    return;
+  }
+
+  if (selectedRequest) {
+    // Filter checked items and prepare for approval
+    const filteredItems = selectedRequest.requestList.filter((item, index) => {
+      const key = `${selectedRequest.id}-${index}`;
+      return checkedItems[key];
+    });
+
+    if (filteredItems.length === 0) {
       setNotificationMessage("No Items selected");
       setIsNotificationVisible(true);
       return;
     }
-  
-    if (selectedRequest) {
-      // Filter checked items and prepare for approval
-      const filteredItems = selectedRequest.requestList.filter((item, index) => {
-        const key = `${selectedRequest.id}-${index}`;
-        return checkedItems[key];
-      });
-  
-      if (filteredItems.length === 0) {
-        setNotificationMessage("No Items selected");
-        setIsNotificationVisible(true);
-        return;
-      }
-  
-      const enrichedItems = await Promise.all(
-        filteredItems.map(async (item) => {
-          const selectedItemId = item.selectedItemId || item.selectedItem?.value;
-          let itemType = "Unknown";
-  
-          if (selectedItemId) {
-            try {
-              const inventoryDoc = await getDoc(doc(db, "inventory", selectedItemId));
-              if (inventoryDoc.exists()) {
-                itemType = inventoryDoc.data().type || "Unknown";
-              }
-              
-            } catch (err) {
-              console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
-            }
-          }
-  
-          return {
-            ...item,
-            selectedItemId,
-            itemType, 
-          };
-        })
-      );
-  
-      // Filter out unchecked items (for rejection)
-      const uncheckedItems = selectedRequest.requestList.filter((item, index) => {
-        const key = `${selectedRequest.id}-${index}`;
-        return !checkedItems[key]; // This will get the unchecked items
-      });
-  
-      // Process rejected items
-      const rejectedItems = await Promise.all(
-        uncheckedItems.map(async (item) => {
-          const selectedItemId = item.selectedItemId || item.selectedItem?.value;
-          let itemType = "Unknown";
-  
-          if (selectedItemId) {
-            try {
-              const inventoryDoc = await getDoc(doc(db, "inventory", selectedItemId));
-              if (inventoryDoc.exists()) {
-                itemType = inventoryDoc.data().type || "Unknown";
-              }
-            } catch (err) {
-              console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
-            }
-          }
-  
-          return {
-            ...item,
-            selectedItemId,
-            itemType, 
-          };
-        })
-      );
-  
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-      const userEmail = currentUser.email;
-  
-      // Fetch the user name from Firestore
-      let userName = "Unknown";
-      try {
-        const userQuery = query(collection(db, "accounts"), where("email", "==", userEmail));
-        const userSnapshot = await getDocs(userQuery);
-  
-        if (!userSnapshot.empty) {
-          const userDoc = userSnapshot.docs[0];
-          const userData = userDoc.data();
-          userName = userData.name || "Unknown";
-        }
-      } catch (error) {
-        console.error("Error fetching user name:", error);
-      }
-  
-      const requestLogEntry = {
-        accountId: selectedRequest.accountId || "N/A",
-        userName: selectedRequest.userName || "N/A",
-        room: selectedRequest.room || "N/A",
-        courseCode: selectedRequest.courseCode || "N/A",
-        courseDescription: selectedRequest.courseDescription || "N/A",
-        dateRequired: selectedRequest.dateRequired || "N/A",
-        timeFrom: selectedRequest.timeFrom || "N/A",  
-        timeTo: selectedRequest.timeTo || "N/A",  
-        timestamp: new Date(),
-        requestList: enrichedItems, 
-        status: "Approved", 
-        approvedBy: userName, 
-        reason: selectedRequest.reason || "No reason provided",
-        program: selectedRequest.program,
-      };
-  
-      const rejectLogEntry = {
-        accountId: selectedRequest.accountId || "N/A",
-        userName: selectedRequest.userName || "N/A",
-        room: selectedRequest.room || "N/A",
-        courseCode: selectedRequest.courseCode || "N/A",
-        courseDescription: selectedRequest.courseDescription || "N/A",
-        dateRequired: selectedRequest.dateRequired || "N/A",
-        timeFrom: selectedRequest.timeFrom || "N/A",  
-        timeTo: selectedRequest.timeTo || "N/A",  
-        timestamp: new Date(),
-        requestList: rejectedItems, 
-        status: "Rejected", 
-        rejectedBy: userName, 
-        reason: "Item not selected for approval",
-        program: selectedRequest.program,
-      };
-  
-      // Log approved items in historylog subcollection
-      const logRequestOrReturn = async (
-        userId,
-        userName,
-        action,
-        requestDetails,
-        extraInfo = {} // for fields like dateRequired, approvedBy, etc.
-      ) => {
-        await addDoc(collection(db, `accounts/${userId}/historylog`), {
-          action,
-          userName,
-          timestamp: serverTimestamp(),
-          requestList: requestDetails,
-          ...extraInfo, // merge additional data like dateRequired, reason, etc.
-        });
-      };
 
-      // Log approved items
+    const enrichedItems = await Promise.all(
+      filteredItems.map(async (item) => {
+        const selectedItemId = item.selectedItemId || item.selectedItem?.value;
+        let itemType = "Unknown";
+
+        if (selectedItemId) {
+          try {
+            const inventoryDoc = await getDoc(doc(db, "inventory", selectedItemId));
+            if (inventoryDoc.exists()) {
+              itemType = inventoryDoc.data().type || "Unknown";
+            }
+          } catch (err) {
+            console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
+          }
+        }
+
+        return {
+          ...item,
+          selectedItemId,
+          itemType, 
+        };
+      })
+    );
+
+    // Filter out unchecked items (for rejection)
+    const uncheckedItems = selectedRequest.requestList.filter((item, index) => {
+      const key = `${selectedRequest.id}-${index}`;
+      return !checkedItems[key]; // This will get the unchecked items
+    });
+
+    // Prompt for rejection reason
+    const rejectionReason = prompt("Please enter the reason for rejection for unchecked items:", "Item not selected for approval");
+
+    // Process rejected items
+    const rejectedItems = await Promise.all(
+      uncheckedItems.map(async (item) => {
+        const selectedItemId = item.selectedItemId || item.selectedItem?.value;
+        let itemType = "Unknown";
+
+        if (selectedItemId) {
+          try {
+            const inventoryDoc = await getDoc(doc(db, "inventory", selectedItemId));
+            if (inventoryDoc.exists()) {
+              itemType = inventoryDoc.data().type || "Unknown";
+            }
+          } catch (err) {
+            console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
+          }
+        }
+
+        return {
+          ...item,
+          selectedItemId,
+          itemType, 
+        };
+      })
+    );
+
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    const userEmail = currentUser.email;
+
+    // Fetch the user name from Firestore
+    let userName = "Unknown";
+    try {
+      const userQuery = query(collection(db, "accounts"), where("email", "==", userEmail));
+      const userSnapshot = await getDocs(userQuery);
+
+      if (!userSnapshot.empty) {
+        const userDoc = userSnapshot.docs[0];
+        const userData = userDoc.data();
+        userName = userData.name || "Unknown";
+      }
+    } catch (error) {
+      console.error("Error fetching user name:", error);
+    }
+
+    const requestLogEntry = {
+      accountId: selectedRequest.accountId || "N/A",
+      userName: selectedRequest.userName || "N/A",
+      room: selectedRequest.room || "N/A",
+      courseCode: selectedRequest.courseCode || "N/A",
+      courseDescription: selectedRequest.courseDescription || "N/A",
+      dateRequired: selectedRequest.dateRequired || "N/A",
+      timeFrom: selectedRequest.timeFrom || "N/A",  
+      timeTo: selectedRequest.timeTo || "N/A",  
+      timestamp: new Date(),
+      requestList: enrichedItems, 
+      status: "Approved", 
+      approvedBy: userName, 
+      reason: selectedRequest.reason || "No reason provided",
+      program: selectedRequest.program,
+    };
+
+    const rejectLogEntry = {
+      accountId: selectedRequest.accountId || "N/A",
+      userName: selectedRequest.userName || "N/A",
+      room: selectedRequest.room || "N/A",
+      courseCode: selectedRequest.courseCode || "N/A",
+      courseDescription: selectedRequest.courseDescription || "N/A",
+      dateRequired: selectedRequest.dateRequired || "N/A",
+      timeFrom: selectedRequest.timeFrom || "N/A",  
+      timeTo: selectedRequest.timeTo || "N/A",  
+      timestamp: new Date(),
+      requestList: rejectedItems, 
+      status: "Rejected", 
+      rejectedBy: userName, 
+      reason: rejectionReason || "No reason provided",  // Use the rejection reason from the input prompt
+      program: selectedRequest.program,
+    };
+
+    // Log approved items in historylog subcollection
+    const logRequestOrReturn = async (
+      userId,
+      userName,
+      action,
+      requestDetails,
+      extraInfo = {} // for fields like dateRequired, approvedBy, etc.
+    ) => {
+      await addDoc(collection(db, `accounts/${userId}/historylog`), {
+        action,
+        userName,
+        timestamp: serverTimestamp(),
+        requestList: requestDetails,
+        ...extraInfo, // merge additional data like dateRequired, reason, etc.
+      });
+    };
+
+    // Log approved items
+    await logRequestOrReturn(
+      selectedRequest.accountId,     // user ID
+      selectedRequest.userName,      // user name
+      "Request Approved",            // action
+      enrichedItems,                 // request list
+      {
+        approvedBy: userName, // whoever approved
+        courseCode: selectedRequest.courseCode || "N/A",
+        courseDescription: selectedRequest.courseDescription || "N/A",
+        dateRequired: selectedRequest.dateRequired,
+        reason: selectedRequest.reason,
+        room: selectedRequest.room,
+        program: selectedRequest.program,
+        timeFrom: selectedRequest.timeFrom || "N/A",  // Include timeFrom
+        timeTo: selectedRequest.timeTo || "N/A",  
+        timestamp: new Date(),
+      }
+    );
+
+    // Log rejected items
+    if (rejectedItems.length > 0) {
       await logRequestOrReturn(
         selectedRequest.accountId,     // user ID
         selectedRequest.userName,      // user name
-        "Request Approved",            // action
-        enrichedItems,                 // request list
+        "Request Rejected",            // action
+        rejectedItems,                 // request list
         {
-          approvedBy: userName, // whoever approved
+          rejectedBy: userName, // whoever rejected
           courseCode: selectedRequest.courseCode || "N/A",
           courseDescription: selectedRequest.courseDescription || "N/A",
           dateRequired: selectedRequest.dateRequired,
-          reason: selectedRequest.reason,
+          reason: rejectionReason || "No reason provided",  // Reason for rejection
           room: selectedRequest.room,
           program: selectedRequest.program,
           timeFrom: selectedRequest.timeFrom || "N/A",  // Include timeFrom
@@ -515,116 +816,96 @@ const PendingRequest = () => {
           timestamp: new Date(),
         }
       );
+    }
 
-      // Log rejected items
+    try {
+      // Add to requestlog for approval
+      await addDoc(collection(db, "requestlog"), requestLogEntry);
+
+      // Add to requestlog for rejection
       if (rejectedItems.length > 0) {
-        await logRequestOrReturn(
-          selectedRequest.accountId,     // user ID
-          selectedRequest.userName,      // user name
-          "Request Rejected",            // action
-          rejectedItems,                 // request list
-          {
-            rejectedBy: userName, // whoever rejected
-            courseCode: selectedRequest.courseCode || "N/A",
-            courseDescription: selectedRequest.courseDescription || "N/A",
-            dateRequired: selectedRequest.dateRequired,
-            reason: "Item not selected for approval",  // Reason for rejection
-            room: selectedRequest.room,
-            program: selectedRequest.program,
-            timeFrom: selectedRequest.timeFrom || "N/A",  // Include timeFrom
-            timeTo: selectedRequest.timeTo || "N/A",  
-            timestamp: new Date(),
-          }
+        await addDoc(collection(db, "requestlog"), rejectLogEntry);
+      }
+
+      // Proceed with borrow catalog logic for approved items
+      const fixedItems = enrichedItems.filter(item => item.itemType === "Fixed");
+      if (fixedItems.length > 0) {
+        await Promise.all(
+          fixedItems.map(async (item) => {
+            const borrowCatalogEntry = {
+              accountId: selectedRequest.accountId || "N/A",
+              userName: selectedRequest.userName || "N/A",
+              room: selectedRequest.room || "N/A",
+              courseCode: selectedRequest.courseCode || "N/A",
+              courseDescription: selectedRequest.courseDescription || "N/A",
+              dateRequired: selectedRequest.dateRequired || "N/A",
+              timeFrom: selectedRequest.timeFrom || "N/A",  // Add timeFrom
+              timeTo: selectedRequest.timeTo || "N/A",  
+              timestamp: new Date(),
+              requestList: [item],  // Add only the selected "Fixed" item
+              status: "Borrowed",    // Status can be "Borrowed" instead of "Approved"
+              approvedBy: userName,
+              reason: selectedRequest.reason || "No reason provided",
+              program: selectedRequest.program,
+            };
+
+            // Add to userrequestlog subcollection for the requestor's account
+            const userRequestLogEntry = {
+              ...requestLogEntry,
+              status: "Approved", 
+              approvedBy: userName,
+              timestamp: new Date(), // You can choose to use the original timestamp or the current one
+            };
+
+            // Add to borrowcatalog collection
+            await addDoc(collection(db, "borrowcatalog"), borrowCatalogEntry);
+
+            // Add to the user's 'userrequestlog' subcollection
+            await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
+          })
         );
       }
-  
-      try {
-        // Add to requestlog for approval
-        await addDoc(collection(db, "requestlog"), requestLogEntry);
-  
-        // Add to requestlog for rejection
-        if (rejectedItems.length > 0) {
-          await addDoc(collection(db, "requestlog"), rejectLogEntry);
+
+      await deleteDoc(doc(db, "userrequests", selectedRequest.id));
+
+      // Cleanup the user requests subcollection
+      const subCollectionRef = collection(db, "accounts", selectedRequest.accountId, "userRequests");
+      const subDocsSnap = await getDocs(subCollectionRef);
+
+      subDocsSnap.forEach(async (docSnap) => {
+        const data = docSnap.data();
+        const match = (
+          data.timestamp?.seconds === selectedRequest.timestamp?.seconds &&
+          data.filteredMergedData?.[0]?.selectedItemId === selectedRequest.filteredMergedData?.[0]?.selectedItemId
+        );
+
+        if (match) {
+          console.log("✅ Deleting from subcollection:", docSnap.id);
+          await deleteDoc(doc(db, "accounts", selectedRequest.accountId, "userRequests", docSnap.id));
         }
-  
-        // Proceed with borrow catalog logic for approved items
-        const fixedItems = enrichedItems.filter(item => item.itemType === "Fixed");
-        if (fixedItems.length > 0) {
-          await Promise.all(
-            fixedItems.map(async (item) => {
-              const borrowCatalogEntry = {
-                accountId: selectedRequest.accountId || "N/A",
-                userName: selectedRequest.userName || "N/A",
-                room: selectedRequest.room || "N/A",
-                courseCode: selectedRequest.courseCode || "N/A",
-                courseDescription: selectedRequest.courseDescription || "N/A",
-                dateRequired: selectedRequest.dateRequired || "N/A",
-                timeFrom: selectedRequest.timeFrom || "N/A",  // Add timeFrom
-                timeTo: selectedRequest.timeTo || "N/A",  
-                timestamp: new Date(),
-                requestList: [item],  // Add only the selected "Fixed" item
-                status: "Borrowed",    // Status can be "Borrowed" instead of "Approved"
-                approvedBy: userName,
-                reason: selectedRequest.reason || "No reason provided",
-                program: selectedRequest.program,
-              };
-  
-              // Add to userrequestlog subcollection for the requestor's account
-              const userRequestLogEntry = {
-                ...requestLogEntry,
-                status: "Approved", 
-                approvedBy: userName,
-                timestamp: new Date(), // You can choose to use the original timestamp or the current one
-              };
-  
-              // Add to borrowcatalog collection
-              await addDoc(collection(db, "borrowcatalog"), borrowCatalogEntry);
-  
-              // Add to the user's 'userrequestlog' subcollection
-              await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
-            })
-          );
-        }
-  
-        await deleteDoc(doc(db, "userrequests", selectedRequest.id));
-  
-        // Cleanup the user requests subcollection
-        const subCollectionRef = collection(db, "accounts", selectedRequest.accountId, "userRequests");
-        const subDocsSnap = await getDocs(subCollectionRef);
-  
-        subDocsSnap.forEach(async (docSnap) => {
-          const data = docSnap.data();
-          const match = (
-            data.timestamp?.seconds === selectedRequest.timestamp?.seconds &&
-            data.filteredMergedData?.[0]?.selectedItemId === selectedRequest.filteredMergedData?.[0]?.selectedItemId
-          );
-  
-          if (match) {
-            console.log("✅ Deleting from subcollection:", docSnap.id);
-            await deleteDoc(doc(db, "accounts", selectedRequest.accountId, "userRequests", docSnap.id));
-          }
-        });
-  
-        setApprovedRequests([...approvedRequests, requestLogEntry]);
-        setRequests(requests.filter((req) => req.id !== selectedRequest.id));
-        setCheckedItems({});
-        setIsModalVisible(false);
-        setSelectedRequest(null);
-  
-        notification.success({
-          message: "Request Approved",
-          description: "Request has been approved and logged.",
-        });
-  
-      } catch (error) {
-        console.error("Error adding to requestlog:", error);
-        notification.error({
-          message: "Approval Failed",
-          description: "There was an error logging the approved request.",
-        });
-      }
+      });
+
+      setApprovedRequests([...approvedRequests, requestLogEntry]);
+      setRequests(requests.filter((req) => req.id !== selectedRequest.id));
+      setCheckedItems({});
+      setIsModalVisible(false);
+      setSelectedRequest(null);
+
+      notification.success({
+        message: "Request Approved",
+        description: "Request has been approved and logged.",
+      });
+
+    } catch (error) {
+      console.error("Error adding to requestlog:", error);
+      notification.error({
+        message: "Approval Failed",
+        description: "There was an error logging the approved request.",
+      });
     }
-  };
+  }
+};
+
 
   const handleReject = () => {
     // Open the rejection reason modal
