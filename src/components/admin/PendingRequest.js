@@ -678,8 +678,16 @@ const PendingRequest = () => {
       return !checkedItems[key]; // This will get the unchecked items
     });
 
-    // Prompt for rejection reason
-    const rejectionReason = prompt("Please enter the reason for rejection for unchecked items:", "Item not selected for approval");
+    // Define rejectionReason variable outside of the condition
+    let rejectionReason = null;
+
+    if (uncheckedItems.length > 0) {
+      // Prompt for rejection reason only if there are unchecked items
+      rejectionReason = prompt("Please enter the reason for rejection for unchecked items:", "Item not selected for approval");
+
+      // Optionally, handle rejection reason, e.g., log it or save it
+      console.log("Rejection reason:", rejectionReason);
+    }
 
     // Process rejected items
     const rejectedItems = await Promise.all(
@@ -827,43 +835,100 @@ const PendingRequest = () => {
         await addDoc(collection(db, "requestlog"), rejectLogEntry);
       }
 
+      // // Proceed with borrow catalog logic for approved items
+      // const fixedItems = enrichedItems.filter(item => item.itemType === "Fixed");
+      // if (fixedItems.length > 0) {
+      //   await Promise.all(
+      //     fixedItems.map(async (item) => {
+      //       const borrowCatalogEntry = {
+      //         accountId: selectedRequest.accountId || "N/A",
+      //         userName: selectedRequest.userName || "N/A",
+      //         room: selectedRequest.room || "N/A",
+      //         courseCode: selectedRequest.courseCode || "N/A",
+      //         courseDescription: selectedRequest.courseDescription || "N/A",
+      //         dateRequired: selectedRequest.dateRequired || "N/A",
+      //         timeFrom: selectedRequest.timeFrom || "N/A",  // Add timeFrom
+      //         timeTo: selectedRequest.timeTo || "N/A",  
+      //         timestamp: new Date(),
+      //         requestList: [item],  // Add only the selected "Fixed" item
+      //         status: "Borrowed",    // Status can be "Borrowed" instead of "Approved"
+      //         approvedBy: userName,
+      //         reason: selectedRequest.reason || "No reason provided",
+      //         program: selectedRequest.program,
+      //       };
+
+      //       // Add to userrequestlog subcollection for the requestor's account
+      //       const userRequestLogEntry = {
+      //         ...requestLogEntry,
+      //         status: "Approved", 
+      //         approvedBy: userName,
+      //         timestamp: new Date(), // You can choose to use the original timestamp or the current one
+      //       };
+
+      //       // Add to borrowcatalog collection
+      //       await addDoc(collection(db, "borrowcatalog"), borrowCatalogEntry);
+
+      //       // Add to the user's 'userrequestlog' subcollection
+      //       await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
+      //     })
+      //   );
+      // }
+
       // Proceed with borrow catalog logic for approved items
+      // Filter to get all "Fixed" items
       const fixedItems = enrichedItems.filter(item => item.itemType === "Fixed");
+
       if (fixedItems.length > 0) {
-        await Promise.all(
-          fixedItems.map(async (item) => {
-            const borrowCatalogEntry = {
-              accountId: selectedRequest.accountId || "N/A",
-              userName: selectedRequest.userName || "N/A",
-              room: selectedRequest.room || "N/A",
-              courseCode: selectedRequest.courseCode || "N/A",
-              courseDescription: selectedRequest.courseDescription || "N/A",
-              dateRequired: selectedRequest.dateRequired || "N/A",
-              timeFrom: selectedRequest.timeFrom || "N/A",  // Add timeFrom
-              timeTo: selectedRequest.timeTo || "N/A",  
-              timestamp: new Date(),
-              requestList: [item],  // Add only the selected "Fixed" item
-              status: "Borrowed",    // Status can be "Borrowed" instead of "Approved"
-              approvedBy: userName,
-              reason: selectedRequest.reason || "No reason provided",
-              program: selectedRequest.program,
-            };
+        console.log('Fixed items to be grouped:', fixedItems); // Debugging log to see all fixed items
 
-            // Add to userrequestlog subcollection for the requestor's account
-            const userRequestLogEntry = {
-              ...requestLogEntry,
-              status: "Approved", 
-              approvedBy: userName,
-              timestamp: new Date(), // You can choose to use the original timestamp or the current one
-            };
+        // Create an array of items with the necessary fields for Firestore
+        const formattedItems = fixedItems.map(item => ({
+          category: item.category || "N/A",  // Category (e.g., Equipment)
+          condition: item.condition || "N/A",  // Condition (e.g., Good)
+          department: item.department || "N/A",  // Department (e.g., DENT)
+          itemName: item.itemName || "N/A",  // Item name (e.g., Centrifuge)
+          quantity: item.quantity || "1",  // Quantity requested
+          selectedItemId: item.selectedItemId || "N/A",  // Item ID from Firestore
+          status: item.status || "Available",  // Status (e.g., Available)
+          program: item.program || "N/A",  // Program associated with the request
+          reason: item.reason || "No reason provided",  // Reason for the request
+          labRoom: item.labRoom || "N/A",  // Lab room (e.g., 1224)
+          timeFrom: item.timeFrom || "N/A",  // Time From
+          timeTo: item.timeTo || "N/A",  // Time To
+          usageType: item.usageType || "N/A",  // Usage type (e.g., Community Extension)
+        }));
 
-            // Add to borrowcatalog collection
-            await addDoc(collection(db, "borrowcatalog"), borrowCatalogEntry);
+        // Create a borrow catalog entry with the formatted fixed items
+        const borrowCatalogEntry = {
+          accountId: selectedRequest.accountId || "N/A",
+          userName: selectedRequest.userName || "N/A",
+          room: selectedRequest.room || "N/A",
+          courseCode: selectedRequest.courseCode || "N/A",
+          courseDescription: selectedRequest.courseDescription || "N/A",
+          dateRequired: selectedRequest.dateRequired || "N/A",
+          timeFrom: selectedRequest.timeFrom || "N/A",  // Add timeFrom
+          timeTo: selectedRequest.timeTo || "N/A",  
+          timestamp: new Date(),
+          requestList: formattedItems,  // Add all selected "Fixed" items together
+          status: "Borrowed",  // Status as "Borrowed"
+          approvedBy: userName,
+          reason: selectedRequest.reason || "No reason provided",
+          program: selectedRequest.program,
+        };
 
-            // Add to the user's 'userrequestlog' subcollection
-            await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
-          })
-        );
+        // Add to userrequestlog subcollection for the requestor's account
+        const userRequestLogEntry = {
+          ...requestLogEntry,
+          status: "Approved", 
+          approvedBy: userName,
+          timestamp: new Date(),
+        };
+
+        // Add the borrow catalog entry to Firestore
+        await addDoc(collection(db, "borrowcatalog"), borrowCatalogEntry);
+
+        // Add to the user's 'userrequestlog' subcollection
+        await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
       }
 
       await deleteDoc(doc(db, "userrequests", selectedRequest.id));

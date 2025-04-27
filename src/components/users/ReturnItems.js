@@ -183,7 +183,7 @@ const ReturnItems = () => {
             columns={columns}
             rowKey="id"
             bordered
-            pagination={{ pageSize: 5 }}
+            pagination={{ pageSize: 10 }}
           />
         </Content>
 
