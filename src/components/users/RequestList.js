@@ -20,6 +20,7 @@ import {
   setDoc,
   query,
   where,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "../../backend/firebase/FirebaseConfig";
 import { getAuth } from "firebase/auth";
@@ -46,72 +47,155 @@ const RequestList = () => {
     }
   };
 
-  const fetchRequests = async () => {
+  // const fetchRequests = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const userId = localStorage.getItem("userId");
+  //     if (!userId) throw new Error("User ID not found in localStorage.");
+
+  //     const querySnapshot = await getDocs(collection(db, `accounts/${userId}/userRequests`));
+  //     const fetched = [];
+
+  //     for (const docSnap of querySnapshot.docs) {
+  //       const data = docSnap.data();
+  //       const enrichedItems = await Promise.all(
+  //         (data.filteredMergedData || []).map(async (item) => {
+  //           const inventoryId = item.selectedItemId || item.selectedItem?.value;
+  //           let itemId = "N/A";
+
+  //           if (inventoryId) {
+  //             try {
+  //               const invDoc = await getDoc(doc(db, `inventory/${inventoryId}`));
+  //               if (invDoc.exists()) {
+  //                 itemId = invDoc.data().itemId || "N/A";
+  //               }
+
+  //             } catch (err) {
+  //               console.error(`Error fetching inventory item ${inventoryId}:`, err);
+  //             }
+  //           }
+
+  //           return {
+  //             ...item,
+  //             itemIdFromInventory: itemId,
+  //           };
+  //         })
+  //       );
+
+  //       fetched.push({
+  //         id: docSnap.id,
+  //         dateRequested: data.timestamp
+  //           ? new Date(data.timestamp.seconds * 1000).toLocaleDateString()
+  //           : "N/A",
+  //         dateRequired: data.dateRequired || "N/A",
+  //         requester: data.userName || "Unknown",
+  //         room: data.room || "N/A",
+  //         timeNeeded: `${data.timeFrom || "N/A"} - ${data.timeTo || "N/A"}`,
+  //         courseCode: data.program || "N/A",
+  //         courseDescription: data.reason || "N/A",
+  //         items: enrichedItems,
+  //         status: "PENDING",
+  //         message: data.reason || "",
+  //         usageType: data.usageType || "",
+  //       });
+  //     }
+
+  //     const sortedByDate = fetched.sort((a, b) => {
+  //       const dateA = new Date(a.dateRequested);
+  //       const dateB = new Date(b.dateRequested);
+  //       return dateB - dateA; 
+  //     });
+      
+  //     setRequests(sortedByDate);      
+
+  //   } catch (err) {
+  //     console.error("Error fetching requests:", err);
+  //     setNotificationMessage("Failed to fetch user requests.");
+  //     setNotificationVisible(true);
+      
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const fetchRequests = () => {
     setLoading(true);
     try {
       const userId = localStorage.getItem("userId");
       if (!userId) throw new Error("User ID not found in localStorage.");
-
-      const querySnapshot = await getDocs(collection(db, `accounts/${userId}/userRequests`));
-      const fetched = [];
-
-      for (const docSnap of querySnapshot.docs) {
-        const data = docSnap.data();
-        const enrichedItems = await Promise.all(
-          (data.filteredMergedData || []).map(async (item) => {
-            const inventoryId = item.selectedItemId || item.selectedItem?.value;
-            let itemId = "N/A";
-
-            if (inventoryId) {
-              try {
-                const invDoc = await getDoc(doc(db, `inventory/${inventoryId}`));
-                if (invDoc.exists()) {
-                  itemId = invDoc.data().itemId || "N/A";
+  
+      const userRequestsRef = collection(db, `accounts/${userId}/userRequests`);
+  
+      // Real-time listener
+      const unsubscribe = onSnapshot(userRequestsRef, async (querySnapshot) => {
+        const fetched = [];
+  
+        for (const docSnap of querySnapshot.docs) {
+          const data = docSnap.data();
+          
+          const enrichedItems = await Promise.all(
+            (data.filteredMergedData || []).map(async (item) => {
+              const inventoryId = item.selectedItemId || item.selectedItem?.value;
+              let itemId = "N/A";
+  
+              if (inventoryId) {
+                try {
+                  const invDoc = await getDoc(doc(db, `inventory/${inventoryId}`));
+                  if (invDoc.exists()) {
+                    itemId = invDoc.data().itemId || "N/A";
+                  }
+  
+                } catch (err) {
+                  console.error(`Error fetching inventory item ${inventoryId}:`, err);
                 }
-
-              } catch (err) {
-                console.error(`Error fetching inventory item ${inventoryId}:`, err);
               }
-            }
-
-            return {
-              ...item,
-              itemIdFromInventory: itemId,
-            };
-          })
-        );
-
-        fetched.push({
-          id: docSnap.id,
-          dateRequested: data.timestamp
-            ? new Date(data.timestamp.seconds * 1000).toLocaleDateString()
-            : "N/A",
-          dateRequired: data.dateRequired || "N/A",
-          requester: data.userName || "Unknown",
-          room: data.room || "N/A",
-          timeNeeded: `${data.timeFrom || "N/A"} - ${data.timeTo || "N/A"}`,
-          courseCode: data.program || "N/A",
-          courseDescription: data.reason || "N/A",
-          items: enrichedItems,
-          status: "PENDING",
-          message: data.reason || "",
-          usageType: data.usageType || "",
+  
+              return {
+                ...item,
+                itemIdFromInventory: itemId,
+              };
+            })
+          );
+  
+          fetched.push({
+            id: docSnap.id,
+            dateRequested: data.timestamp
+              ? new Date(data.timestamp.seconds * 1000).toLocaleDateString()
+              : "N/A",
+            dateRequired: data.dateRequired || "N/A",
+            requester: data.userName || "Unknown",
+            room: data.room || "N/A",
+            timeNeeded: `${data.timeFrom || "N/A"} - ${data.timeTo || "N/A"}`,
+            courseCode: data.program || "N/A",
+            courseDescription: data.reason || "N/A",
+            items: enrichedItems,
+            status: "PENDING",
+            message: data.reason || "",
+            usageType: data.usageType || "",
+          });
+        }
+  
+        // Sort fetched data by request date
+        const sortedByDate = fetched.sort((a, b) => {
+          const dateA = new Date(a.dateRequested);
+          const dateB = new Date(b.dateRequested);
+          return dateB - dateA;
         });
-      }
-
-      const sortedByDate = fetched.sort((a, b) => {
-        const dateA = new Date(a.dateRequested);
-        const dateB = new Date(b.dateRequested);
-        return dateB - dateA; 
+  
+        setRequests(sortedByDate);
+  
+      }, (error) => {
+        console.error("Error fetching user requests in real-time: ", error);
+        setNotificationMessage("Failed to fetch user requests.");
+        setNotificationVisible(true);
       });
-      
-      setRequests(sortedByDate);      
-
+  
+      // Cleanup listener on unmount
+      return () => unsubscribe();
     } catch (err) {
       console.error("Error fetching requests:", err);
       setNotificationMessage("Failed to fetch user requests.");
       setNotificationVisible(true);
-      
     } finally {
       setLoading(false);
     }
