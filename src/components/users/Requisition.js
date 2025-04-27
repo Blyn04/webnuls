@@ -27,6 +27,7 @@ import AppHeader from "../Header";
 import "../styles/usersStyle/Requisition.css";
 import SuccessModal from "../customs/SuccessModal";
 import FinalizeRequestModal from "../customs/FinalizeRequestModal";
+import NotificationModal from "../customs/NotificationModal";
 
 const { Content } = Layout;
 
@@ -65,6 +66,8 @@ const Requisition = () => {
   const [notificationMessage, setNotificationMessage] = useState("");
   const [searchCategory, setSearchCategory] = useState("");
   const [isFinalizeModalVisible, setIsFinalizeModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const [mergedData, setMergedData] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
@@ -226,6 +229,15 @@ const Requisition = () => {
 
   const closeModal = () => {
     setShowModal(false);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleOpenModal = (message) => {
+    setModalMessage(message);
+    setIsModalVisible(true);
   };
 
   const mergeData = useCallback(() => {
@@ -608,39 +620,56 @@ const Requisition = () => {
           value={record.quantity}
           onChange={async (e) => {
             const newQuantity = e.target.value;
-    
-            // Update local tableData
-            const updated = tableData.map((row) =>
-              row.key === record.key ? { ...row, quantity: newQuantity } : row
-            );
-            setTableData(updated);
-    
-            // Update requestList too (optional but keeps both in sync)
-            const updatedRequestList = requestList.map((row) =>
-              row.selectedItemId === record.selectedItemId ? { ...row, quantity: newQuantity } : row
-            );
-            setRequestList(updatedRequestList);
-            localStorage.setItem("requestList", JSON.stringify(updatedRequestList));
-    
-            // Update Firestore
-            const userId = localStorage.getItem("userId");
-            if (userId) {
-              const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
-    
-              // Find the doc with this item's ID
-              const snapshot = await getDocs(tempRequestRef);
-              const docToUpdate = snapshot.docs.find(doc => doc.data().selectedItemId === record.selectedItemId);
-    
-              if (docToUpdate) {
-                await updateDoc(doc(db, "accounts", userId, "temporaryRequests", docToUpdate.id), {
-                  quantity: newQuantity,
-                });
+
+            // Fetch inventory details to validate the quantity
+            const inventoryRef = collection(db, "inventory");
+            const inventorySnapshot = await getDocs(inventoryRef);
+            const inventoryItem = inventorySnapshot.docs.find(doc => doc.id === record.selectedItemId);
+
+            // Check if inventory item exists and compare the quantity
+            if (inventoryItem) {
+              const availableQuantity = inventoryItem.data().quantity; // Assuming the quantity field exists in inventory
+
+              if (newQuantity <= availableQuantity) {
+                // Update local tableData if valid
+                const updated = tableData.map((row) =>
+                  row.key === record.key ? { ...row, quantity: newQuantity } : row
+                );
+                setTableData(updated);
+
+                // Update requestList too
+                const updatedRequestList = requestList.map((row) =>
+                  row.selectedItemId === record.selectedItemId ? { ...row, quantity: newQuantity } : row
+                );
+                setRequestList(updatedRequestList);
+                localStorage.setItem("requestList", JSON.stringify(updatedRequestList));
+
+                // Update Firestore
+                const userId = localStorage.getItem("userId");
+                if (userId) {
+                  const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+
+                  // Find the doc with this item's ID
+                  const snapshot = await getDocs(tempRequestRef);
+                  const docToUpdate = snapshot.docs.find(doc => doc.data().selectedItemId === record.selectedItemId);
+
+                  if (docToUpdate) {
+                    await updateDoc(doc(db, "accounts", userId, "temporaryRequests", docToUpdate.id), {
+                      quantity: newQuantity,
+                    });
+                  }
+                }
+              } else {
+                // Use the custom notification modal
+                handleOpenModal(`Cannot request more than the available quantity (${availableQuantity})`);
               }
+            } else {
+              console.error("Inventory item not found.");
             }
           }}
         />
       ),
-    },    
+    },
     {
       title: "Lab Room",
       dataIndex: "labRoom",
@@ -951,6 +980,12 @@ const Requisition = () => {
           room={room}
           reason={reason}
           requestList={mergedData}
+        />
+
+        <NotificationModal
+          isVisible={isModalVisible}
+          onClose={handleCloseModal}
+          message={modalMessage}
         />
 
         <SuccessModal isVisible={showModal} onClose={closeModal} />
