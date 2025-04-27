@@ -17,6 +17,7 @@ import "./styles/Login.css";
 
 import trybg2 from './try-bg.svg'
 import NotificationModal from "./customs/NotificationModal";
+import TermsModal from "./customs/TermsModal";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -32,8 +33,10 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false); 
+  const [isTermModalVisible, setIsTermModalVisible] = useState(false); 
   const [modalMessage, setModalMessage] = useState("");
   const [signUpMode, setSignUpMode] = useState(false);
+  const [termsChecked, setTermsChecked] = useState(false);
   const [signUpData, setSignUpData] = useState({
     name: "",
     email: "",
@@ -42,9 +45,12 @@ const Login = () => {
     jobTitle: "",
     department: "",
     confirmPassword: "",
+    termsAccepted: false,
   });
   const navigate = useNavigate();
 
+  const openTermsModal = () => setIsTermModalVisible(true);
+  const closeTermsModal = () => setIsTermModalVisible(false);
 
   const [animateInputs, setAnimateInputs] = useState(false);
 
@@ -343,6 +349,11 @@ const Login = () => {
     const { name, email, employeeId, password, confirmPassword, jobTitle, department } = signUpData;
     const auth = getAuth();
 
+    if (!termsChecked) {
+      setError("You must accept the terms and conditions before signing up.");
+      return;
+    }
+
     // Step 0: Validate employee ID format
     const employeeIdPattern = /^\d{2}-\d{4}$/;
     if (!employeeIdPattern.test(employeeId.trim())) {
@@ -503,257 +514,271 @@ const Login = () => {
   };  
 
   return (
-    <div className="login-container" >
+    <div className="login-container">
       <div className="login-box">
-        
         <div className="container2">
-        <div className="image-div">
-            <img src={trybg2} alt="This is the image"></img>
+          <div className="image-div">
+            <img src={trybg2} alt="This is the image" />
           </div>
-        
-
-        <div className="form-div">
-        <h2 className= {signUpMode ?  "create-account-title": "login-title" }>
-          {signUpMode ? "Create an Account" : isNewUser ? "Set Your Password" : "Login"}
-        </h2>
-        <form
-          className={signUpMode ? "form-wrapper slide-in": "form-wrapper slide-in2"}
-          onSubmit={(e) => {
-            e.preventDefault();
-            signUpMode
-              ? handleSignUp()
-              : isNewUser
-              ? handleRegisterPassword()
-              : checkUserAndLogin();
-          }}
-        >
-          {signUpMode ? (
-            <>
-              <div className="form-group">
-                <label>Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={signUpData.name}
-                  onChange={handleSignUpChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={signUpData.email}
-                  onChange={handleSignUpChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Employee ID</label>
-                {/* <input
-                  type="text"
-                  name="employeeId"
-                  value={signUpData.employeeId}
-                  onChange={handleSignUpChange}
-                  
-                /> */}
-                <input
-                  type="text"
-                  value={signUpData.employeeId}
-                  onChange={(e) => {
-                    const rawValue = e.target.value;
-                    // Allow only digits and dash, max length 7
-                    if (/^[0-9-]{0,7}$/.test(rawValue)) {
-                      setSignUpData({ ...signUpData, employeeId: rawValue });
-                    }
-                  }}
-                  placeholder="e.g., 12-3456"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Job Title</label>
-                <select
-                  name="jobTitle"
-                  value={signUpData.jobTitle}
-                  onChange={handleSignUpChange}
-                  required
-                >
-                  <option value="">Select Job Title</option>
-                  <option value="Faculty">Faculty</option>
-                  <option value="Dean">Dean</option>
-                  <option value="Laboratory Custodian">Laboratory Custodian</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Department</label>
-                <select
-                  name="department"
-                  value={signUpData.department}
-                  onChange={handleSignUpChange}
-                  required
-                >
-                  <option value="">Select Department</option>
-                  <option value="Medical Technology">Medical Technology</option>
-                  <option value="Nursing">Nursing</option>
-                  <option value="Dentistry">Dentistry</option>
-                  <option value="Pharmacy">Pharmacy</option>
-                  <option value="Optometry">Optometry</option>
-                </select>
-              </div>
-
-              <div className="form-group password-group">
-                <label>Password</label>
-                <div className="password-wrapper">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={signUpData.password}
-                    onChange={handleSignUpChange}
-                    required
-                  />
-                  <span
-                    className="toggle-password"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? "🔒" : "👁️"}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="form-group password-group">
-                <label>Confirm Password</label>
-                <div className="password-wrapper">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    value={signUpData.confirmPassword}
-                    onChange={handleSignUpChange}
-                    required
-                  />
-                  <span
-                    className="toggle-password"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? "🔒" : "👁️"}
-                  </span>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter your email"
-                />
-              </div>
-
-              <div className="form-group password-group">
-                <label>Password</label>
-                <div className="password-wrapper">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your password"
-                  />
-                  <span
-                    className="toggle-password"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? "🔒" : "👁️"}
-                  </span>
-
-                  {error && <p className="error-message" >{error}</p>}
-                </div>
-              </div>
-
-              {isNewUser && (
-                <div className="form-group password-group">
-                  <label>Confirm Password</label>
-                  <div className="password-wrapper">
+  
+          <div className="form-div">
+            <h2 className={signUpMode ? "create-account-title" : "login-title"}>
+              {signUpMode
+                ? "Create an Account"
+                : isNewUser
+                ? "Set Your Password"
+                : "Login"}
+            </h2>
+            <form
+              className={signUpMode ? "form-wrapper slide-in" : "form-wrapper slide-in2"}
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!termsChecked && signUpMode) {
+                  alert("You must agree to the terms and conditions.");
+                  return;
+                }
+                signUpMode
+                  ? handleSignUp()
+                  : isNewUser
+                  ? handleRegisterPassword()
+                  : checkUserAndLogin();
+              }}
+            >
+              {signUpMode ? (
+                <>
+                  <div className="form-group">
+                    <label>Name</label>
                     <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      type="text"
+                      name="name"
+                      value={signUpData.name}
+                      onChange={handleSignUpChange}
                       required
-                      placeholder="Confirm your password"
                     />
-                    <span
-                      className="toggle-password"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                    >
-                      {showConfirmPassword ? "🔒" : "👁️"}
-                    </span>
                   </div>
-                </div>
+  
+                  <div className="form-group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={signUpData.email}
+                      onChange={handleSignUpChange}
+                      required
+                    />
+                  </div>
+  
+                  <div className="form-group">
+                    <label>Employee ID</label>
+                    <input
+                      type="text"
+                      value={signUpData.employeeId}
+                      onChange={(e) => {
+                        const rawValue = e.target.value;
+                        if (/^[0-9-]{0,7}$/.test(rawValue)) {
+                          setSignUpData({ ...signUpData, employeeId: rawValue });
+                        }
+                      }}
+                      placeholder="e.g., 12-3456"
+                      required
+                    />
+                  </div>
+  
+                  <div className="form-group">
+                    <label>Job Title</label>
+                    <select
+                      name="jobTitle"
+                      value={signUpData.jobTitle}
+                      onChange={handleSignUpChange}
+                      required
+                    >
+                      <option value="">Select Job Title</option>
+                      <option value="Faculty">Faculty</option>
+                      <option value="Dean">Dean</option>
+                      <option value="Laboratory Custodian">Laboratory Custodian</option>
+                    </select>
+                  </div>
+  
+                  <div className="form-group">
+                    <label>Department</label>
+                    <select
+                      name="department"
+                      value={signUpData.department}
+                      onChange={handleSignUpChange}
+                      required
+                    >
+                      <option value="">Select Department</option>
+                      <option value="Medical Technology">Medical Technology</option>
+                      <option value="Nursing">Nursing</option>
+                      <option value="Dentistry">Dentistry</option>
+                      <option value="Pharmacy">Pharmacy</option>
+                      <option value="Optometry">Optometry</option>
+                    </select>
+                  </div>
+  
+                  <div className="form-group password-group">
+                    <label>Password</label>
+                    <div className="password-wrapper">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={signUpData.password}
+                        onChange={handleSignUpChange}
+                        required
+                      />
+                      <span
+                        className="toggle-password"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? "🔒" : "👁️"}
+                      </span>
+                    </div>
+                  </div>
+  
+                  <div className="form-group password-group">
+                    <label>Confirm Password</label>
+                    <div className="password-wrapper">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        name="confirmPassword"
+                        value={signUpData.confirmPassword}
+                        onChange={handleSignUpChange}
+                        required
+                      />
+                      <span
+                        className="toggle-password"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? "🔒" : "👁️"}
+                      </span>
+                    </div>
+                  </div>
+  
+                  {/* Terms and Conditions Checkbox */}
+                  <div className="form-group">
+                    <input
+                      type="checkbox"
+                      name="termsChecked"
+                      checked={termsChecked}
+                      onChange={() => setTermsChecked(!termsChecked)}
+                      required
+                    />
+                    <label>
+                      I agree to the{' '}
+                      <span onClick={openTermsModal} style={{ cursor: 'pointer', color: '#007bff' }}>
+                        Terms and Conditions
+                      </span>
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Login Fields */}
+                  <div className="form-group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      placeholder="Enter your email"
+                    />
+                  </div>
+  
+                  <div className="form-group password-group">
+                    <label>Password</label>
+                    <div className="password-wrapper">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        placeholder="Enter your password"
+                      />
+                      <span
+                        className="toggle-password"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? "🔒" : "👁️"}
+                      </span>
+  
+                      {error && <p className="error-message">{error}</p>}
+                    </div>
+                  </div>
+  
+                  {isNewUser && (
+                    <div className="form-group password-group">
+                      <label>Confirm Password</label>
+                      <div className="password-wrapper">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          name="confirmPassword"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                          placeholder="Confirm your password"
+                        />
+                        <span
+                          className="toggle-password"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        >
+                          {showConfirmPassword ? "🔒" : "👁️"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )}
-
-          <div></div>
-
-          <button type="submit" className= {signUpMode ? "signup-btn" : "login-btn"} disabled={isLoading}>
-            {isLoading ? (
-              <div className="loader"></div>
-            ) : signUpMode ? (
-              "Sign Up"
-            ) : isNewUser ? (
-              "Set Password"
-            ) : (
-              "Login"
-            )}
-          </button>
-        </form>
-
-        <div className= { signUpMode? "bottom-label-div2":"bottom-label-div"}>
-
-        {!signUpMode && !isNewUser && (
-          <p
-            className="forgot-password-link"
-            style={{marginTop: '20px', cursor: 'pointer'}}
-            onClick={() => setIsForgotPasswordModalVisible(true)}
-          >
-            Forgot Password?
-          </p>
-        )}
-
-        <p className="switch-mode" >
-          {signUpMode ? (
-            <>
-              Already have an account?{" "}
-              <span onClick={() => signUpAnimate()}>Login here</span>
-            </>
-          ) : (
-            <>
-              Don’t have an account?{" "}
-              <span onClick={() => signUpAnimate()}>Sign up here</span>
-            </>
-          )}
-        </p>
-        </div>
-
-
-        </div>
+  
+              <div></div>
+  
+              <button type="submit" className={signUpMode ? "signup-btn" : "login-btn"} disabled={isLoading}>
+                {isLoading ? (
+                  <div className="loader"></div>
+                ) : signUpMode ? (
+                  "Sign Up"
+                ) : isNewUser ? (
+                  "Set Password"
+                ) : (
+                  "Login"
+                )}
+              </button>
+            </form>
+  
+            <div className={signUpMode ? "bottom-label-div2" : "bottom-label-div"}>
+              {!signUpMode && !isNewUser && (
+                <p
+                  className="forgot-password-link"
+                  style={{ marginTop: '20px', cursor: 'pointer' }}
+                  onClick={() => setIsForgotPasswordModalVisible(true)}
+                >
+                  Forgot Password?
+                </p>
+              )}
+  
+              <p className="switch-mode">
+                {signUpMode ? (
+                  <>
+                    Already have an account?{" "}
+                    <span onClick={() => signUpAnimate()}>Login here</span>
+                  </>
+                ) : (
+                  <>
+                    Don’t have an account?{" "}
+                    <span onClick={() => signUpAnimate()}>Sign up here</span>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-
+  
+      {/* Forgot Password Modal */}
       {isForgotPasswordModalVisible && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -787,13 +812,16 @@ const Login = () => {
         </div>
       )}
 
+      <TermsModal isVisible={isTermModalVisible} onClose={closeTermsModal} />
+  
       <NotificationModal
         isVisible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
-        message={modalMessage} 
+        message={modalMessage}
       />
     </div>
   );
+  
 };
 
 export default Login;
