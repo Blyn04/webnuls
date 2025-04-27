@@ -230,6 +230,7 @@ const LayoutMain = () => {
     localStorage.removeItem("userName");
     localStorage.removeItem("userDepartment");
     localStorage.removeItem("userPosition");
+    localStorage.removeItem("userJobTitle");
 
     navigate("/", { replace: true });
   };

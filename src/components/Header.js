@@ -17,7 +17,7 @@ const AppHeader = ({ pageTitle, onToggleSidebar, isSidebarCollapsed }) => {
 
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
-    const storedJobTitle = localStorage.getItem("userPosition");
+    const storedJobTitle = localStorage.getItem("userJobTitle");
 
     if (storedName) setUserName(storedName);
     if (storedJobTitle) setJobTitle(storedJobTitle);

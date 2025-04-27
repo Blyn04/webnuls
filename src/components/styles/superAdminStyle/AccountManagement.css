@@ -90,3 +90,17 @@
 .account-table .ant-table-tbody > tr:hover > td {
   background-color: #e6f7ff; /* Light blue highlight */
 }
+
+.select-role {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-right: 10px;
+}
+
+.select-status {
+  margin: 10px;
+}
+
+.select-department {
+  margin: 10px;
+}

@@ -419,10 +419,10 @@ const AccountManagement = () => {
             />
 
             <Select
+              className="select-role"
               placeholder="Select Role"
-              value={roleFilter}
               onChange={(value) => setRoleFilter(value)}
-             allowClear
+              allowClear
             >
               <Option value="admin">Admin</Option>
               <Option value="super-user">super-user</Option>
@@ -430,8 +430,8 @@ const AccountManagement = () => {
             </Select>
 
             <Select
+             className="select-status"
               placeholder="Select Status"
-              value={statusFilter}
               onChange={(value) => setStatusFilter(value)}
               allowClear
             >
@@ -440,8 +440,8 @@ const AccountManagement = () => {
             </Select>
 
             <Select
+             className="select-department"
               placeholder="Select Department"
-              value={departmentFilter}
               onChange={(value) => setDepartmentFilter(value)}
               allowClear
             >

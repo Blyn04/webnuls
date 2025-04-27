@@ -175,6 +175,7 @@ const Login = () => {
           localStorage.setItem("userName", userName);
           localStorage.setItem("userDepartment", userData.department || "Admin");
           localStorage.setItem("userPosition", "super-admin");
+          localStorage.setItem("userJobTitle", userData.jobTitle || "User");
   
           navigate("/main/accounts", { state: { loginSuccess: true, role: "super-admin" } });
   
@@ -215,6 +216,7 @@ const Login = () => {
           localStorage.setItem("userDepartment", userData.department || "");
           // localStorage.setItem("userPosition", userData.role || "User");
           localStorage.setItem("userPosition", role);
+          localStorage.setItem("userJobTitle", userData.jobTitle || "User");
           console.log(localStorage.getItem("userPosition"));
 
           await addDoc(collection(db, `accounts/${userDoc.id}/activitylog`), {
@@ -304,6 +306,7 @@ const Login = () => {
         localStorage.setItem("userName", userName);
         localStorage.setItem("userDepartment", userData.department || "Unknown");
         localStorage.setItem("userPosition", userData.role || "User");
+        localStorage.setItem("userJobTitle", userData.jobTitle || "User");
   
         switch (normalizedRole) {
           case "super-admin":
