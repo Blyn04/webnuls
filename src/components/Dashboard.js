@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,  useLocation } from "react-router-dom";
 import { Layout, Card, Col, Row, Table, List } from "antd";
-import { useLocation } from "react-router-dom";
+import { db } from "../backend/firebase/FirebaseConfig"; 
+import { collectionGroup, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import SuccessModal from "./customs/SuccessModal";
 import CustomCalendar from "./customs/CustomCalendar";
 import "./styles/Dashboard.css";
@@ -12,6 +13,8 @@ const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
 
   const [topProducts, setTopProducts] = useState([
     { title: "Raspberry Pi", sold: 6, quantity: 10 },
@@ -34,6 +37,21 @@ const Dashboard = () => {
   ]);
 
   useEffect(() => {
+    const q = collectionGroup(db, "userrequests");
+
+    // Set up the real-time listener
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      setPendingRequestCount(querySnapshot.size);
+      
+    }, (error) => {
+      console.error("Error fetching pending requests:", error);
+    });
+
+    // Cleanup the listener on unmount
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (location.state?.loginSuccess) {
       sessionStorage.setItem("isLoggedIn", "true");
       setShowModal(true);
@@ -48,7 +66,7 @@ const Dashboard = () => {
   };
 
   const summaryCards = [
-    { title: "Users", count: 3, color: "#a0d911", icon: "👤" },
+    { title: "Pending Requests", count: pendingRequestCount, color: "#a0d911", icon: "📄" },
     { title: "Categories", count: 3, color: "#fa541c", icon: "📋" },
     { title: "Products", count: 7, color: "#13c2c2", icon: "🛒" },
     { title: "Sales", count: 15, color: "#faad14", icon: "💵" },
@@ -149,7 +167,7 @@ const Dashboard = () => {
           </Row>
 
           <Row style={{ marginTop: "20px" }}>
-            <Col >
+            <Col>
               <div className="calendar-wrapper">
                 <CustomCalendar />
               </div>
