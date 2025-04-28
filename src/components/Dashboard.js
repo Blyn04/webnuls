@@ -42,7 +42,7 @@ const Dashboard = () => {
     // Set up the real-time listener
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       setPendingRequestCount(querySnapshot.size);
-      
+
     }, (error) => {
       console.error("Error fetching pending requests:", error);
     });
@@ -100,11 +100,18 @@ const Dashboard = () => {
       <Layout>
         <Content className="content">
 
-          {/* Summary Cards */}
           <Row gutter={[16, 16]}>
             {summaryCards.map((card, index) => (
               <Col xs={24} sm={12} md={6} key={index}>
-                <Card className="summary-card" style={{ backgroundColor: card.color }}>
+                <Card
+                  className="summary-card"
+                  style={{ backgroundColor: card.color, cursor: card.title === "Pending Requests" ? "pointer" : "default" }}
+                  onClick={() => {
+                    if (card.title === "Pending Requests") {
+                      navigate("/main/pending-request"); // <-- your route to Pending Requests page
+                    }
+                  }}
+                >
                   <div className="summary-card-content">
                     <div className="summary-card-icon">{card.icon}</div>
                     <div>
