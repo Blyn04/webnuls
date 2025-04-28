@@ -11,10 +11,10 @@ const { Content } = Layout;
 
 const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
+  const [borrowCatalogCount, setBorrowCAtalogCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
-
-  const [pendingRequestCount, setPendingRequestCount] = useState(0);
 
   const [topProducts, setTopProducts] = useState([
     { title: "Raspberry Pi", sold: 6, quantity: 10 },
@@ -52,6 +52,41 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
+    const q = collectionGroup(db, "borrowcatalog");
+
+    // Set up the real-time listener
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      setBorrowCAtalogCount(querySnapshot.size);
+
+    }, (error) => {
+      console.error("Error fetching pending requests:", error);
+    });
+
+    // Cleanup the listener on unmount
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (location.state?.loginSuccess === true) {
+      setShowModal(true);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    const handleBackButton = (event) => {
+      event.preventDefault();
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handleBackButton);
+
+    return () => {
+      window.removeEventListener("popstate", handleBackButton);
+    };
+  }, []);
+
+  useEffect(() => {
     if (location.state?.loginSuccess) {
       sessionStorage.setItem("isLoggedIn", "true");
       setShowModal(true);
@@ -67,7 +102,7 @@ const Dashboard = () => {
 
   const summaryCards = [
     { title: "Pending Requests", count: pendingRequestCount, color: "#a0d911", icon: "📄" },
-    { title: "Categories", count: 3, color: "#fa541c", icon: "📋" },
+    { title: "Borrow Catalog", count: borrowCatalogCount, color: "#fa541c", icon: "📋" },
     { title: "Products", count: 7, color: "#13c2c2", icon: "🛒" },
     { title: "Sales", count: 15, color: "#faad14", icon: "💵" },
   ];
@@ -108,7 +143,11 @@ const Dashboard = () => {
                   style={{ backgroundColor: card.color, cursor: card.title === "Pending Requests" ? "pointer" : "default" }}
                   onClick={() => {
                     if (card.title === "Pending Requests") {
-                      navigate("/main/pending-request"); // <-- your route to Pending Requests page
+                      navigate("/main/pending-request"); 
+                    }
+
+                    if (card.title === "Borrow Catalog") {
+                      navigate("/main/borrow-catalog"); 
                     }
                   }}
                 >
