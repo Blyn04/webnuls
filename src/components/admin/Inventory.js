@@ -61,31 +61,66 @@ const Inventory = () => {
   const [searchText, setSearchText] = useState('');
   const db = getFirestore();
 
+  // useEffect(() => {
+  //   const fetchInventory = async () => {
+  //     try {
+  //       const snapshot = await getDocs(collection(db, "inventory"));
+  //       console.log(snapshot);
+  //       const items = snapshot.docs.map((doc, index) => {
+  //         const data = doc.data();
+  
+  //         const entryDate = data.entryDate ? data.entryDate : "N/A"; 
+  //         const expiryDate = data.expiryDate ? data.expiryDate : "N/A";
+        
+  
+  //         return {
+  //           id: index + 1,
+  //           itemId: data.itemId,
+  //           item: data.itemName,
+  //           entryDate,
+  //           expiryDate,
+  //           qrCode: data.qrCode,
+  //           ...data,
+  //         };
+  //       });
+  
+  //       setDataSource(items);  
+  //       setCount(items.length);
+  //     } catch (error) {
+  //       console.error("Error fetching inventory:", error);
+  //     }
+  //   };
+  
+  //   fetchInventory();
+  // }, []);  
+
   useEffect(() => {
     const fetchInventory = async () => {
       try {
         const snapshot = await getDocs(collection(db, "inventory"));
         console.log(snapshot);
-        const items = snapshot.docs.map((doc, index) => {
-          const data = doc.data();
+        const items = snapshot.docs
+          .map((doc, index) => {
+            const data = doc.data();
   
-          const entryDate = data.entryDate ? data.entryDate : "N/A"; 
-          const expiryDate = data.expiryDate ? data.expiryDate : "N/A";
-        
+            const entryDate = data.entryDate ? data.entryDate : "N/A"; 
+            const expiryDate = data.expiryDate ? data.expiryDate : "N/A";
   
-          return {
-            id: index + 1,
-            itemId: data.itemId,
-            item: data.itemName,
-            entryDate,
-            expiryDate,
-            qrCode: data.qrCode,
-            ...data,
-          };
-        });
+            return {
+              id: index + 1,
+              itemId: data.itemId,
+              item: data.itemName,
+              entryDate,
+              expiryDate,
+              qrCode: data.qrCode,
+              ...data,
+            };
+          })
+          .sort((a, b) => (a.item || "").localeCompare(b.item || ""));
   
         setDataSource(items);  
         setCount(items.length);
+        
       } catch (error) {
         console.error("Error fetching inventory:", error);
       }

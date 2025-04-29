@@ -556,6 +556,7 @@ const Login = () => {
                       name="name"
                       value={signUpData.name}
                       onChange={handleSignUpChange}
+                      placeholder="enter name"
                       required
                     />
                   </div>
@@ -567,6 +568,7 @@ const Login = () => {
                       name="email"
                       value={signUpData.email}
                       onChange={handleSignUpChange}
+                      placeholder="enter email (NU account)"
                       required
                     />
                   </div>
@@ -587,7 +589,8 @@ const Login = () => {
                     />
                   </div>
   
-                  <div className="form-group">
+                <div className="dropdown-container">
+                <div className="form-group">
                     <label>Job Title</label>
                     <select
                       name="jobTitle"
@@ -619,6 +622,8 @@ const Login = () => {
                     </select>
                   </div>
   
+                </div>
+                  
                   <div className="form-group password-group">
                     <label>Password</label>
                     <div className="password-wrapper">
@@ -626,6 +631,7 @@ const Login = () => {
                         type={showPassword ? "text" : "password"}
                         name="password"
                         value={signUpData.password}
+                        placeholder="create password"
                         onChange={handleSignUpChange}
                         required
                       />
@@ -645,6 +651,7 @@ const Login = () => {
                         type={showConfirmPassword ? "text" : "password"}
                         name="confirmPassword"
                         value={signUpData.confirmPassword}
+                        placeholder="re-enter password"
                         onChange={handleSignUpChange}
                         required
                       />
@@ -767,13 +774,13 @@ const Login = () => {
               <p className="switch-mode">
                 {signUpMode ? (
                   <>
-                    Already have an account?{" "}
-                    <span onClick={() => signUpAnimate()}>Login here</span>
+                    <label style={{marginTop: '10px'}}>Already have an account?{" "}
+                    <span onClick={() => signUpAnimate()} style={{color: '#0a3e75', fontWeight: '700', cursor: 'pointer'}}>Login here</span></label>
                   </>
                 ) : (
                   <>
                     Don’t have an account?{" "}
-                    <span onClick={() => signUpAnimate()}>Sign up here</span>
+                    <span onClick={() => signUpAnimate()} style={{color: '#0a3e75', fontWeight: '700', cursor: 'pointer'}}>Sign up here</span>
                   </>
                 )}
               </p>
