@@ -44,6 +44,7 @@ const HistoryLog = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLog, setSelectedLog] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [actionFilter, setActionFilter] = useState("ALL");
 
   // NOT REAL TIME
   // useEffect(() => {
@@ -159,12 +160,20 @@ const HistoryLog = () => {
     return () => unsubscribe();
   }, []);
 
-  const filteredData = activityData.filter(
-    (item) =>
+  const filteredData = activityData
+  .filter((item) => {
+    // Filter by action type
+    if (actionFilter !== "ALL" && item.action !== actionFilter) {
+      return false;
+    }
+    // Filter by search
+
+    return (
       item.date.includes(searchQuery) ||
       item.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.by.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    );
+  });
 
   const handleRowClick = (record) => {
     setSelectedLog(record.fullData);
@@ -181,13 +190,27 @@ const HistoryLog = () => {
             </Title>
           </div>
 
-          <Input
-            placeholder="Search"
-            prefix={<SearchOutlined />}
-            className="activity-search"
-            allowClear
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between" }}>
+            <Input
+              placeholder="Search"
+              prefix={<SearchOutlined />}
+              className="activity-search"
+              allowClear
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: "60%" }}
+            />
+
+            <select
+              value={actionFilter}
+              onChange={(e) => setActionFilter(e.target.value)}
+              style={{ width: 200, padding: "5px" }}
+            >
+              <option value="ALL">All</option>
+              <option value="Request Approved">Request Approved</option>
+              <option value="Request Rejected">Request Rejected</option>
+              <option value="Cancelled a request">Request Cancelled</option>
+            </select>
+          </div>
 
           <Table
             columns={columns}
