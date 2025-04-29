@@ -133,6 +133,21 @@ const CapexRequest = () => {
     let itemToLog;
   
     try {
+      // Check for duplicates (only if adding new item)
+      if (editingRow === null) {
+        const isDuplicate = dataSource.some(
+          (item) =>
+            item.itemDescription.trim().toLowerCase() ===
+            values.itemDescription.trim().toLowerCase()
+        );
+
+        if (isDuplicate) {
+          setNotificationMessage("Item already exists in the request list.");
+          setNotificationVisible(true); // Show the notification modal
+          return; // Stop further execution if duplicate found
+        }
+      }
+
       if (editingRow !== null) {
         // Updating an existing item
         const updatedItem = {
@@ -432,12 +447,12 @@ const CapexRequest = () => {
             pagination={false}
             bordered
             className="capex-table"
-            onRow={(record) => ({
-              onClick: () => {
-                setSelectedRowDetails(record);
-                setViewModalVisible(true);
-              },
-            })}
+            // onRow={(record) => ({
+            //   onClick: () => {
+            //     setSelectedRowDetails(record);
+            //     setViewModalVisible(true);
+            //   },
+            // })}
             
           />
 
@@ -555,6 +570,12 @@ const CapexRequest = () => {
           </div>
         )}
       </Modal>
+
+      <NotificationModal
+        isVisible={notificationVisible}
+        onClose={() => setNotificationVisible(false)}
+        message={notificationMessage}
+      />
       
       <FinalizeCapexModal
         visible={isFinalizeModalVisible}
