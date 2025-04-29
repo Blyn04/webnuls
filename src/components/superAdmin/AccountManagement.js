@@ -73,23 +73,30 @@ const AccountManagement = () => {
   }, [location.state, navigate]);
 
   useEffect(() => {
-    const accountsCollection = collection(db, 'accounts');
+    const accountsCollection = collection(db, "accounts");
   
-    const unsubscribe = onSnapshot(accountsCollection, (querySnapshot) => {
-      const accountList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+    const unsubscribe = onSnapshot(
+      accountsCollection,
+      (querySnapshot) => {
+        const accountList = querySnapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+          
+          .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   
-      setAccounts(accountList);
-      
-    }, (error) => {
-      console.error("Error fetching accounts in real-time: ", error);
-      message.error("Failed to load accounts.");
-    });
+        setAccounts(accountList);
+      },
+
+      (error) => {
+        console.error("Error fetching accounts in real-time: ", error);
+        message.error("Failed to load accounts.");
+      }
+    );
   
-    return () => unsubscribe(); // Clean up the listener on unmount
-  }, []);
+    return () => unsubscribe();
+  }, []);  
 
   useEffect(() => {
     fetchAdminCredentials();
