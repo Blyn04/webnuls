@@ -219,10 +219,10 @@ const RequestLog = () => {
             </Button>
 
             <Button
-              type={filterStatus === "Declined" ? "primary" : "default"}
-              onClick={() => setFilterStatus("Declined")}
+              type={filterStatus === "Rejected" ? "primary" : "default"}
+              onClick={() => setFilterStatus("Rejected")}
             >
-              Declined
+              Rejected
             </Button>
           </div>
 
