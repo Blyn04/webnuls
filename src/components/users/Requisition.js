@@ -619,7 +619,7 @@ const Requisition = () => {
           min={1}
           value={record.quantity}
           onChange={async (e) => {
-            const newQuantity = e.target.value;
+            const newQuantity = Number(e.target.value);
 
             // Fetch inventory details to validate the quantity
             const inventoryRef = collection(db, "inventory");
@@ -710,150 +710,155 @@ const Requisition = () => {
         <Content className="requisition-content">
 
           <div className="request-details">
+          
+          <div className="whole-section" >
+            <div className="left-section">
             <div className="date-time-container">
 
-            <div className="date-required">
-              <strong>Date Needed:</strong>
-              <DatePicker
-                value={dateRequired ? dayjs(dateRequired, "YYYY-MM-DD") : null}
-                onChange={(date, dateString) => setDateRequired(dateString)}
-                disabledDate={(current) => current && current < moment().startOf("day")}
-                style={{
-                  width: "100%",
-                  marginTop: "8px",
-                }}
-              />
-              {dateRequired && (
-                <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
-                  Selected Date: {dateRequired}
-                </p>
-              )}
-            </div>
-
-              <div className="time-required">
-                <strong>Time Needed:</strong>
-                <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
-                  <TimePicker
-                   value={timeFrom ? dayjs(timeFrom, "HH:mm") : null}
-                    placeholder="From"
-                    onChange={(time, timeString) => {
-                      setTimeFrom(timeString);
-                      setTimeTo(null);
-                    }}
-                    format="HH:mm"
-                    use12Hours={false}
-                    style={{ width: "50%" }}
-                  />
-
-                  <TimePicker
-                    value={timeTo ? dayjs(timeTo, "HH:mm") : null}
-                    placeholder="To"
-                    onChange={(time, timeString) => setTimeTo(timeString)}
-                    format="HH:mm"
-                    use12Hours={false}
-                    disabled={!timeFrom}
-                    style={{ width: "50%" }}
-                    disabledHours={() => {
-                      if (!timeFrom) return [];
-                      const [startHour] = timeFrom.split(":").map(Number);
-                      return Array.from({ length: startHour }, (_, i) => i);
-                    }}
-                    disabledMinutes={(selectedHour) => {
-                      if (!timeFrom) return [];
-                      const [startHour, startMinute] = timeFrom.split(":").map(Number);
-
-                      if (selectedHour === startHour) {
-                        return Array.from({ length: startMinute }, (_, i) => i);
-                      }
-                      return [];
+                <div className="date-required">
+                  <strong>Date Needed:</strong>
+                  <DatePicker
+                    value={dateRequired ? dayjs(dateRequired, "YYYY-MM-DD") : null}
+                    onChange={(date, dateString) => setDateRequired(dateString)}
+                    disabledDate={(current) => current && current < moment().startOf("day")}
+                    style={{
+                      width: "100%",
+                      marginTop: "8px",
                     }}
                   />
+                  {dateRequired && (
+                    <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
+                      Selected Date: {dateRequired}
+                    </p>
+                  )}
                 </div>
 
-                {timeFrom && timeTo && (
-                  <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
-                    Time Needed: From {timeFrom} To {timeTo}
-                  </p>
-                )}
-              </div>
-            </div>
-  
-            <div className="program-room-container">
-              <div className="program-container">
-                <strong>Program:</strong>
-                <select
-                  value={program}
-                  onChange={(e) => setProgram(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                    marginTop: "8px",
-                  }}
-                >
-                  <option value="">Select a Program</option>
-                  <option value="SAM - BSMT">SAM - BSMT</option>
-                  <option value="SAH - BSN">SAH - BSN</option>
-                  <option value="SHS">SHS</option>
-                </select>
-  
-                {programError && (
-                  <p style={{ color: "red", marginTop: "5px" }}>
-                    Please select a program before finalizing.
-                  </p>
-                )}
-              </div>
-  
-              <div className="room-container">
-                <strong>Room:</strong>
-                <Input
-                  type="number"
-                  value={room}
-                  onChange={(e) => setRoom(e.target.value)}
-                  placeholder="Enter room number"
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                    marginTop: "8px",
-                  }}
-                />
-                {roomError && (
-                  <p style={{ color: "red", marginTop: "5px" }}>
-                    Please enter the room before finalizing.
-                  </p>
-                )}
-              </div>
-            </div>
+                  <div className="time-required">
+                    <strong>Time Needed:</strong>
+                    <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+                      <TimePicker
+                      value={timeFrom ? dayjs(timeFrom, "HH:mm") : null}
+                        placeholder="From"
+                        onChange={(time, timeString) => {
+                          setTimeFrom(timeString);
+                          setTimeTo(null);
+                        }}
+                        format="HH:mm"
+                        use12Hours={false}
+                        style={{ width: "50%" }}
+                      />
 
-            <div className="usage-container">
-                <strong>Usage Type:</strong>
-                <select
-                  value={usageType}
-                  onChange={(e) => setUsageType(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                    marginTop: "8px",
-                  }}
-                >
-                      <option value="">Select a Usage Type</option>
-                      <option value="Laboratory Experiment">Laboratory Experiment</option>
-                      <option value="Research">Research</option>
-                      <option value="Community Extension">Community Extension</option>
-                      <option value="Others">Others</option>
-                </select>
-  
-                {usageError && (
-                  <p style={{ color: "red", marginTop: "5px" }}>
-                    Please select a usage type before finalizing.
-                  </p>
-                )}
-              </div>
+                      <TimePicker
+                        value={timeTo ? dayjs(timeTo, "HH:mm") : null}
+                        placeholder="To"
+                        onChange={(time, timeString) => setTimeTo(timeString)}
+                        format="HH:mm"
+                        use12Hours={false}
+                        disabled={!timeFrom}
+                        style={{ width: "50%" }}
+                        disabledHours={() => {
+                          if (!timeFrom) return [];
+                          const [startHour] = timeFrom.split(":").map(Number);
+                          return Array.from({ length: startHour }, (_, i) => i);
+                        }}
+                        disabledMinutes={(selectedHour) => {
+                          if (!timeFrom) return [];
+                          const [startHour, startMinute] = timeFrom.split(":").map(Number);
+
+                          if (selectedHour === startHour) {
+                            return Array.from({ length: startMinute }, (_, i) => i);
+                          }
+                          return [];
+                        }}
+                      />
+                    </div>
+
+                    {timeFrom && timeTo && (
+                      <p style={{ marginTop: "8px", fontWeight: "bold", color: "#f60" }}>
+                        Time Needed: From {timeFrom} To {timeTo}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="program-room-container">
+                  <div className="program-container">
+                    <strong>Program:</strong>
+                    <select
+                      value={program}
+                      onChange={(e) => setProgram(e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "8px",
+                        borderRadius: "4px",
+                        border: "1px solid #ccc",
+                        marginTop: "8px",
+                      }}
+                    >
+                      <option value="">Select a Program</option>
+                      <option value="SAM - BSMT">SAM - BSMT</option>
+                      <option value="SAH - BSN">SAH - BSN</option>
+                      <option value="SHS">SHS</option>
+                    </select>
+
+                    {programError && (
+                      <p style={{ color: "red", marginTop: "5px" }}>
+                        Please select a program before finalizing.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="room-container">
+                    <strong>Room:</strong>
+                    <Input
+                      type="number"
+                      value={room}
+                      onChange={(e) => setRoom(e.target.value)}
+                      placeholder="Enter room number"
+                      style={{
+                        width: "100%",
+                        padding: "8px",
+                        borderRadius: "4px",
+                        border: "1px solid #ccc",
+                        marginTop: "8px",
+                      }}
+                    />
+                    {roomError && (
+                      <p style={{ color: "red", marginTop: "5px" }}>
+                        Please enter the room before finalizing.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="usage-container">
+                    <strong>Usage Type:</strong>
+                    <select
+                      value={usageType}
+                      onChange={(e) => setUsageType(e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "8px",
+                        borderRadius: "4px",
+                        border: "1px solid #ccc",
+                        marginTop: "8px",
+                      }}
+                    >
+                          <option value="">Select a Usage Type</option>
+                          <option value="Laboratory Experiment">Laboratory Experiment</option>
+                          <option value="Research">Research</option>
+                          <option value="Community Extension">Community Extension</option>
+                          <option value="Others">Others</option>
+                    </select>
+
+                    {usageError && (
+                      <p style={{ color: "red", marginTop: "5px" }}>
+                        Please select a usage type before finalizing.
+                      </p>
+                    )}
+                  </div>
+            </div>
+            
   
             <div className="reason-container">
               <strong>Reason of Request:</strong>
@@ -863,6 +868,7 @@ const Requisition = () => {
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Enter reason for request"
               />
+            </div>
             </div>
 
             <div className="dropdowns" style={{ display: "flex", gap: "20px" }}>

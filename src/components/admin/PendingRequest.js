@@ -4,7 +4,7 @@ import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/PendingRequest.css";
 import { db } from "../../backend/firebase/FirebaseConfig"; 
-import { collection, getDocs, getDoc, doc, addDoc, query, where, deleteDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc, addDoc, query, where, deleteDoc, serverTimestamp, onSnapshot, updateDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import RequisitionRequestModal from "../customs/RequisitionRequestModal";
 import ApprovedRequestModal from "../customs/ApprovedRequestModal";
@@ -777,6 +777,44 @@ const PendingRequest = () => {
           }
         );
       }
+
+      console.log("Starting inventory update loop...");
+      for (const item of enrichedItems) {
+        console.log("Processing item:", item);
+      
+        const inventoryId = item.selectedItemId;
+        const requestedQty = Number(item.quantity);
+      
+        if (!inventoryId || isNaN(requestedQty) || requestedQty <= 0) {
+          console.warn(`⛔ Skipping invalid item: ID=${inventoryId}, quantity=${item.quantity}`);
+          continue;
+        }
+      
+        const inventoryRef = doc(db, "inventory", inventoryId);
+        console.log("📄 Inventory Ref created for ID:", inventoryId);
+      
+        try {
+          const inventorySnap = await getDoc(inventoryRef);
+          console.log("📥 Fetched inventory snapshot for:", inventoryId);
+      
+          if (inventorySnap.exists()) {
+            const currentQty = Number(inventorySnap.data().quantity || 0);
+            const newQty = Math.max(currentQty - requestedQty, 0);
+      
+            console.log(`🔁 Updating inventory for ${inventoryId}: ${currentQty} - ${requestedQty} = ${newQty}`);
+      
+            await updateDoc(inventoryRef, {
+              quantity: newQty,
+            });
+      
+            console.log(`✅ Successfully updated inventory for ${inventoryId}`);
+          } else {
+            console.error(`❌ Inventory item not found: ${inventoryId}`);
+          }
+        } catch (err) {
+          console.error(`🔥 Failed to update inventory for ${inventoryId}:`, err.message);
+        }
+      }      
   
       await addDoc(collection(db, "requestlog"), requestLogEntry);
   
@@ -893,7 +931,8 @@ const PendingRequest = () => {
       setIsNotificationVisible(true);
       return;
     }
-
+    
+    console.log("Filtered Items:", filteredItems);
     const enrichedItems = await Promise.all(
       filteredItems.map(async (item) => {
         const selectedItemId = item.selectedItemId || item.selectedItem?.value;
@@ -910,11 +949,14 @@ const PendingRequest = () => {
           }
         }
 
-        return {
+        const enriched = {
           ...item,
           selectedItemId,
-          itemType, 
+          itemType,
         };
+    
+        console.log("Enriched item:", enriched); // ✅ Individual log
+        return enriched;
       })
     );
 
@@ -928,6 +970,7 @@ const PendingRequest = () => {
     let rejectionReason = null;
 
     if (uncheckedItems.length > 0) {
+      console.log("Enriched Items before rejection modal:", enrichedItems); 
       setPendingApprovalData({
         enrichedItems,
         uncheckedItems,
@@ -1074,6 +1117,45 @@ const PendingRequest = () => {
       );
     }
 
+    console.log("Starting inventory update loop...");
+    for (const item of enrichedItems) {
+      console.log("Processing item:", item);
+    
+      const inventoryId = item.selectedItemId;
+      const requestedQty = Number(item.quantity);
+    
+      if (!inventoryId || isNaN(requestedQty) || requestedQty <= 0) {
+        console.warn(`⛔ Skipping invalid item: ID=${inventoryId}, quantity=${item.quantity}`);
+        continue;
+      }
+    
+      const inventoryRef = doc(db, "inventory", inventoryId);
+      console.log("📄 Inventory Ref created for ID:", inventoryId);
+    
+      try {
+        const inventorySnap = await getDoc(inventoryRef);
+        console.log("📥 Fetched inventory snapshot for:", inventoryId);
+    
+        if (inventorySnap.exists()) {
+          const currentQty = Number(inventorySnap.data().quantity || 0);
+          const newQty = Math.max(currentQty - requestedQty, 0);
+    
+          console.log(`🔁 Updating inventory for ${inventoryId}: ${currentQty} - ${requestedQty} = ${newQty}`);
+    
+          await updateDoc(inventoryRef, {
+            quantity: newQty,
+          });
+    
+          console.log(`✅ Successfully updated inventory for ${inventoryId}`);
+        } else {
+          console.error(`❌ Inventory item not found: ${inventoryId}`);
+        }
+      } catch (err) {
+        console.error(`🔥 Failed to update inventory for ${inventoryId}:`, err.message);
+      }
+    }
+    
+
     try {
       // Add to requestlog for approval
       await addDoc(collection(db, "requestlog"), requestLogEntry);
@@ -1082,45 +1164,6 @@ const PendingRequest = () => {
       if (rejectedItems.length > 0) {
         await addDoc(collection(db, "requestlog"), rejectLogEntry);
       }
-
-         // // Proceed with borrow catalog logic for approved items
-      // const fixedItems = enrichedItems.filter(item => item.itemType === "Fixed");
-      // if (fixedItems.length > 0) {
-      //   await Promise.all(
-      //     fixedItems.map(async (item) => {
-      //       const borrowCatalogEntry = {
-      //         accountId: selectedRequest.accountId || "N/A",
-      //         userName: selectedRequest.userName || "N/A",
-      //         room: selectedRequest.room || "N/A",
-      //         courseCode: selectedRequest.courseCode || "N/A",
-      //         courseDescription: selectedRequest.courseDescription || "N/A",
-      //         dateRequired: selectedRequest.dateRequired || "N/A",
-      //         timeFrom: selectedRequest.timeFrom || "N/A",  // Add timeFrom
-      //         timeTo: selectedRequest.timeTo || "N/A",  
-      //         timestamp: new Date(),
-      //         requestList: [item],  // Add only the selected "Fixed" item
-      //         status: "Borrowed",    // Status can be "Borrowed" instead of "Approved"
-      //         approvedBy: userName,
-      //         reason: selectedRequest.reason || "No reason provided",
-      //         program: selectedRequest.program,
-      //       };
-
-      //       // Add to userrequestlog subcollection for the requestor's account
-      //       const userRequestLogEntry = {
-      //         ...requestLogEntry,
-      //         status: "Approved", 
-      //         approvedBy: userName,
-      //         timestamp: new Date(), // You can choose to use the original timestamp or the current one
-      //       };
-
-      //       // Add to borrowcatalog collection
-      //       await addDoc(collection(db, "borrowcatalog"), borrowCatalogEntry);
-
-      //       // Add to the user's 'userrequestlog' subcollection
-      //       await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
-      //     })
-      //   );
-      // }
 
       // Proceed with borrow catalog logic for approved items
       // Filter to get all "Fixed" items
@@ -1179,46 +1222,45 @@ const PendingRequest = () => {
         await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
       }
 
-      await deleteDoc(doc(db, "userrequests", selectedRequest.id));
+        await deleteDoc(doc(db, "userrequests", selectedRequest.id));
 
-      // Cleanup the user requests subcollection
-      const subCollectionRef = collection(db, "accounts", selectedRequest.accountId, "userRequests");
-      const subDocsSnap = await getDocs(subCollectionRef);
+        // Cleanup the user requests subcollection
+        const subCollectionRef = collection(db, "accounts", selectedRequest.accountId, "userRequests");
+        const subDocsSnap = await getDocs(subCollectionRef);
 
-      subDocsSnap.forEach(async (docSnap) => {
-        const data = docSnap.data();
-        const match = (
-          data.timestamp?.seconds === selectedRequest.timestamp?.seconds &&
-          data.filteredMergedData?.[0]?.selectedItemId === selectedRequest.filteredMergedData?.[0]?.selectedItemId
-        );
+        subDocsSnap.forEach(async (docSnap) => {
+          const data = docSnap.data();
+          const match = (
+            data.timestamp?.seconds === selectedRequest.timestamp?.seconds &&
+            data.filteredMergedData?.[0]?.selectedItemId === selectedRequest.filteredMergedData?.[0]?.selectedItemId
+          );
 
-        if (match) {
-          console.log("✅ Deleting from subcollection:", docSnap.id);
-          await deleteDoc(doc(db, "accounts", selectedRequest.accountId, "userRequests", docSnap.id));
-        }
-      });
+          if (match) {
+            console.log("✅ Deleting from subcollection:", docSnap.id);
+            await deleteDoc(doc(db, "accounts", selectedRequest.accountId, "userRequests", docSnap.id));
+          }
+        });
 
-      setApprovedRequests([...approvedRequests, requestLogEntry]);
-      setRequests(requests.filter((req) => req.id !== selectedRequest.id));
-      setCheckedItems({});
-      setIsModalVisible(false);
-      setSelectedRequest(null);
+        setApprovedRequests([...approvedRequests, requestLogEntry]);
+        setRequests(requests.filter((req) => req.id !== selectedRequest.id));
+        setCheckedItems({});
+        setIsModalVisible(false);
+        setSelectedRequest(null);
 
-      notification.success({
-        message: "Request Approved",
-        description: "Request has been approved and logged.",
-      });
+        notification.success({
+          message: "Request Approved",
+          description: "Request has been approved and logged.",
+        });
 
-    } catch (error) {
-      console.error("Error adding to requestlog:", error);
-      notification.error({
-        message: "Approval Failed",
-        description: "There was an error logging the approved request.",
-      });
+      } catch (error) {
+        console.error("Error adding to requestlog:", error);
+        notification.error({
+          message: "Approval Failed",
+          description: "There was an error logging the approved request.",
+        });
+      }
     }
-  }
-};
-
+  };
 
   const handleReject = () => {
     // Open the rejection reason modal
