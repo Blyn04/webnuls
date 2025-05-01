@@ -1,7 +1,8 @@
 import React from "react";
 import { Modal, Row, Col, Typography, Table, Button } from "antd";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, collection, addDoc, serverTimestamp, query, where, getDoc, getDocs  } from "firebase/firestore";
 import { db } from "../../backend/firebase/FirebaseConfig"; 
+import { getAuth } from "firebase/auth";
 const { Text, Title } = Typography;
 
 const ApprovedRequestModal = ({
@@ -51,17 +52,73 @@ const ApprovedRequestModal = ({
         return;
       }
   
+      // Get current authenticated user
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      const userEmail = currentUser?.email;
+  
+      let approverName = "Unknown";
+      if (userEmail) {
+        const userQuery = query(collection(db, "accounts"), where("email", "==", userEmail));
+        const userSnapshot = await getDocs(userQuery);
+        
+        if (!userSnapshot.empty) {
+          approverName = userSnapshot.docs[0].data().name || "Unknown";
+        }
+      }
+  
+      // ✅ Loop through each returned item and update inventory quantity
+      for (const item of selectedApprovedRequest.requestList || []) {
+        const inventoryId = item.selectedItemId || item.selectedItem?.value;
+        const returnedQty = Number(item.quantity);
+  
+        if (inventoryId && !isNaN(returnedQty)) {
+          const inventoryDocRef = doc(db, "inventory", inventoryId);
+          const inventoryDocSnap = await getDoc(inventoryDocRef);
+  
+          if (inventoryDocSnap.exists()) {
+            const currentQty = inventoryDocSnap.data().quantity || 0;
+            await updateDoc(inventoryDocRef, {
+              quantity: currentQty + returnedQty,
+            });
+
+          } else {
+            console.warn(`Inventory item not found for ID: ${inventoryId}`);
+          }
+        }
+      }
+  
+      // ✅ Update borrowcatalog status
       const borrowDocRef = doc(db, "borrowcatalog", requisitionId);
       await updateDoc(borrowDocRef, { status: "Approved" });
   
-      console.log("Request approved successfully.");
+      // ✅ Log request in requestlog
+      const requestLogRef = collection(db, "requestlog");
+      await addDoc(requestLogRef, {
+        requisitionId,
+        userName: selectedApprovedRequest.userName || "N/A",
+        timestamp: serverTimestamp(),
+        dateRequired: selectedApprovedRequest.dateRequired || "N/A",
+        timeFrom: selectedApprovedRequest.timeFrom || "N/A",
+        timeTo: selectedApprovedRequest.timeTo || "N/A",
+        reason: selectedApprovedRequest.reason || "N/A",
+        room: selectedApprovedRequest.room || "N/A",
+        courseCode: selectedApprovedRequest.courseCode || "N/A",
+        courseDescription: selectedApprovedRequest.courseDescription || "N/A",
+        program: selectedApprovedRequest.program || "N/A",
+        status: "Returned",
+        requestList: selectedApprovedRequest.requestList || [],
+        approvedBy: approverName,
+      });
+  
+      console.log("Return approved and inventory updated.");
       setIsApprovedModalVisible(false);
       setSelectedApprovedRequest(null);
-
+  
     } catch (error) {
-      console.error("Error approving request:", error);
+      console.error("Error approving return and updating inventory:", error);
     }
-  };
+  };  
 
   return (
     <Modal

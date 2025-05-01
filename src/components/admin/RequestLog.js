@@ -162,7 +162,11 @@ const RequestLog = () => {
       render: (text, record) => {
         // Conditionally render approvedBy or rejectedBy based on status
         return (
-          <Text>{record.status === "Approved" ? record.approvedBy : record.rejectedBy}</Text>
+          <Text>
+            {record.status === "Approved" || record.status === "Returned"
+              ? record.approvedBy
+              : record.rejectedBy}
+          </Text>
         );
       }
     },
@@ -223,6 +227,13 @@ const RequestLog = () => {
               onClick={() => setFilterStatus("Rejected")}
             >
               Rejected
+            </Button>
+
+            <Button
+              type={filterStatus === "Returned" ? "primary" : "default"}
+              onClick={() => setFilterStatus("Returned")}
+            >
+              Returned
             </Button>
           </div>
 
@@ -319,13 +330,13 @@ const RequestLog = () => {
 
                   <br />
                   
-                  {selectedRequest.raw?.status === 'Approved' && (
+                  {["Approved", "Returned"].includes(selectedRequest.raw?.status) && (
                     <>
                       <Text strong>Approved By:</Text> {selectedRequest.raw?.approvedBy}
                     </>
                   )}
 
-                  {selectedRequest.raw?.status === 'Rejected' && (
+                  {selectedRequest.raw?.status === "Rejected" && (
                     <>
                       <Text strong>Rejected By:</Text> {selectedRequest.raw?.rejectedBy}
                     </>
