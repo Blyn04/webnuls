@@ -30,7 +30,31 @@ const ReturnItems = () => {
 
         const logs = querySnapshot.docs.map((doc) => {
           const data = doc.data();
-          const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "N/A";
+          const rawTimestamp = data.rawTimestamp;
+          const timestamp = data.timestamp;
+
+          let parsedRawTimestamp = "N/A";
+          let parsedTimestamp = "N/A";
+
+          if (rawTimestamp && typeof rawTimestamp.toDate === "function") {
+            try {
+              parsedRawTimestamp = rawTimestamp.toDate().toLocaleString("en-PH", {
+                timeZone: "Asia/Manila",
+              });
+            } catch (e) {
+              console.warn(`Error formatting rawTimestamp for doc ${doc.id}:`, e);
+            }
+          }
+
+          if (timestamp && typeof timestamp.toDate === "function") {
+            try {
+              parsedTimestamp = timestamp.toDate().toLocaleString("en-PH", {
+                timeZone: "Asia/Manila",
+              });
+            } catch (e) {
+              console.warn(`Error formatting timestamp for doc ${doc.id}:`, e);
+            }
+          }
 
           return {
             id: doc.id,
@@ -43,10 +67,19 @@ const ReturnItems = () => {
             requisitionId: doc.id,
             reason: data.reason ?? "No reason provided",
             department: data.requestList?.[0]?.department ?? "N/A",
-            approvedBy: data.approvedBy,
-            timestamp: timestamp,
+            approvedBy: data.approvedBy ?? "N/A",
+            rawTimestamp: rawTimestamp ?? null,
+            processDate: parsedRawTimestamp, // Table: Process Date
+            timestamp: parsedTimestamp, // Modal: Requested Date
             raw: data,
           };
+        });
+
+        // Sort by rawTimestamp (Process Date)
+        logs.sort((a, b) => {
+          const timeA = a.rawTimestamp?.toMillis?.() ?? 0;
+          const timeB = b.rawTimestamp?.toMillis?.() ?? 0;
+          return timeB - timeA;
         });
 
         setHistoryData(logs);
@@ -61,20 +94,15 @@ const ReturnItems = () => {
   const columns = [
     {
       title: "Process Date",
-      dataIndex: "timestamp",
-      key: "timestamp",
+      dataIndex: "processDate",
+      key: "processDate",
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
       render: (status) => (
-        <Text
-          style={{
-            color: status === "Approved" ? "green" : "red",
-            fontWeight: "bold",
-          }}
-        >
+        <Text style={{ color: status === "Approved" ? "green" : "red", fontWeight: "bold" }}>
           {status}
         </Text>
       ),
@@ -93,11 +121,7 @@ const ReturnItems = () => {
       title: "",
       key: "action",
       render: (_, record) => (
-        <a
-          href="#"
-          className="view-details"
-          onClick={() => handleViewDetails(record)}
-        >
+        <a href="#" className="view-details" onClick={() => handleViewDetails(record)}>
           View Details
         </a>
       ),
@@ -140,7 +164,7 @@ const ReturnItems = () => {
   const handleReturn = () => {
     console.log("Returned Items:", returnQuantities);
     console.log("Item Conditions:", itemConditions);
-    // You can implement Firestore update logic here to save the returned items and conditions
+    // TODO: Implement Firestore logic to save returned items and conditions
   };
 
   const filteredData =
@@ -254,50 +278,41 @@ const ReturnItems = () => {
                   {
                     title: "Return Quantity",
                     key: "returnQty",
-                    render: (_, record) => {
-                      const inventoryItem = inventoryData[record.itemId];
-                      if (inventoryItem) {
-                        return (
-                          <input
-                            type="number"
-                            min={1}
-                            max={record.quantity}
-                            value={returnQuantities[record.itemId] || ""}
-                            onChange={(e) =>
-                              setReturnQuantities((prev) => ({
-                                ...prev,
-                                [record.itemId]: e.target.value,
-                              }))
-                            }
-                            style={{ width: "80px" }}
-                          />
-                        );
-                      } else {
-                        return <span style={{ color: "red" }}>Item not found</span>;
-                      }
-                    },
+                    render: (_, record) => (
+                      <input
+                        type="number"
+                        min={1}
+                        max={record.quantity}
+                        value={returnQuantities[record.itemId] || ""}
+                        onChange={(e) =>
+                          setReturnQuantities((prev) => ({
+                            ...prev,
+                            [record.itemId]: e.target.value,
+                          }))
+                        }
+                        style={{ width: "80px" }}
+                      />
+                    ),
                   },
                   {
                     title: "Condition",
                     key: "condition",
-                    render: (_, record) => {
-                      return (
-                        <Select
-                          value={itemConditions[record.itemId] || "Good"}
-                          onChange={(value) =>
-                            setItemConditions((prev) => ({
-                              ...prev,
-                              [record.itemId]: value,
-                            }))
-                          }
-                          style={{ width: 120 }}
-                        >
-                          <Option value="Good">Good</Option>
-                          <Option value="Damaged">Damaged</Option>
-                          <Option value="Needs Repair">Needs Repair</Option>
-                        </Select>
-                      );
-                    },
+                    render: (_, record) => (
+                      <Select
+                        value={itemConditions[record.itemId] || "Good"}
+                        onChange={(value) =>
+                          setItemConditions((prev) => ({
+                            ...prev,
+                            [record.itemId]: value,
+                          }))
+                        }
+                        style={{ width: 120 }}
+                      >
+                        <Option value="Good">Good</Option>
+                        <Option value="Damaged">Damaged</Option>
+                        <Option value="Needs Repair">Needs Repair</Option>
+                      </Select>
+                    ),
                   },
                 ]}
                 pagination={{ pageSize: 10 }}

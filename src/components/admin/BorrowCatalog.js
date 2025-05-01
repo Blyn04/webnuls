@@ -281,7 +281,7 @@ const BorrowCatalog = () => {
             columns={columns}
             rowKey="id"
             bordered
-            pagination={{ pageSize: 5 }}
+            pagination={{ pageSize: 10 }}
           />
 
           <ApprovedRequestModal
