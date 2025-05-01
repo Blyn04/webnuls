@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal, Row, Col, Typography, Table, Button } from "antd";
-
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../../backend/firebase/FirebaseConfig"; 
 const { Text, Title } = Typography;
 
 const ApprovedRequestModal = ({
@@ -42,9 +43,24 @@ const ApprovedRequestModal = ({
     },
   ];
 
-  const handleApprove = () => {
-    console.log("Approve clicked for ID:", selectedApprovedRequest?.id);
-    // Your approval logic goes here
+  const handleApprove = async () => {
+    try {
+      const requisitionId = selectedApprovedRequest?.id;
+      if (!requisitionId) {
+        console.error("Missing requisition ID");
+        return;
+      }
+  
+      const borrowDocRef = doc(db, "borrowcatalog", requisitionId);
+      await updateDoc(borrowDocRef, { status: "Approved" });
+  
+      console.log("Request approved successfully.");
+      setIsApprovedModalVisible(false);
+      setSelectedApprovedRequest(null);
+
+    } catch (error) {
+      console.error("Error approving request:", error);
+    }
   };
 
   return (
@@ -64,7 +80,7 @@ const ApprovedRequestModal = ({
       }}
       width={800}
       footer={
-        selectedApprovedRequest?.status === "returned" ? (
+        selectedApprovedRequest?.status === "Returned" ? (
           <Button type="primary" onClick={handleApprove}>
             Approve
           </Button>
