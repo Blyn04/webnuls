@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Row, Col, Typography, Table } from "antd";
+import { Modal, Row, Col, Typography, Table, Button } from "antd";
 
 const { Text, Title } = Typography;
 
@@ -17,7 +17,7 @@ const ApprovedRequestModal = ({
   if (selectedApprovedRequest) {
     console.log("Raw timestamp value:", selectedApprovedRequest.timestamp);
   }
-  
+
   // Define your own columns for the modal
   const approvedRequestColumns = [
     {
@@ -40,17 +40,12 @@ const ApprovedRequestModal = ({
       dataIndex: "condition",
       key: "condition",
     },
-    {
-      title: "Item Type",
-      dataIndex: "itemType",
-      key: "itemType",
-    },
-    {
-      title: "Usage Type",
-      dataIndex: "usageType",
-      key: "usageType",
-    },
   ];
+
+  const handleApprove = () => {
+    console.log("Approve clicked for ID:", selectedApprovedRequest?.id);
+    // Your approval logic goes here
+  };
 
   return (
     <Modal
@@ -68,7 +63,13 @@ const ApprovedRequestModal = ({
         setSelectedApprovedRequest(null);
       }}
       width={800}
-      footer={null}
+      footer={
+        selectedApprovedRequest?.status === "returned" ? (
+          <Button type="primary" onClick={handleApprove}>
+            Approve
+          </Button>
+        ) : null
+      }
     >
       {selectedApprovedRequest && (
         <div style={{ padding: "20px" }}>
@@ -76,10 +77,10 @@ const ApprovedRequestModal = ({
             <Col span={12}>
               <Text strong>Name:</Text> {selectedApprovedRequest.userName || "N/A"}<br />
               <Text strong>Request Date:</Text>{" "}
-                {selectedApprovedRequest?.timestamp
-                  ? formatDate(selectedApprovedRequest.timestamp)
-                  : "N/A"}
-                <br />
+              {selectedApprovedRequest?.timestamp
+                ? formatDate(selectedApprovedRequest.timestamp)
+                : "N/A"}
+              <br />
               <Text strong>Required Date:</Text> {selectedApprovedRequest.dateRequired || "N/A"}<br />
               <Text strong>Time Needed:</Text> {selectedApprovedRequest.timeFrom || "N/A"} - {selectedApprovedRequest.timeTo || "N/A"}
             </Col>

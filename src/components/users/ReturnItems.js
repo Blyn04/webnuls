@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Layout, Table, Button, Modal, Typography, Row, Col, Select } from "antd";
 import { db } from "../../backend/firebase/FirebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, updateDoc, getDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/RequestLog.css";
@@ -161,12 +161,90 @@ const ReturnItems = () => {
     setInventoryData({});
   };
 
-  const handleReturn = () => {
-    console.log("Returned Items:", returnQuantities);
-    console.log("Item Conditions:", itemConditions);
-    // TODO: Implement Firestore logic to save returned items and conditions
-  };
+  const handleReturn = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId || !selectedRequest) {
+        console.error("Missing user ID or request data");
+        return;
+      }
+  
+      const timestamp = serverTimestamp();
+      const currentDateString = new Date().toISOString();
+  
+      const fullReturnData = {
+        accountId: userId,
+        approvedBy: selectedRequest.raw?.approvedBy || "N/A",
+        courseCode: selectedRequest.raw?.courseCode || "N/A",
+        courseDescription: selectedRequest.raw?.courseDescription || "N/A",
+        dateRequired: selectedRequest.raw?.dateRequired || "N/A",
+        program: selectedRequest.raw?.program || "N/A",
+        reason: selectedRequest.raw?.reason || "No reason provided",
+        room: selectedRequest.raw?.room || "N/A",
+        timeFrom: selectedRequest.raw?.timeFrom || "N/A",
+        timeTo: selectedRequest.raw?.timeTo || "N/A",
+        timestamp: timestamp,
+        userName: selectedRequest.raw?.userName || "N/A",
+        requisitionId: selectedRequest.requisitionId,
+        status: "Returned",
+        requestList: (selectedRequest.raw?.requestList || [])
+          .map((item) => {
+            const returnQty = Number(returnQuantities[item.itemIdFromInventory] || 0);
+            if (returnQty <= 0) return null;
+  
+            return {
+              ...item,
+              returnedQuantity: returnQty,
+              condition: itemConditions[item.itemIdFromInventory] || item.condition || "Good",
+              status: "Returned",
+              dateReturned: currentDateString,
+            };
+          })
+          .filter(Boolean),
+      };
+  
+      // Save to returnedItems and userreturneditems
+      const returnedRef = doc(collection(db, "returnedItems"));
+      const userReturnedRef = doc(collection(db, `accounts/${userId}/userreturneditems`));
+      await setDoc(returnedRef, fullReturnData);
+      await setDoc(userReturnedRef, fullReturnData);
+  
+      // Update full data in original borrowcatalog
+      const borrowDocRef = doc(db, "borrowcatalog", selectedRequest.requisitionId);
+      await setDoc(borrowDocRef, fullReturnData, { merge: true });
+  
+      // 🗑️ Delete from userrequestlog
+      const userRequestLogRef = doc(
+        db,
+        `accounts/${userId}/userrequestlog/${selectedRequest.requisitionId}`
+      );
+      await deleteDoc(userRequestLogRef);
 
+  
+      // 📝 Add to history log
+      const historyRef = doc(collection(db, `accounts/${userId}/historylog`));
+      await setDoc(historyRef, {
+        ...fullReturnData,
+        action: "Returned",
+        date: currentDateString,
+      });
+
+      // 📝 Add to history log
+      const activityRef = doc(collection(db, `accounts/${userId}/activitylog`));
+      await setDoc(activityRef, {
+        ...fullReturnData,
+        action: "Returned",
+        date: currentDateString,
+      });
+  
+      console.log("Returned items processed, removed from userRequests, added to history log.");
+      closeModal();
+  
+    } catch (error) {
+      console.error("Error saving returned item details:", error);
+    }
+  };  
+  
   const filteredData =
     filterStatus === "All"
       ? historyData
@@ -278,22 +356,32 @@ const ReturnItems = () => {
                   {
                     title: "Return Quantity",
                     key: "returnQty",
-                    render: (_, record) => (
-                      <input
-                        type="number"
-                        min={1}
-                        max={record.quantity}
-                        value={returnQuantities[record.itemId] || ""}
-                        onChange={(e) =>
-                          setReturnQuantities((prev) => ({
-                            ...prev,
-                            [record.itemId]: e.target.value,
-                          }))
-                        }
-                        style={{ width: "80px" }}
-                      />
-                    ),
-                  },
+                    render: (_, record) => {
+                      const currentQty = returnQuantities[record.itemId] || "";
+                  
+                      const handleChange = (e) => {
+                        let input = Number(e.target.value);
+                        if (input > record.quantity) input = record.quantity; // prevent excess
+                        if (input < 1) input = 1; // enforce min
+                  
+                        setReturnQuantities((prev) => ({
+                          ...prev,
+                          [record.itemId]: input,
+                        }));
+                      };
+                  
+                      return (
+                        <input
+                          type="number"
+                          min={1}
+                          max={record.quantity}
+                          value={currentQty}
+                          onChange={handleChange}
+                          style={{ width: "80px" }}
+                        />
+                      );
+                    },
+                  },                  
                   {
                     title: "Condition",
                     key: "condition",
