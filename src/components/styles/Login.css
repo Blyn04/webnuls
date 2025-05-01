@@ -494,3 +494,15 @@ h3 {
   font-size: 14px;
   padding-left: 5px;
 }
+
+.signup-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.signup-btn:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
