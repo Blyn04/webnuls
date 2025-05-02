@@ -7,6 +7,7 @@ import SuccessModal from "./customs/SuccessModal";
 import CustomCalendar from "./customs/CustomCalendar";
 import "./styles/Dashboard.css";
 
+
 const { Content } = Layout;
 
 const Dashboard = () => {
@@ -15,6 +16,7 @@ const Dashboard = () => {
   const [borrowCatalogCount, setBorrowCAtalogCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
+
 
   const [topProducts, setTopProducts] = useState([
     { title: "Raspberry Pi", sold: 6, quantity: 10 },
@@ -130,6 +132,7 @@ const Dashboard = () => {
     },
   ];
 
+  
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Layout>
@@ -153,9 +156,9 @@ const Dashboard = () => {
                 >
                   <div className="summary-card-content">
                     <div className="summary-card-icon">{card.icon}</div>
-                    <div>
-                      <h3>{card.count}</h3>
-                      <p>{card.title}</p>
+                    <div className="card-content-layout">
+                      <h3 className="card-count">{card.count}</h3>
+                      <p className="card-title">{card.title}</p>
                     </div>
                   </div>
                 </Card>

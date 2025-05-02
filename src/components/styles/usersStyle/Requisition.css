@@ -74,14 +74,13 @@
   background-color: #D70000;
   font-weight: 500;
   border-width: 1px ;
-  border-color: gray;  
+  border-color: #D70000;  
 
 }
 
 .finalize-modal .ant-modal-footer button:nth-child(2):hover{
   background-color: #ffa2a2;
   border-width: 1px ;
-  border-color: gray;  
 }
 
 .finalize-modal .ant-modal-footer button:nth-child(1):hover{

@@ -12,6 +12,8 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  height: auto;
+  /* max-height: 150px; */
 }
 
 .ant-card-head {
@@ -19,6 +21,25 @@
   background-color: #f9f9f9 !important;
   border-bottom: 1px solid #f0f0f0;
 }
+
+.card-content-layout{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.card-count{
+  color: white;
+  font-weight: 700;
+  font-size: 45px;
+  margin-bottom: 0px;
+}
+
+.card-title{
+  margin-top: 0px ;
+  font-size: 20px;
+}
+
 
 .ant-tooltip {
   z-index: 2050 !important;
