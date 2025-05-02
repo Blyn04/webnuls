@@ -72,8 +72,31 @@ const RequestLog = () => {
             const data = doc.data();
             const timeFrom = data.timeFrom || "N/A";  
             const timeTo = data.timeTo || "N/A";    
+            const rawTimestamp = data.rawTimestamp;
+            const timestamp = data.timestamp;
 
-            const timestamp = data.timestamp ? formatTimestamp(data.timestamp) : "N/A";
+            let parsedRawTimestamp = "N/A";
+            let parsedTimestamp = "N/A";
+  
+            if (rawTimestamp && typeof rawTimestamp.toDate === "function") {
+              try {
+                parsedRawTimestamp = rawTimestamp.toDate().toLocaleString("en-PH", {
+                  timeZone: "Asia/Manila",
+                });
+              } catch (e) {
+                console.warn(`Error formatting rawTimestamp for doc ${doc.id}:`, e);
+              }
+            }
+  
+            if (timestamp && typeof timestamp.toDate === "function") {
+              try {
+                parsedTimestamp = timestamp.toDate().toLocaleString("en-PH", {
+                  timeZone: "Asia/Manila",
+                });
+              } catch (e) {
+                console.warn(`Error formatting timestamp for doc ${doc.id}:`, e);
+              }
+            }
             
             return {
               id: doc.id,
@@ -88,19 +111,23 @@ const RequestLog = () => {
               department: data.requestList?.[0]?.department ?? "N/A",
               approvedBy: data.approvedBy,
               rejectedBy: data.rejectedBy, // Include rejectedBy field
-              timestamp: timestamp,
+              rawTimestamp: rawTimestamp ?? null,
+              processDate: parsedRawTimestamp, 
+              timestamp: parsedTimestamp,
               raw: data,
-              timeFrom,  // Use timeFrom from root
-              timeTo,    // Use timeTo from root
+              timeFrom, 
+              timeTo,  
             };
           });
 
           // Sort logs by timestamp, with the most recent first
-          const sortedLogs = logs.sort((a, b) => {
-            return new Date(b.timestamp) - new Date(a.timestamp);
+          logs.sort((a, b) => {
+            const timeA = a.rawTimestamp?.toMillis?.() ?? 0;
+            const timeB = b.rawTimestamp?.toMillis?.() ?? 0;
+            return timeB - timeA;
           });
   
-          setHistoryData(sortedLogs);
+          setHistoryData(logs);
         });
 
         // Cleanup listener when component unmounts
@@ -133,8 +160,8 @@ const RequestLog = () => {
   const columns = [
     {
       title: "Process Date",
-      dataIndex: "timestamp",
-      key: "timestamp",
+      dataIndex: "processDate",
+      key: "processDate",
     },
     {
       title: "Status",

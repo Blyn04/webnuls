@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Row, Col, Card, Button, Typography, Space, Modal, Table, notification, Input } from "antd";
+import { Layout, Row, Col, Card, Button, Typography, Space, Modal, Table, notification, Input, Select } from "antd";
 import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/PendingRequest.css";
@@ -11,6 +11,7 @@ import ApprovedRequestModal from "../customs/ApprovedRequestModal";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
+const { Option } = Select;
 
 const PendingRequest = () => {
   const [pageTitle, setPageTitle] = useState("");
@@ -28,6 +29,8 @@ const PendingRequest = () => {
   const [uncheckedItems, setUncheckedItems] = useState([]);
   const [rejectionReason, setRejectionReason] = useState('');
   const [pendingApprovalData, setPendingApprovalData] = useState(null); 
+  const [isMultiRejectModalVisible, setIsMultiRejectModalVisible] = useState(false);
+  const [rejectionReasons, setRejectionReasons] = useState({});
 
   // useEffect(() => {
   //   const fetchUserRequests = async () => {
@@ -629,7 +632,7 @@ const PendingRequest = () => {
   //   }
   // };
 
-  const handleRejectConfirm = async () => {
+  const handleMultiRejectConfirm = async () => {
     if (!rejectionReason.trim()) {
       notification.error({
         message: "Reason Required",
@@ -638,7 +641,298 @@ const PendingRequest = () => {
       return;
     }
   
-    setIsRejectModalVisible(false);
+    setIsMultiRejectModalVisible(false);
+  
+    const { enrichedItems, uncheckedItems, selectedRequest } = pendingApprovalData;
+  
+    try {
+      const rejectedItems = await Promise.all(
+        uncheckedItems.map(async (item) => {
+          const selectedItemId = item.selectedItemId || item.selectedItem?.value;
+          let itemType = "Unknown";
+  
+          if (selectedItemId) {
+            try {
+              const inventoryDoc = await getDoc(doc(db, "inventory", selectedItemId));
+              if (inventoryDoc.exists()) {
+                itemType = inventoryDoc.data().type || "Unknown";
+              }
+
+            } catch (err) {
+              console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
+            }
+          }
+  
+          return {
+            ...item,
+            selectedItemId,
+            itemType,
+          };
+        })
+      );
+  
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      const userEmail = currentUser.email;
+  
+      // Fetch the user name from Firestore
+      let userName = "Unknown";
+      try {
+        const userQuery = query(collection(db, "accounts"), where("email", "==", userEmail));
+        const userSnapshot = await getDocs(userQuery);
+  
+        if (!userSnapshot.empty) {
+          const userDoc = userSnapshot.docs[0];
+          const userData = userDoc.data();
+          userName = userData.name || "Unknown";
+        }
+
+      } catch (error) {
+        console.error("Error fetching user name:", error);
+      }
+  
+      const requestLogEntry = {
+        accountId: selectedRequest.accountId || "N/A",
+        userName: selectedRequest.userName || "N/A",
+        room: selectedRequest.room || "N/A",
+        courseCode: selectedRequest.courseCode || "N/A",
+        courseDescription: selectedRequest.courseDescription || "N/A",
+        dateRequired: selectedRequest.dateRequired || "N/A",
+        timeFrom: selectedRequest.timeFrom || "N/A",
+        timeTo: selectedRequest.timeTo || "N/A",
+        timestamp: selectedRequest.timestamp || "N/A",
+        rawTimestamp: new Date(),
+        requestList: enrichedItems,
+        status: "Approved",
+        approvedBy: userName,
+        reason: selectedRequest.reason || "No reason provided",
+        program: selectedRequest.program,
+      };
+  
+      const rejectLogEntry = {
+        accountId: selectedRequest.accountId || "N/A",
+        userName: selectedRequest.userName || "N/A",
+        room: selectedRequest.room || "N/A",
+        courseCode: selectedRequest.courseCode || "N/A",
+        courseDescription: selectedRequest.courseDescription || "N/A",
+        dateRequired: selectedRequest.dateRequired || "N/A",
+        timeFrom: selectedRequest.timeFrom || "N/A",
+        timeTo: selectedRequest.timeTo || "N/A",
+        timestamp: selectedRequest.timestamp || "N/A",
+        rawTimestamp: new Date(),
+        requestList: rejectedItems,
+        status: "Rejected",
+        rejectedBy: userName,
+        reason: rejectionReason || "No reason provided",
+        program: selectedRequest.program,
+      };
+  
+      const logRequestOrReturn = async (
+        userId,
+        userName,
+        action,
+        requestDetails,
+        extraInfo = {}
+      ) => {
+        await addDoc(collection(db, `accounts/${userId}/historylog`), {
+          action,
+          userName,
+          timestamp: serverTimestamp(),
+          requestList: requestDetails,
+          ...extraInfo,
+        });
+      };
+  
+      // Log approved items
+      await logRequestOrReturn(
+        selectedRequest.accountId,
+        selectedRequest.userName,
+        "Request Approved",
+        enrichedItems,
+        {
+          approvedBy: userName,
+          courseCode: selectedRequest.courseCode || "N/A",
+          courseDescription: selectedRequest.courseDescription || "N/A",
+          dateRequired: selectedRequest.dateRequired,
+          reason: selectedRequest.reason,
+          room: selectedRequest.room,
+          program: selectedRequest.program,
+          timeFrom: selectedRequest.timeFrom || "N/A",
+          timeTo: selectedRequest.timeTo || "N/A",
+          timestamp: selectedRequest.timestamp || "N/A",
+          rawTimestamp: new Date(),
+        }
+      );
+  
+      // Log rejected items
+      if (rejectedItems.length > 0) {
+        await logRequestOrReturn(
+          selectedRequest.accountId,
+          selectedRequest.userName,
+          "Request Rejected",
+          rejectedItems,
+          {
+            rejectedBy: userName,
+            courseCode: selectedRequest.courseCode || "N/A",
+            courseDescription: selectedRequest.courseDescription || "N/A",
+            dateRequired: selectedRequest.dateRequired,
+            reason: rejectionReason || "No reason provided",
+            room: selectedRequest.room,
+            program: selectedRequest.program,
+            timeFrom: selectedRequest.timeFrom || "N/A",
+            timeTo: selectedRequest.timeTo || "N/A",
+            timestamp: selectedRequest.timestamp || "N/A",
+            rawTimestamp: new Date(),
+          }
+        );
+      }
+
+      console.log("Starting inventory update loop...");
+      for (const item of enrichedItems) {
+        console.log("Processing item:", item);
+      
+        const inventoryId = item.selectedItemId;
+        const requestedQty = Number(item.quantity);
+      
+        if (!inventoryId || isNaN(requestedQty) || requestedQty <= 0) {
+          console.warn(`⛔ Skipping invalid item: ID=${inventoryId}, quantity=${item.quantity}`);
+          continue;
+        }
+      
+        const inventoryRef = doc(db, "inventory", inventoryId);
+        console.log("📄 Inventory Ref created for ID:", inventoryId);
+      
+        try {
+          const inventorySnap = await getDoc(inventoryRef);
+          console.log("📥 Fetched inventory snapshot for:", inventoryId);
+      
+          if (inventorySnap.exists()) {
+            const currentQty = Number(inventorySnap.data().quantity || 0);
+            const newQty = Math.max(currentQty - requestedQty, 0);
+      
+            console.log(`🔁 Updating inventory for ${inventoryId}: ${currentQty} - ${requestedQty} = ${newQty}`);
+      
+            await updateDoc(inventoryRef, {
+              quantity: newQty,
+            });
+      
+            console.log(`✅ Successfully updated inventory for ${inventoryId}`);
+
+          } else {
+            console.error(`❌ Inventory item not found: ${inventoryId}`);
+          }
+
+        } catch (err) {
+          console.error(`🔥 Failed to update inventory for ${inventoryId}:`, err.message);
+        }
+      }      
+  
+      await addDoc(collection(db, "requestlog"), requestLogEntry);
+  
+      if (rejectedItems.length > 0) {
+        await addDoc(collection(db, "requestlog"), rejectLogEntry);
+      }
+  
+      // Process Borrow Catalog
+      const fixedItems = enrichedItems.filter(item => item.itemType === "Fixed");
+  
+      if (fixedItems.length > 0) {
+        const formattedItems = fixedItems.map(item => ({
+          category: item.category || "N/A",
+          condition: item.condition || "N/A",
+          department: item.department || "N/A",
+          itemName: item.itemName || "N/A",
+          quantity: item.quantity || "1",
+          selectedItemId: item.selectedItemId || "N/A",
+          status: item.status || "Available",
+          program: item.program || "N/A",
+          reason: item.reason || "No reason provided",
+          labRoom: item.labRoom || "N/A",
+          timeFrom: item.timeFrom || "N/A",
+          timeTo: item.timeTo || "N/A",
+          usageType: item.usageType || "N/A",
+        }));
+  
+        const borrowCatalogEntry = {
+          accountId: selectedRequest.accountId || "N/A",
+          userName: selectedRequest.userName || "N/A",
+          room: selectedRequest.room || "N/A",
+          courseCode: selectedRequest.courseCode || "N/A",
+          courseDescription: selectedRequest.courseDescription || "N/A",
+          dateRequired: selectedRequest.dateRequired || "N/A",
+          timeFrom: selectedRequest.timeFrom || "N/A",
+          timeTo: selectedRequest.timeTo || "N/A",
+          timestamp: selectedRequest.timestamp || "N/A",
+          rawTimestamp: new Date(),
+          requestList: formattedItems,
+          status: "Borrowed",
+          approvedBy: userName,
+          reason: selectedRequest.reason || "No reason provided",
+          program: selectedRequest.program,
+        };
+  
+        const userRequestLogEntry = {
+          ...requestLogEntry,
+          status: "Approved",
+          approvedBy: userName,
+          timestamp: selectedRequest.timestamp || "N/A",
+          rawTimestamp: new Date(),
+        };
+  
+        await addDoc(collection(db, "borrowcatalog"), borrowCatalogEntry);
+  
+        await addDoc(collection(db, "accounts", selectedRequest.accountId, "userrequestlog"), userRequestLogEntry);
+      }
+  
+      await deleteDoc(doc(db, "userrequests", selectedRequest.id));
+  
+      // Delete matching user request subcollection doc
+      const subCollectionRef = collection(db, "accounts", selectedRequest.accountId, "userRequests");
+      const subDocsSnap = await getDocs(subCollectionRef);
+  
+      subDocsSnap.forEach(async (docSnap) => {
+        const data = docSnap.data();
+        const match = (
+          data.timestamp?.seconds === selectedRequest.timestamp?.seconds &&
+          data.filteredMergedData?.[0]?.selectedItemId === selectedRequest.filteredMergedData?.[0]?.selectedItemId
+        );
+  
+        if (match) {
+          console.log("✅ Deleting from subcollection:", docSnap.id);
+          await deleteDoc(doc(db, "accounts", selectedRequest.accountId, "userRequests", docSnap.id));
+        }
+      });
+  
+      setApprovedRequests(prev => [...prev, requestLogEntry]);
+      setRequests(prev => prev.filter(req => req.id !== selectedRequest.id));
+      setCheckedItems({});
+      setIsModalVisible(false);
+      setSelectedRequest(null);
+  
+      notification.success({
+        message: "Request Processed",
+        description: "Approval and rejection have been logged successfully.",
+      });
+  
+    } catch (error) {
+      console.error("Error processing approval after rejection confirmation:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to process the request after rejection confirmation.",
+      });
+    }
+  };
+
+  const handleRejectConfirm = async () => {
+    // if (!rejectionReason.trim()) {
+    //   notification.error({
+    //     message: "Reason Required",
+    //     description: "Please enter a rejection reason before submitting.",
+    //   });
+    //   return;
+    // }
+  
+    setIsMultiRejectModalVisible(false);
   
     const { enrichedItems, uncheckedItems, selectedRequest } = pendingApprovalData;
   
@@ -981,17 +1275,28 @@ const PendingRequest = () => {
     // Define rejectionReason variable outside of the condition
     let rejectionReason = null;
 
+    // if (uncheckedItems.length === 1) {
+    //   console.log("Enriched Items before rejection modal:", enrichedItems); 
+    //   setPendingApprovalData({
+    //     enrichedItems,
+    //     uncheckedItems,
+    //     selectedRequest,
+    //   });
+
+    //   setIsRejectModalVisible(true);
+    //   return; // Stop and wait for modal submission
+    // }    
+
     if (uncheckedItems.length > 0) {
-      console.log("Enriched Items before rejection modal:", enrichedItems); 
+      console.log("Enriched Items before multi rejection modal:", enrichedItems); 
       setPendingApprovalData({
         enrichedItems,
         uncheckedItems,
         selectedRequest,
       });
-
-      setIsRejectModalVisible(true);
-      return; // Stop and wait for modal submission
-    }    
+      setIsMultiRejectModalVisible(true); // ✅ Show new modal for multiple items
+      return;
+    }
 
     // Process rejected items
     const rejectedItems = await Promise.all(
@@ -1426,6 +1731,44 @@ const PendingRequest = () => {
     }
   };
 
+  const columnsRejection = [
+    {
+      title: "Item Name",
+      dataIndex: "itemName",
+      key: "itemName",
+    },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+    },
+    {
+      title: "Reason for Rejection",
+      key: "reason",
+      render: (_, record, index) => {
+        const itemKey = `${record.selectedItemId}-${index}`;
+        return (
+          <Select
+            style={{ width: 200 }}
+            placeholder="Select reason"
+            value={rejectionReasons[itemKey]}
+            onChange={(value) => {
+              setRejectionReasons((prev) => ({
+                ...prev,
+                [itemKey]: value,
+              }));
+            }}
+          >
+            <Option value="Out of stock">Out of stock</Option>
+            <Option value="Not allowed">Not allowed</Option>
+            <Option value="Duplicate request">Duplicate request</Option>
+            <Option value="Invalid usage">Invalid usage</Option>
+          </Select>
+        );
+      },
+    },
+  ];  
+
   const columns = [
     {
       title: "Check",
@@ -1490,7 +1833,7 @@ const PendingRequest = () => {
                 onRow={(record) => ({
                   onClick: () => handleViewDetails(record),
                 })}
-                pagination={{ pageSize: 5 }}
+                pagination={{ pageSize: 10 }}
                 columns={[
                   {
                     title: "Requestor",
@@ -1581,33 +1924,56 @@ const PendingRequest = () => {
         </Content>
 
         <Modal
-        title="Reject Reason"
-        visible={isRejectModalVisible}
-        onCancel={() => setIsRejectModalVisible(false)}
-        onOk={handleRejectSubmit}
-      >
-        <Input.TextArea
-          rows={4}
-          value={rejectReason}
-          onChange={(e) => setRejectReason(e.target.value)}
-          placeholder="Please provide a reason for rejection"
-        />
-      </Modal>
+          title="Reject Reason"
+          visible={isRejectModalVisible}
+          onCancel={() => setIsRejectModalVisible(false)}
+          onOk={handleRejectSubmit}
+        >
+          <Input.TextArea
+            rows={4}
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Please provide a reason for rejection"
+          />
+        </Modal>
 
-      <Modal
-        title="Enter Rejection Reason"
-        open={isRejectModalVisible}
-        onOk={handleRejectConfirm}
-        onCancel={() => setIsRejectModalVisible(false)}
-        okText="Submit"
-      >
-        <Input.TextArea
-          placeholder="Enter reason for rejection"
-          value={rejectionReason}
-          onChange={(e) => setRejectionReason(e.target.value)}
-          rows={4}
-      />
-      </Modal>
+        {/* <Modal
+          title="Enter Rejection Reason"
+          open={isRejectModalVisible}
+          onOk={handleRejectConfirm}
+          onCancel={() => setIsRejectModalVisible(false)}
+          okText="Submit"
+        >
+          <Input.TextArea
+            placeholder="Enter reason for rejection"
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            rows={4}
+        />
+        </Modal> */}
+
+        {isMultiRejectModalVisible && (
+          <Modal
+            title="Provide Reasons for Unchecked Items"
+            open={isMultiRejectModalVisible}
+            onCancel={() => setIsMultiRejectModalVisible(false)}
+            footer={[
+              <Button key="cancel" onClick={() => setIsMultiRejectModalVisible(false)}>
+                Cancel
+              </Button>,
+              <Button key="confirm" type="primary" onClick={handleRejectConfirm}>
+                Confirm Rejection
+              </Button>,
+            ]}
+          >
+            <Table
+              dataSource={pendingApprovalData?.uncheckedItems || []}
+              columns={columnsRejection}
+              rowKey={(record, index) => `${record.selectedItemId}-${index}`}
+              pagination={false}
+            />
+          </Modal>
+        )}
 
         <RequisitionRequestModal
           isModalVisible={isModalVisible}

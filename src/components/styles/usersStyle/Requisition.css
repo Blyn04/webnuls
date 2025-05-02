@@ -53,17 +53,92 @@
 .finalize-btn {
   margin-top: 10px;
   max-width: 200px;
+  font-weight: 600;
+  font-weight: 500;
+  color: white  ;
+  border: none;
 }
-
+/* 
 .finalize-modal .ant-modal-title {
   background: #f60;
   padding: 12px;
   color: white;
   font-weight: bold;
+} */
+
+/* .finalize-modal .ant-modal-content {
+  border-radius: 8px;
+} */
+
+.finalize-modal  button:nth-child(2){
+  background-color: #D70000;
+  font-weight: 500;
+  border-width: 1px ;
+  border-color: gray;  
+
 }
 
-.finalize-modal .ant-modal-content {
-  border-radius: 8px;
+.finalize-modal .ant-modal-footer button:nth-child(2):hover{
+  background-color: #ffa2a2;
+  border-width: 1px ;
+  border-color: gray;  
+}
+
+.finalize-modal .ant-modal-footer button:nth-child(1):hover{
+  border-width: 1px ;
+  border-color: rgb(255, 139, 139);  
+  color: #D70000;
+}
+
+
+.finalize-title-container{
+  display: flex;
+  align-items: center;
+  width: 800px; 
+  background-color: #D70000;
+  height: 50px;
+  padding-left: 20px;
+  border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+  margin-top: -20px;
+  margin-left: -24px;
+}
+
+.modal-whole{
+  background-color: #fff3f3;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 800px;
+  padding-top: 15px;
+  margin-left: -24px;
+  padding-left: 20px;
+}
+.modal-left{
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  padding-right: 30px;
+}
+
+.modal-left div{
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+.modal-right{
+  width: 50%;
+  padding-right: 30px;
+}
+
+.modal-right div:nth-child(1){
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.finalize-table th{
+  text-align: left;
 }
 
 .usage-type-dropdown {

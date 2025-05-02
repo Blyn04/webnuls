@@ -69,8 +69,8 @@ const ReturnItems = () => {
             department: data.requestList?.[0]?.department ?? "N/A",
             approvedBy: data.approvedBy ?? "N/A",
             rawTimestamp: rawTimestamp ?? null,
-            processDate: parsedRawTimestamp, // Table: Process Date
-            timestamp: parsedTimestamp, // Modal: Requested Date
+            processDate: parsedRawTimestamp, 
+            timestamp: parsedTimestamp,
             raw: data,
           };
         });
@@ -83,6 +83,7 @@ const ReturnItems = () => {
         });
 
         setHistoryData(logs);
+        
       } catch (error) {
         console.error("Error fetching request logs: ", error);
       }
