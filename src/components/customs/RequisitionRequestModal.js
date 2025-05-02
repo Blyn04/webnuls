@@ -27,7 +27,7 @@ const RequisitionReqestModal = ({
       width={800}
       footer={[
         <Button key="cancel" onClick={handleCancel}>Cancel</Button>,
-        <Button key="reject" type="default" onClick={handleReturn}>Reject</Button>,
+        // <Button key="reject" type="default" onClick={handleReturn}>Reject</Button>,
         <Button key="approve" type="primary" onClick={handleApprove}>Approve</Button>,
       ]}
     >
