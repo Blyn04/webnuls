@@ -447,6 +447,7 @@ const Requisition = () => {
           setIsNotificationVisible(true);
           setIsFinalizeVisible(false);
   
+          clearTableData();
           setDateRequired(null);
           setTimeFrom(null);
           setTimeTo(null);
@@ -473,21 +474,71 @@ const Requisition = () => {
     }
   };  
 
+  // const removeFromList = async (id) => {
+  //   try {
+  //     // Filter out the item from local state
+  //     const updatedList = requestList.filter((item) => item.selectedItemId !== id);
+  //     setRequestList(updatedList);
+  
+  //     // Also update tableData
+  //     const updatedTableData = tableData.filter((item) => item.selectedItemId !== id);
+  //     setTableData(updatedTableData);
+  
+  //     console.log("Attempting to remove ID:", id);
+  //     console.log("Current requestList:", updatedList);
+  
+  //     // Update localStorage
+  //     localStorage.setItem('requestList', JSON.stringify(updatedList));
+  
+  //     const userId = localStorage.getItem("userId"); 
+  //     if (!userId) {
+  //       console.warn("User ID not found in localStorage.");
+  //       return;
+  //     }
+  
+  //     // Check Firestore and remove item
+  //     const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+  //     const querySnapshot = await getDocs(tempRequestRef);
+  
+  //     let foundInFirestore = false;
+  
+  //     for (const docSnapshot of querySnapshot.docs) {
+  //       const data = docSnapshot.data();
+  //       if (data.id === id) {
+  //         await deleteDoc(docSnapshot.ref);
+  //         foundInFirestore = true;
+  //         break;
+  //       }
+  //     }
+  
+  //     // Notify user
+  //     setNotificationMessage(foundInFirestore ? "Item removed from the list" : "Item not found in Firestore.");
+  //     setIsNotificationVisible(true);
+  
+  //   } catch (error) {
+  //     console.error("Error removing item:", error);
+  //     setNotificationMessage("Something went wrong while removing the item.");
+  //     setIsNotificationVisible(true);
+  //   }
+  // };
+
   const removeFromList = async (id) => {
     try {
-      // Filter out the item from local state
+      // Filter out the item from local state (requestList and tableData)
       const updatedList = requestList.filter((item) => item.selectedItemId !== id);
-      setRequestList(updatedList);
-  
-      // Also update tableData
       const updatedTableData = tableData.filter((item) => item.selectedItemId !== id);
+  
+      // Update local state
+      setRequestList(updatedList);
       setTableData(updatedTableData);
   
+      // Log current state
       console.log("Attempting to remove ID:", id);
       console.log("Current requestList:", updatedList);
   
       // Update localStorage
-      localStorage.setItem('requestList', JSON.stringify(updatedList));
+      localStorage.setItem("requestList", JSON.stringify(updatedList));
+      localStorage.setItem("tableData", JSON.stringify(updatedTableData));
   
       const userId = localStorage.getItem("userId"); 
       if (!userId) {
@@ -495,22 +546,22 @@ const Requisition = () => {
         return;
       }
   
-      // Check Firestore and remove item
+      // Check Firestore and remove the item
       const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
       const querySnapshot = await getDocs(tempRequestRef);
-  
       let foundInFirestore = false;
   
       for (const docSnapshot of querySnapshot.docs) {
         const data = docSnapshot.data();
         if (data.id === id) {
+          // Remove the item from Firestore
           await deleteDoc(docSnapshot.ref);
           foundInFirestore = true;
           break;
         }
       }
   
-      // Notify user
+      // Notify user whether the item was successfully removed from Firestore
       setNotificationMessage(foundInFirestore ? "Item removed from the list" : "Item not found in Firestore.");
       setIsNotificationVisible(true);
   
@@ -519,7 +570,7 @@ const Requisition = () => {
       setNotificationMessage("Something went wrong while removing the item.");
       setIsNotificationVisible(true);
     }
-  };
+  };  
 
   const updateQuantity = (id, value) => {
     // Update the quantity in the requestList
@@ -693,6 +744,13 @@ const Requisition = () => {
         setIsNotificationVisible(true);
       }
     }
+  };  
+
+  const clearTableData = () => {
+    setTableData([]); // Clear tableData
+    setRequestList([]); // Clear requestList
+    localStorage.removeItem("tableData"); // Remove from localStorage
+    localStorage.removeItem("requestList"); // Remove from localStorage
   };  
   
   useEffect(() => {
