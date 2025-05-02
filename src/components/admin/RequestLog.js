@@ -13,8 +13,9 @@ const RequestLog = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [historyData, setHistoryData] = useState([]);
+  const [historyData, setHistoryData] = useState([]); 
 
+  
   // useEffect(() => {
   //   const fetchRequestLogs = async () => {
   //     try {
@@ -109,6 +110,8 @@ const RequestLog = () => {
               requisitionId: doc.id,
               reason: data.reason ?? "No reason provided",
               department: data.requestList?.[0]?.department ?? "N/A",
+              rejectionReason:
+              data.requestList?.[0]?.rejectionReason || data.rejectionReason || "N/A",
               approvedBy: data.approvedBy,
               rejectedBy: data.rejectedBy, // Include rejectedBy field
               rawTimestamp: rawTimestamp ?? null,
@@ -324,6 +327,7 @@ const RequestLog = () => {
                   itemId: item.itemIdFromInventory,
                   itemDescription: item.itemName,
                   quantity: item.quantity,
+                  rejectionReason: item.rejectionReason || selectedRequest.raw?.rejectionReason || "N/A",
                 }))}
                 columns={[
                   {
@@ -341,6 +345,14 @@ const RequestLog = () => {
                     dataIndex: "quantity",
                     key: "quantity",
                   },
+                  // Add the "Reason of Rejection" column if status is "Rejected"
+                  ...(selectedRequest.raw?.status === "Rejected"
+                    ? [{
+                        title: "Reason of Rejection",
+                        dataIndex: "rejectionReason",
+                        key: "rejectionReason",
+                      }]
+                    : []),
                 ]}
                 pagination={{ pageSize: 10 }}
                 style={{ marginTop: 10 }}
@@ -365,7 +377,7 @@ const RequestLog = () => {
 
                   {selectedRequest.raw?.status === "Rejected" && (
                     <>
-                      <Text strong>Rejected By:</Text> {selectedRequest.raw?.rejectedBy}
+                      <Text strong>Rejected By:</Text> {selectedRequest.raw?.rejectedBy || "N/A"}               
                     </>
                   )}
                 </Col>

@@ -938,26 +938,29 @@ const PendingRequest = () => {
   
     try {
       const rejectedItems = await Promise.all(
-        uncheckedItems.map(async (item) => {
+        uncheckedItems.map(async (item, index) => {
           const selectedItemId = item.selectedItemId || item.selectedItem?.value;
           let itemType = "Unknown";
-  
+      
           if (selectedItemId) {
             try {
               const inventoryDoc = await getDoc(doc(db, "inventory", selectedItemId));
               if (inventoryDoc.exists()) {
                 itemType = inventoryDoc.data().type || "Unknown";
               }
-
             } catch (err) {
               console.error(`Failed to fetch type for inventory item ${selectedItemId}:`, err);
             }
           }
-  
+      
+          const itemKey = `${selectedItemId}-${index}`;
+          const rejectionReason = rejectionReasons[itemKey] || "No reason provided";
+      
           return {
             ...item,
             selectedItemId,
             itemType,
+            rejectionReason,
           };
         })
       );
@@ -1014,7 +1017,6 @@ const PendingRequest = () => {
         requestList: rejectedItems,
         status: "Rejected",
         rejectedBy: userName,
-        reason: rejectionReason || "No reason provided",
         program: selectedRequest.program,
       };
   

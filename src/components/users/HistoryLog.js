@@ -253,9 +253,37 @@ const HistoryLog = () => {
                   {selectedLog.program || "N/A"}
                 </Descriptions.Item>
 
-                <Descriptions.Item label="Reason">
-                  {selectedLog.reason || "N/A"}
+                <Descriptions.Item label="Items Requested">
+                  {(selectedLog.filteredMergedData || selectedLog.requestList)?.length > 0 ? (
+                    <ul style={{ paddingLeft: 20 }}>
+                      {(selectedLog.filteredMergedData || selectedLog.requestList).map((item, index) => (
+                        <li key={index} style={{ marginBottom: 10 }}>
+                          <strong>{item.itemName}</strong>
+                          <ul style={{ marginLeft: 20 }}>
+                            <li>Quantity: {item.quantity}</li>
+                            {item.category && <li>Category: {item.category}</li>}
+                            {item.condition && <li>Condition: {item.condition}</li>}
+                            {item.labRoom && <li>Lab Room: {item.labRoom}</li>}
+                            {item.usageType && <li>Usage Type: {item.usageType}</li>}
+                            {item.itemType && <li>Item Type: {item.itemType}</li>}
+                            {item.department && <li>Department: {item.department}</li>}
+                            {selectedLog.action === "Request Rejected" && item.rejectionReason && (
+                              <li><strong>Rejection Reason:</strong> {item.rejectionReason}</li>
+                            )}
+                          </ul>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    "None"
+                  )}
                 </Descriptions.Item>
+
+                {selectedLog.action !== "Request Rejected" && (
+                  <Descriptions.Item label="Reason">
+                    {selectedLog.reason || "N/A"}
+                  </Descriptions.Item>
+                )}
 
                 <Descriptions.Item label="Room">
                   {selectedLog.room || "N/A"}
@@ -269,31 +297,6 @@ const HistoryLog = () => {
 
                 <Descriptions.Item label="Date Required">
                   {selectedLog.dateRequired || "N/A"}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="Items Requested">
-                  {(selectedLog.filteredMergedData || selectedLog.requestList)?.length > 0 ? (
-                    <ul style={{ paddingLeft: 20 }}>
-                      {(selectedLog.filteredMergedData || selectedLog.requestList).map(
-                        (item, index) => (
-                          <li key={index} style={{ marginBottom: 10 }}>
-                            <strong>{item.itemName}</strong>
-                            <ul style={{ marginLeft: 20 }}>
-                              <li>Quantity: {item.quantity}</li>
-                              {item.category && <li>Category: {item.category}</li>}
-                              {item.condition && <li>Condition: {item.condition}</li>}
-                              {item.labRoom && <li>Lab Room: {item.labRoom}</li>}
-                              {item.usageType && <li>Usage Type: {item.usageType}</li>}
-                              {item.itemType && <li>Item Type: {item.itemType}</li>}
-                              {item.department && <li>Department: {item.department}</li>}
-                            </ul>
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  ) : (
-                    "None"
-                  )}
                 </Descriptions.Item>
               </Descriptions>
             )}
