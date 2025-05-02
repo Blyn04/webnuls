@@ -19,6 +19,8 @@ import { getAuth } from "firebase/auth";
 import NotificationModal from "../customs/NotificationModal"; 
 import FinalizeCapexModal from "../customs/FinalizeCapexModal";
 import "../styles/usersStyle/CapexRequest.css";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const { Content } = Layout;
 
@@ -123,7 +125,81 @@ const CapexRequest = () => {
     );
     setTotalPrice(total);
   };
+  
+  const handlePrint = () => {
+    const itemsToPrint = selectedRowDetails?.items;
+    const username = selectedRowDetails?.userName || "N/A";
+    const totalPrice = selectedRowDetails?.totalPrice || "N/A";
+    let submissionDate = selectedRowDetails?.createdAt || "N/A";
+  
+    if (submissionDate && submissionDate.toDate) {
+      submissionDate = submissionDate.toDate().toLocaleString(); 
 
+    } else if (submissionDate && submissionDate !== "N/A") {
+      const regex = /(\d{1,2} \w+ \d{4}) at (\d{2}:\d{2}:\d{2}) (UTC[+-]\d{1,2})/;
+      const match = submissionDate.match(regex);
+  
+      if (match) {
+        const dateString = match[1]; // "26 April 2025"
+        const timeString = match[2]; // "16:57:55"
+        const timeZoneString = match[3]; // "UTC+8"
+  
+        // Convert the month name to a month number (April -> 04)
+        const monthMap = {
+          January: '01', February: '02', March: '03', April: '04', May: '05', June: '06',
+          July: '07', August: '08', September: '09', October: '10', November: '11', December: '12'
+        };
+
+        const [day, monthName, year] = dateString.split(' ');
+        const month = monthMap[monthName] || '01';
+        const timezoneOffset = timeZoneString.replace('UTC', '');
+        const formattedDate = `${year}-${month}-${day}T${timeString}${timezoneOffset}:00`;
+        const dateObj = new Date(formattedDate);
+  
+        if (!isNaN(dateObj)) {
+          submissionDate = dateObj.toLocaleString();
+
+        } else {
+          submissionDate = "Invalid Date Format";
+        }
+
+      } else {
+        submissionDate = "Invalid Date Format";
+      }
+    }
+  
+    if (!Array.isArray(itemsToPrint) || itemsToPrint.length === 0) {
+      console.error("No items to print. `selectedRowDetails.items` is missing or not an array.");
+      return;
+    }
+  
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("CAPEX Request Details", 10, 10);
+  
+    doc.setFontSize(12);
+    doc.text(`Username: ${username}`, 10, 20);
+    doc.text(`Total Price: ${totalPrice}`, 10, 28);
+    doc.text(`Submission Date: ${submissionDate}`, 10, 36);
+  
+    const tableColumn = ["Item Name", "Quantity", "Estimated Cost", "Justification"];
+    const tableRows = itemsToPrint.map((item) => [
+      item.itemDescription || "-",
+      item.qty || "-",
+      item.estimatedCost || "-",
+      item.justification || "-"
+    ]);
+  
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 44, // start below the text
+      theme: "grid",
+    });
+  
+    doc.save("capex_request.pdf");
+  };  
+  
   const handleSave = async (values) => {
     // Close the modal immediately
     setIsModalVisible(false);
@@ -567,6 +643,13 @@ const CapexRequest = () => {
               rowKey="itemDescription" 
               className="capex-modal-table"
             />
+
+            <Button
+              type="default"
+              onClick={handlePrint}
+            >
+              Print PDF
+            </Button>
           </div>
         )}
       </Modal>
