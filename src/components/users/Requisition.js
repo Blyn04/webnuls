@@ -67,6 +67,7 @@ const Requisition = () => {
   const [searchCategory, setSearchCategory] = useState("");
   const [isFinalizeModalVisible, setIsFinalizeModalVisible] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [mergedData, setMergedData] = useState([]);
   const location = useLocation();
@@ -76,6 +77,25 @@ const Requisition = () => {
   const [tableData, setTableData] = useState([
     { key: 0, selectedItemId: null }, 
   ]);
+
+  useEffect(() => {
+    const allItemFieldsValid = mergedData.length > 0 && mergedData.every(item =>
+      item.itemName &&
+      item.category &&
+      item.quantity &&
+      item.labRoom &&
+      item.status &&
+      item.condition &&
+      item.department
+    );
+  
+    const timeValid = timeFrom && timeTo &&
+      new Date(`1970-01-01T${timeFrom}`) < new Date(`1970-01-01T${timeTo}`);
+  
+    const formComplete = dateRequired && program && usageType && room && timeValid;
+  
+    setIsFormValid(formComplete && allItemFieldsValid);
+  }, [dateRequired, program, usageType, room, timeFrom, timeTo, mergedData]);  
 
   useEffect(() => {
     const storedRequestList = JSON.parse(localStorage.getItem('requestList'));
@@ -197,6 +217,20 @@ const Requisition = () => {
   }, []);
 
   useEffect(() => {
+    // Load the saved request list and table data from localStorage
+    const savedRequestList = localStorage.getItem("requestList");
+    const savedTableData = localStorage.getItem("tableData");
+  
+    if (savedRequestList) {
+      setRequestList(JSON.parse(savedRequestList));
+    }
+  
+    if (savedTableData) {
+      setTableData(JSON.parse(savedTableData));
+    }
+  }, []); 
+
+  useEffect(() => {
     if (location.state?.loginSuccess === true) {
       setShowModal(true);
     }
@@ -296,7 +330,18 @@ const Requisition = () => {
     } else {
       setRoomError(false);
     }
-  
+
+    if (!timeFrom || !timeTo) {
+      setNotificationMessage("Please select both 'Time From' and 'Time To'!");
+      setIsNotificationVisible(true);
+
+      isValid = false;
+    } else if (new Date(`1970-01-01T${timeFrom}`) >= new Date(`1970-01-01T${timeTo}`)) {
+      setNotificationMessage("'Time From' must be earlier than 'Time To'!");
+      setIsNotificationVisible(true);
+      isValid = false;
+    }
+    
     if (mergedData.length === 0) {
       setNotificationMessage("Please add items to the request list!");
       setIsNotificationVisible(true);
@@ -491,13 +536,93 @@ const Requisition = () => {
     setTableData(updatedTableData);
   };  
 
+  // const handleItemSelect = async (selected, index) => {
+  //   const { value: itemId } = selected;
+  //   const selectedItem = JSON.parse(JSON.stringify(items.find(item => item.id === itemId)));
+
+  //   // Build new row object
+  //   const newRow = {
+  //     ...tableData[index],
+  //     selectedItem: {
+  //       value: itemId,
+  //       label: selectedItem.itemName,
+  //     },
+  //     selectedItemId: itemId,
+  //     itemName: selectedItem.itemName,
+  //     category: selectedItem.category,
+  //     quantity: tableData[index]?.quantity || 1,
+  //     labRoom: selectedItem.labRoom,
+  //     status: selectedItem.status,
+  //     condition: selectedItem.condition,
+  //     // usageType: selectedItem.usageType,
+  //     department: selectedItem.department,
+  //   };
+  
+  //   // Update tableData
+  //   const updatedData = [...tableData];
+  //   updatedData[index] = newRow;
+  //   setTableData(updatedData);
+  
+  //   // Ensure the item is added to requestList
+  //   // const existsInRequestList = requestList.some((item) => item.selectedItemId === itemId);
+  //   // let updatedRequestList = [...requestList];
+  
+  //   // if (!existsInRequestList) {
+  //   //   updatedRequestList.push(newRow);
+  //   //   setRequestList(updatedRequestList);
+  //   //   localStorage.setItem("requestList", JSON.stringify(updatedRequestList));
+  //   // }
+
+  //   let updatedRequestList = [...requestList];
+  //   updatedRequestList[index] = newRow; // Always update the item at the current index
+  //   setRequestList(updatedRequestList);
+  //   localStorage.setItem("requestList", JSON.stringify(updatedRequestList));
+  
+  //   mergeData(); 
+  
+  //   const userId = localStorage.getItem("userId");
+  
+  //   if (userId) {
+  //     try {
+  //       // const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
+  //       // await addDoc(tempRequestRef, {
+  //       //   ...selectedItem,
+  //       //   id: itemId,
+  //       //   selectedItemId: itemId,
+  //       //   selectedItemLabel: selectedItem.itemName,
+  //       //   quantity: newRow.quantity,
+  //       //   timestamp: Timestamp.fromDate(new Date()),
+  //       // });
+
+  //       const tempRequestRef = doc(db, "accounts", userId, "temporaryRequests", itemId);
+  //       await setDoc(tempRequestRef, {
+  //         ...selectedItem,
+  //         id: itemId,
+  //         selectedItemId: itemId,
+  //         selectedItemLabel: selectedItem.itemName,
+  //         quantity: newRow.quantity,
+  //         timestamp: Timestamp.fromDate(new Date()),
+  //       });
+
+  //       setNotificationMessage("Item added to temporary list.");
+  //       setIsNotificationVisible(true);
+
+  //     } catch (error) {
+  //       console.error("Error adding item to temporary list:", error);
+  //       setNotificationMessage("Failed to add item to temporary list.");
+  //       setIsNotificationVisible(true);
+  //     }
+  //   }
+  // };
+
   const handleItemSelect = async (selected, index) => {
     const { value: itemId } = selected;
     const selectedItem = JSON.parse(JSON.stringify(items.find(item => item.id === itemId)));
-
+  
+    const previousItemId = tableData[index]?.selectedItemId;
+  
     // Build new row object
     const newRow = {
-      ...tableData[index],
       selectedItem: {
         value: itemId,
         label: selectedItem.itemName,
@@ -509,33 +634,48 @@ const Requisition = () => {
       labRoom: selectedItem.labRoom,
       status: selectedItem.status,
       condition: selectedItem.condition,
-      // usageType: selectedItem.usageType,
       department: selectedItem.department,
     };
   
     // Update tableData
-    const updatedData = [...tableData];
-    updatedData[index] = newRow;
-    setTableData(updatedData);
-  
-    // Ensure the item is added to requestList
-    const existsInRequestList = requestList.some((item) => item.selectedItemId === itemId);
-    let updatedRequestList = [...requestList];
-  
-    if (!existsInRequestList) {
-      updatedRequestList.push(newRow);
-      setRequestList(updatedRequestList);
-      localStorage.setItem("requestList", JSON.stringify(updatedRequestList));
+    let updatedData = [...tableData];
+    if (updatedData[index]) {
+      updatedData[index] = newRow;
+
+    } else {
+      updatedData.push(newRow); // Add to the end if it's a new item
     }
+    
+    setTableData(updatedData);
+    localStorage.setItem("tableData", JSON.stringify(updatedData)); // Save updated table data
   
-    mergeData(); 
+    // Update requestList
+    let updatedRequestList = [...requestList];
+    if (updatedRequestList[index]) {
+      updatedRequestList[index] = newRow;
+
+    } else {
+      updatedRequestList.push(newRow); // Add to the end if it's a new item
+    }
+    setRequestList(updatedRequestList);
+    localStorage.setItem("requestList", JSON.stringify(updatedRequestList)); // Save updated request list
+  
+    mergeData();
   
     const userId = localStorage.getItem("userId");
   
     if (userId) {
       try {
-        const tempRequestRef = collection(db, "accounts", userId, "temporaryRequests");
-        await addDoc(tempRequestRef, {
+        const tempRequestRef = doc(db, "accounts", userId, "temporaryRequests", itemId);
+  
+        // Delete the previous item from Firestore if it's different from the new one
+        if (previousItemId && previousItemId !== itemId) {
+          const previousRef = doc(db, "accounts", userId, "temporaryRequests", previousItemId);
+          await deleteDoc(previousRef);
+        }
+  
+        // Add or update the new item
+        await setDoc(tempRequestRef, {
           ...selectedItem,
           id: itemId,
           selectedItemId: itemId,
@@ -544,16 +684,16 @@ const Requisition = () => {
           timestamp: Timestamp.fromDate(new Date()),
         });
   
-        setNotificationMessage("Item added to temporary list.");
+        setNotificationMessage("Item updated in temporary list.");
         setIsNotificationVisible(true);
-
+  
       } catch (error) {
-        console.error("Error adding item to temporary list:", error);
-        setNotificationMessage("Failed to add item to temporary list.");
+        console.error("Error updating item in temporary list:", error);
+        setNotificationMessage("Failed to update item in temporary list.");
         setIsNotificationVisible(true);
       }
     }
-  };
+  };  
   
   useEffect(() => {
     mergeData();
@@ -859,9 +999,8 @@ const Requisition = () => {
                   </div>
             </div>
             
-  
             <div className="reason-container">
-              <strong>Reason of Request:</strong>
+              <strong style={{marginBottom: '5px'}}>Reason of Request:</strong>
               <Input.TextArea
                 rows={3}
                 value={reason}
@@ -869,10 +1008,13 @@ const Requisition = () => {
                 placeholder="Enter reason for request"
               />
             </div>
+    
+  
+           
             </div>
 
             <div className="dropdowns" style={{ display: "flex", gap: "20px" }}>
-              <select
+              {/* <select
                 value={searchUsageType}
                 onChange={(e) => {
                   const selectedType = e.target.value;
@@ -897,7 +1039,7 @@ const Requisition = () => {
                 <option value="Research">Research</option>
                 <option value="Community Extension">Community Extension</option>
                 <option value="Others">Others</option>
-              </select>
+              </select> */}
               
               <select
                 value={searchCategory}
@@ -938,7 +1080,7 @@ const Requisition = () => {
           />
           </div>
 
-          <div>
+          <div className="bottom-btns">
             <Button
               type="dashed"
               onClick={() => {
@@ -964,6 +1106,7 @@ const Requisition = () => {
                 danger
                 block
                 className="finalize-btn"
+                disabled={!isFormValid}
                 onClick={() => setIsFinalizeModalVisible(true)}
               >
                 Finalize
