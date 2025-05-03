@@ -12,9 +12,9 @@ import {
 import { auth, db } from "../backend/firebase/FirebaseConfig";
 import { collection, query, where, getDocs, doc, updateDoc, Timestamp, addDoc, serverTimestamp } from "firebase/firestore";
 import { notification, Modal } from "antd";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import bcrypt from "bcryptjs";
 import "./styles/Login.css";
-
 import trybg2 from './try-bg.svg'
 import NotificationModal from "./customs/NotificationModal";
 import TermsModal from "./customs/TermsModal";
@@ -453,6 +453,19 @@ const Login = () => {
   
       // Add user data to 'pendingaccounts' collection
       await addDoc(collection(db, "pendingaccounts"), sanitizedData);
+
+      // Step 6.1: Send confirmation email
+      // const functions = getFunctions();
+      // const sendEmail = httpsCallable(functions, 'sendEmail');
+
+      // await sendEmail({
+      //   to: email.trim().toLowerCase(),
+      //   subject: 'Welcome to the NU MOA Laboratory System',
+      //   text: `Hi ${name.trim()},\n\nThank you for signing up. Your account is pending approval by the ITSO. You will be notified once it is approved.\n\n- NU MOA ITSO`,
+      //   html: `<p>Hi <strong>${name.trim()}</strong>,</p>
+      //         <p>Thank you for signing up. Your account is <strong>pending approval</strong> by the ITSO. You will be notified once it is approved.</p>
+      //         <p>- NU MOA ITSO</p>`
+      // });
   
       // Step 7: Set the modal message and show the modal
       setModalMessage("Successfully Registered! Please check your email for further instructions. Your account is pending approval from the ITSO.");
