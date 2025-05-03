@@ -329,6 +329,7 @@ const CapexRequest = () => {
   
         setNotificationMessage("Item updated successfully!");
         setNotificationVisible(true);
+
       } else {
         // Adding a new item
         const newItem = {
@@ -352,12 +353,14 @@ const CapexRequest = () => {
   
       try {
         await logRequestOrReturn(userId, userName, "Added a Capex Item", itemToLog);
+
       } catch (logError) {
         console.error("Failed to log activity:", logError);
       }
   
       try {
         calculateTotalPrice();
+        
       } catch (calcError) {
         console.error("Failed to calculate total price:", calcError);
       }
