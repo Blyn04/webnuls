@@ -1,0 +1,13 @@
+.events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notes-month {
+  text-align: center;
+  font-size: 12px;
+}
+.notes-month section {
+  font-size: 20px;
+}

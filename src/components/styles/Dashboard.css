@@ -107,15 +107,19 @@
 
 .calendar-wrapper {
   width: 100%;
-  padding: 0 24px; /* optional, just for some side space */
+  padding: 0 24px; /* Optional horizontal padding */
 }
 
-/* Make sure the internal Calendar fills */
+/* Ensure the calendar fills its container */
+.calendar-wrapper .ant-card {
+  width: 100%;
+}
+
 .calendar-wrapper .ant-picker-calendar {
   width: 100% !important;
 }
 
-/* Optional: make the calendar header and panel stretch nicely */
+/* Make header and panel stretch */
 .calendar-wrapper .ant-picker-calendar-header,
 .calendar-wrapper .ant-picker-panel {
   width: 100% !important;

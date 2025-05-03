@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate,  useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Layout, Card, Col, Row, Table, List } from "antd";
 import { db } from "../backend/firebase/FirebaseConfig"; 
-import { collectionGroup, query, where, getDocs, onSnapshot } from "firebase/firestore";
+import { collectionGroup, onSnapshot } from "firebase/firestore";
 import SuccessModal from "./customs/SuccessModal";
 import CustomCalendar from "./customs/CustomCalendar";
 import "./styles/Dashboard.css";
@@ -13,10 +13,11 @@ const { Content } = Layout;
 const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
-  const [borrowCatalogCount, setBorrowCAtalogCount] = useState(0);
+  const [borrowCatalogCount, setBorrowCatalogCount] = useState(0);
+  const [predictedSales, setPredictedSales] = useState(null);  // New state for sales prediction
+  const [productTrends, setProductTrends] = useState([]);  // New state for product trends
   const location = useLocation();
   const navigate = useNavigate();
-
 
   const [topProducts, setTopProducts] = useState([
     { title: "Raspberry Pi", sold: 6, quantity: 10 },
@@ -41,30 +42,24 @@ const Dashboard = () => {
   useEffect(() => {
     const q = collectionGroup(db, "userrequests");
 
-    // Set up the real-time listener
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       setPendingRequestCount(querySnapshot.size);
-
     }, (error) => {
       console.error("Error fetching pending requests:", error);
     });
 
-    // Cleanup the listener on unmount
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
     const q = collectionGroup(db, "borrowcatalog");
 
-    // Set up the real-time listener
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      setBorrowCAtalogCount(querySnapshot.size);
-
+      setBorrowCatalogCount(querySnapshot.size);
     }, (error) => {
-      console.error("Error fetching pending requests:", error);
+      console.error("Error fetching borrow catalog:", error);
     });
 
-    // Cleanup the listener on unmount
     return () => unsubscribe();
   }, []);
 
@@ -102,6 +97,22 @@ const Dashboard = () => {
     setShowModal(false);
   };
 
+  // Fetch AI-based sales predictions and product trends
+  useEffect(() => {
+    // Replace with your AI-powered API endpoints once your Blaze plan is active
+    fetch('/api/predict-sales')  // Example endpoint for sales prediction
+      .then((res) => res.json())
+      .then((data) => {
+        setPredictedSales(data.prediction);  // Update predicted sales state
+      });
+
+    fetch('/api/product-trends')  // Example endpoint for product trends
+      .then((res) => res.json())
+      .then((data) => {
+        setProductTrends(data.trends);  // Update product trends state
+      });
+  }, []);
+
   const summaryCards = [
     { title: "Pending Requests", count: pendingRequestCount, color: "#a0d911", icon: "📄" },
     { title: "Borrow Catalog", count: borrowCatalogCount, color: "#fa541c", icon: "📋" },
@@ -110,34 +121,16 @@ const Dashboard = () => {
   ];
 
   const salesColumns = [
-    {
-      title: "#",
-      dataIndex: "key",
-      key: "key",
-    },
-    {
-      title: "Product Name",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "Date",
-      dataIndex: "date",
-      key: "date",
-    },
-    {
-      title: "Total Sale",
-      dataIndex: "total",
-      key: "total",
-    },
+    { title: "#", dataIndex: "key", key: "key" },
+    { title: "Product Name", dataIndex: "name", key: "name" },
+    { title: "Date", dataIndex: "date", key: "date" },
+    { title: "Total Sale", dataIndex: "total", key: "total" },
   ];
 
-  
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Layout>
         <Content className="content">
-
           <Row gutter={[16, 16]}>
             {summaryCards.map((card, index) => (
               <Col xs={24} sm={12} md={6} key={index}>
@@ -164,6 +157,31 @@ const Dashboard = () => {
                 </Card>
               </Col>
             ))}
+          </Row>
+
+          {/* AI Analytics Section */}
+          <Row gutter={[16, 16]} style={{ marginTop: "20px" }}>
+            <Col xs={24} md={8}>
+              <Card title="Predicted Sales">
+                <div>{predictedSales ? `$${predictedSales}` : 'Loading prediction...'}</div>
+              </Card>
+            </Col>
+
+            <Col xs={24} md={8}>
+              <Card title="Product Trends">
+                <List
+                  dataSource={productTrends}
+                  renderItem={(item) => (
+                    <List.Item>
+                      <div style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
+                        <span>{item.title}</span>
+                        <span>{item.salesTrend}</span> {/* Display trend data */}
+                      </div>
+                    </List.Item>
+                  )}
+                />
+              </Card>
+            </Col>
           </Row>
 
           {/* Main Content - Highest Sale / Latest Sales / Recent Products */}
@@ -206,7 +224,7 @@ const Dashboard = () => {
                           <div>{item.title}</div>
                           <small style={{ color: "#999" }}>{item.category}</small>
                         </div>
-                        <div style={{ fontWeight: "bold" }}>{item.price}</div>
+                        <div>{item.price}</div>
                       </div>
                     </List.Item>
                   )}
@@ -215,17 +233,18 @@ const Dashboard = () => {
             </Col>
           </Row>
 
-          <Row style={{ marginTop: "20px" }}>
-            <Col>
+          <Row style={{ marginTop: "20px", width: "100%" }}>
+            <Col span={24}>
               <div className="calendar-wrapper">
                 <CustomCalendar />
               </div>
             </Col>
           </Row>
-
         </Content>
-        <SuccessModal isVisible={showModal} onClose={closeModal} />
       </Layout>
+
+      {/* Modal for Login Success */}
+      <SuccessModal show={showModal} onClose={closeModal} />
     </Layout>
   );
 };
