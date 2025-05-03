@@ -15,6 +15,7 @@ exports.sendEmail = functions.https.onCall(async (data, context) => {
   try {
     await sgMail.send(msg);
     return { success: true };
+    
   } catch (error) {
     console.error('SendGrid error:', error);
     return { success: false, error: error.message };

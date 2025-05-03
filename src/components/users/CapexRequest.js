@@ -200,8 +200,85 @@ const CapexRequest = () => {
     doc.save("capex_request.pdf");
   };  
   
+  // const handleSave = async (values) => {
+  //   // Close the modal immediately
+  //   setIsModalVisible(false);
+  
+  //   const userId = localStorage.getItem("userId");
+  //   const userName = localStorage.getItem("userName");
+  //   let itemToLog;
+  
+  //   try {
+  //     // Check for duplicates (only if adding new item)
+  //     if (editingRow === null) {
+  //       const isDuplicate = dataSource.some(
+  //         (item) =>
+  //           item.itemDescription.trim().toLowerCase() ===
+  //           values.itemDescription.trim().toLowerCase()
+  //       );
+
+  //       if (isDuplicate) {
+  //         setNotificationMessage("Item already exists in the request list.");
+  //         setNotificationVisible(true); // Show the notification modal
+  //         return; // Stop further execution if duplicate found
+  //       }
+  //     }
+
+  //     if (editingRow !== null) {
+  //       // Updating an existing item
+  //       const updatedItem = {
+  //         ...values,
+  //         id: editingRow.id,
+  //         totalPrice: values.qty * values.estimatedCost,
+  //       };
+  
+  //       // Directly update the item in Firestore
+  //       const capexRequestRef = doc(db, `accounts/${userId}/temporaryCapexRequest`, editingRow.id);
+  //       await setDoc(capexRequestRef, updatedItem);
+  
+  //       itemToLog = updatedItem;
+  
+  //       setNotificationMessage("Item updated successfully!");
+  //       setNotificationVisible(true);
+  
+  //     } else {
+  //       // Adding a new item
+  //       const newItem = {
+  //         ...values,
+  //         totalPrice: values.qty * values.estimatedCost,
+  //       };
+  
+  //       // Add the new item to Firestore directly
+  //       const capexRequestRef = await addDoc(collection(db, `accounts/${userId}/temporaryCapexRequest`), newItem);
+  //       const newItemWithId = {
+  //         ...newItem,
+  //         id: capexRequestRef.id,
+  //         no: dataSource.length + 1,
+  //       };
+  
+  //       setNotificationMessage("Item added successfully!");
+  //       setNotificationVisible(true);
+  
+  //       itemToLog = newItem;
+  //     }
+  
+  //     try {
+  //       await logRequestOrReturn(userId, userName, "Added a Capex Item", itemToLog);
+  //     } catch (logError) {
+  //       console.error("Failed to log activity:", logError);
+  //       // Optionally show a different message or skip showing an error
+  //     }      
+  
+  //     calculateTotalPrice(); // Recalculate total price without modifying the state directly
+  
+  //   } catch (error) {
+  //     console.error("Error saving item to Firestore:", error);
+  //     setNotificationMessage("Failed to save Item");
+  //     setNotificationVisible(true);
+  //   }
+  // };  
+
   const handleSave = async (values) => {
-    // Close the modal immediately
     setIsModalVisible(false);
   
     const userId = localStorage.getItem("userId");
@@ -209,46 +286,58 @@ const CapexRequest = () => {
     let itemToLog;
   
     try {
-      // Check for duplicates (only if adding new item)
+      // Validate numeric fields
+      const qty = Number(values.qty);
+      const cost = Number(values.estimatedCost);
+  
+      if (isNaN(qty) || isNaN(cost)) {
+        setNotificationMessage("Quantity and Estimated Cost must be valid numbers.");
+        setNotificationVisible(true);
+        return;
+      }
+  
+      const totalPrice = qty * cost;
+  
+      // Check for duplicates if adding new item
       if (editingRow === null) {
         const isDuplicate = dataSource.some(
           (item) =>
             item.itemDescription.trim().toLowerCase() ===
             values.itemDescription.trim().toLowerCase()
         );
-
+  
         if (isDuplicate) {
           setNotificationMessage("Item already exists in the request list.");
-          setNotificationVisible(true); // Show the notification modal
-          return; // Stop further execution if duplicate found
+          setNotificationVisible(true);
+          return;
         }
       }
-
+  
       if (editingRow !== null) {
         // Updating an existing item
         const updatedItem = {
           ...values,
           id: editingRow.id,
-          totalPrice: values.qty * values.estimatedCost,
+          qty: qty.toString(), // Ensure it's stored as string if needed
+          estimatedCost: cost.toString(),
+          totalPrice,
         };
   
-        // Directly update the item in Firestore
         const capexRequestRef = doc(db, `accounts/${userId}/temporaryCapexRequest`, editingRow.id);
         await setDoc(capexRequestRef, updatedItem);
-  
         itemToLog = updatedItem;
   
         setNotificationMessage("Item updated successfully!");
         setNotificationVisible(true);
-  
       } else {
         // Adding a new item
         const newItem = {
           ...values,
-          totalPrice: values.qty * values.estimatedCost,
+          qty: qty.toString(),
+          estimatedCost: cost.toString(),
+          totalPrice,
         };
   
-        // Add the new item to Firestore directly
         const capexRequestRef = await addDoc(collection(db, `accounts/${userId}/temporaryCapexRequest`), newItem);
         const newItemWithId = {
           ...newItem,
@@ -258,13 +347,20 @@ const CapexRequest = () => {
   
         setNotificationMessage("Item added successfully!");
         setNotificationVisible(true);
-  
-        itemToLog = newItem;
+        itemToLog = newItemWithId;
       }
   
-      await logRequestOrReturn(userId, userName, "Added a Capex Item", itemToLog);
+      try {
+        await logRequestOrReturn(userId, userName, "Added a Capex Item", itemToLog);
+      } catch (logError) {
+        console.error("Failed to log activity:", logError);
+      }
   
-      calculateTotalPrice(); // Recalculate total price without modifying the state directly
+      try {
+        calculateTotalPrice();
+      } catch (calcError) {
+        console.error("Failed to calculate total price:", calcError);
+      }
   
     } catch (error) {
       console.error("Error saving item to Firestore:", error);
