@@ -41,6 +41,7 @@ const ReturnItems = () => {
               parsedRawTimestamp = rawTimestamp.toDate().toLocaleString("en-PH", {
                 timeZone: "Asia/Manila",
               });
+
             } catch (e) {
               console.warn(`Error formatting rawTimestamp for doc ${doc.id}:`, e);
             }
@@ -51,6 +52,7 @@ const ReturnItems = () => {
               parsedTimestamp = timestamp.toDate().toLocaleString("en-PH", {
                 timeZone: "Asia/Manila",
               });
+              
             } catch (e) {
               console.warn(`Error formatting timestamp for doc ${doc.id}:`, e);
             }
