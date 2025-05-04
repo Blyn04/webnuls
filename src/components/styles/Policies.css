@@ -83,3 +83,11 @@
 .modal-footer .close-btn:hover {
   background-color: #0056b3;
 }
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+  font-size: 14px;
+}
