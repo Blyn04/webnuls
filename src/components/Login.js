@@ -455,16 +455,17 @@ const Login = () => {
       await addDoc(collection(db, "pendingaccounts"), sanitizedData);
 
       // Step 6.1: Send confirmation email
-      // const functions = getFunctions();
-      // const sendEmail = httpsCallable(functions, 'sendEmail');
-
-      // await sendEmail({
-      //   to: email.trim().toLowerCase(),
-      //   subject: 'Welcome to the NU MOA Laboratory System',
-      //   text: `Hi ${name.trim()},\n\nThank you for signing up. Your account is pending approval by the ITSO. You will be notified once it is approved.\n\n- NU MOA ITSO`,
-      //   html: `<p>Hi <strong>${name.trim()}</strong>,</p>
-      //         <p>Thank you for signing up. Your account is <strong>pending approval</strong> by the ITSO. You will be notified once it is approved.</p>
-      //         <p>- NU MOA ITSO</p>`
+      // await fetch('https://<your-region>-<your-project-id>.cloudfunctions.net/sendEmail', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     to: email.trim().toLowerCase(),
+      //     subject: "Account Registration - Pending Approval",
+      //     text: `Hi ${name},\n\nThank you for registering. Your account is now pending approval from the ITSO.\n\nRegards,\nNU MOA ITSO Team`,
+      //     html: `<p>Hi ${name},</p><p>Thank you for registering. Your account is now <strong>pending approval</strong> from the ITSO.</p><p>Regards,<br>NU MOA ITSO Team</p>`,
+      //   }),
       // });
   
       // Step 7: Set the modal message and show the modal
