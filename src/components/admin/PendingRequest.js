@@ -1795,7 +1795,7 @@ const PendingRequest = () => {
       render: (text) => text || "N/A",  
     },   
     {
-      title: "Item Description",
+      title: "Item Name",
       dataIndex: "itemName",
     },
     {
@@ -1963,6 +1963,7 @@ const PendingRequest = () => {
               <Button key="cancel" onClick={() => setIsMultiRejectModalVisible(false)}>
                 Cancel
               </Button>,
+
               <Button key="confirm" type="primary" onClick={handleRejectConfirm}>
                 Confirm Rejection
               </Button>,
