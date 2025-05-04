@@ -1231,6 +1231,7 @@ import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/usersStyle/Requisition.css";
 import SuccessModal from "../customs/SuccessModal";
+import PoliciesModal from "../Policies";
 import FinalizeRequestModal from "../customs/FinalizeRequestModal";
 import NotificationModal from "../customs/NotificationModal";
 
@@ -1274,6 +1275,7 @@ const Requisition = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [showPolicies, setShowPolicies] = useState(false)
   const [mergedData, setMergedData] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
@@ -1467,7 +1469,12 @@ const Requisition = () => {
   }, [location.state, navigate]);  
 
   const closeModal = () => {
-    setShowModal(false);
+    setShowModal(false);         // Close success modal
+    setShowPolicies(true);       // Open policies modal next
+  };
+  
+  const closePolicies = () => {
+    setShowPolicies(false);      // Close policies modal
   };
 
   const handleCloseModal = () => {
@@ -2405,6 +2412,8 @@ const Requisition = () => {
         />
 
         <SuccessModal isVisible={showModal} onClose={closeModal} />
+
+        <PoliciesModal isOpen={showPolicies} onClose={closePolicies} />
       </Layout>
     </Layout>
   );  

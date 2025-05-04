@@ -9,18 +9,32 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  transition: opacity 0.3s ease;
 }
 
 /* Modal Container */
 .modal-container {
   background-color: white;
-  border-radius: 8px;
-  width: 80%;
+  border-radius: 12px; /* Rounded corners for a modern look */
+  width: 90%;
   max-width: 600px;
-  padding: 20px;
+  padding: 25px;
   overflow-y: auto;
   position: relative;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2); /* Slightly stronger shadow */
+  animation: modal-enter 0.3s ease-in-out;
+}
+
+/* Modal Animation */
+@keyframes modal-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Header Section */
@@ -28,23 +42,29 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 .modal-header h2 {
   margin: 0;
+  font-size: 20px;
+  color: #333;
 }
 
+/* Close Button */
 .close-btn {
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 28px;
   cursor: pointer;
   color: #333;
   transition: color 0.2s ease;
+  padding: 5px;
 }
 
 .close-btn:hover {
-  color: red;
+  color: #d9534f; /* Red shade for better hover visibility */
 }
 
 /* Modal Body */
@@ -55,39 +75,53 @@
 .modal-body h3 {
   margin-top: 0;
   font-size: 18px;
-  color: #333;
+  color: #444;
 }
 
 .modal-body p {
-  font-size: 14px;
-  color: #555;
-  line-height: 1.5;
+  font-size: 15px;
+  color: #666;
+  line-height: 1.6;
   margin-bottom: 20px;
+  text-align: justify;
 }
 
 /* Footer Section */
 .modal-footer {
   display: flex;
   justify-content: flex-end;
+  margin-top: 20px;
 }
 
 .modal-footer .close-btn {
   background-color: #007bff;
   color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 12px 24px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-size: 16px;
 }
 
 .modal-footer .close-btn:hover {
   background-color: #0056b3;
+  transform: translateY(-2px);
 }
 
+.modal-footer .close-btn:active {
+  transform: translateY(0); /* Slight effect on click */
+}
+
+/* Checkbox Section */
 .checkbox-container {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin-right: auto;
-  font-size: 14px;
+  font-size: 15px;
+  color: #333;
+}
+
+.checkbox-container input {
+  transform: scale(1.2);
 }

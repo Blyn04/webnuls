@@ -5,6 +5,7 @@ import { db } from "../backend/firebase/FirebaseConfig";
 import { collectionGroup, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import SuccessModal from "./customs/SuccessModal";
 import CustomCalendar from "./customs/CustomCalendar";
+import PoliciesModal from "./Policies";
 import "./styles/Dashboard.css";
  
  const { Content } = Layout;
@@ -100,10 +101,15 @@ import "./styles/Dashboard.css";
    }, [location.state, navigate]);
  
    const closeModal = () => {
-     setShowModal(false);
+    setShowModal(false);         // Close success modal
+    setShowPolicies(true);       // Open policies modal next
+   };
+  
+   const closePolicies = () => {
+    setShowPolicies(false);      // Close policies modal
    };
 
-     // Fetch AI-based sales predictions and product trends
+    // Fetch AI-based sales predictions and product trends
     useEffect(() => {
       // Replace with your AI-powered API endpoints once your Blaze plan is active
       fetch('/api/predict-sales')  // Example endpoint for sales prediction
@@ -263,7 +269,11 @@ import "./styles/Dashboard.css";
               </Col>
             </Row>
           </Content>
+
          <SuccessModal isVisible={showModal} onClose={closeModal} />
+
+         <PoliciesModal isOpen={showPolicies} onClose={closePolicies} />
+
        </Layout>
      </Layout>
    );
