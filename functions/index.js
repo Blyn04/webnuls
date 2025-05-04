@@ -47,7 +47,7 @@ exports.predictSales = onRequest(
     timeoutSeconds: 120,
   },
   (req, res) => {
-    const pythonProcess = spawn('python3', ['analytics.py']);
+    const pythonProcess = spawn('python3', ['../analyticsAI/analytics.py']);
 
     // Send the sales data to Python via stdin
     pythonProcess.stdin.write(JSON.stringify(req.body));
