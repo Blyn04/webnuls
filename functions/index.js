@@ -47,11 +47,15 @@ exports.predictSales = onRequest(
     timeoutSeconds: 120,
   },
   (req, res) => {
-    const pythonProcess = spawn('python3', ['./analyticsAI/analytics.py']);
+    const pythonProcess = spawn('python3', ['analytics.py']);
+
+    // Send the sales data to Python via stdin
+    pythonProcess.stdin.write(JSON.stringify(req.body));
+    pythonProcess.stdin.end();
 
     pythonProcess.stdout.on('data', (data) => {
       logger.log('Python output:', data.toString());
-      res.send(`Predicted sales for next month: ${data.toString()}`);
+      res.status(200).send({ prediction: data.toString() });
     });
 
     pythonProcess.stderr.on('data', (data) => {
