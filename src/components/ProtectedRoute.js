@@ -26,7 +26,7 @@ const ProtectedRoute = ({ allowedRoles = ["user", "admin", "super-admin", "super
     return <Navigate to="/not-authorized" replace />;
   }
   
-  return allowedRoles.includes(userRole) ? <Outlet /> : <Navigate to="/not-authorized" replace />;
+  return allowedRoles.includes(userRole) ? <Outlet /> : <Navigate to="/main/not-authorized" replace />;
   
 };
 

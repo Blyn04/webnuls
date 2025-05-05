@@ -444,6 +444,8 @@ const LayoutMain = () => {
         >
 
           <Routes>
+            <Route path="/not-authorized" element={<NotAuthorized />} />
+
             {/* Routes accessible to all logged-in users */}
             <Route element={<ProtectedRoute allowedRoles={["admin", "user", "super-admin", "super-user"]} />} >
               <Route path="/profile" element={<Profile />} />

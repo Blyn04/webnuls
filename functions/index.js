@@ -30,6 +30,7 @@ exports.sendEmail = onRequest(
 
         await sgMail.send(msg);
         res.status(200).send({ success: true });
+        
       } catch (error) {
         logger.error('Error sending email:', error);
         res.status(500).send({ success: false, error: error.message });
