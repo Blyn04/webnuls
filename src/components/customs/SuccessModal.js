@@ -7,6 +7,7 @@ const SuccessModal = ({ isVisible, onClose }) => {
       title="Login Successful"
       visible={isVisible}
       onCancel={onClose}
+      zIndex={1003}
       footer={[
         <Button key="close" type="primary" onClick={onClose}>
           OK
