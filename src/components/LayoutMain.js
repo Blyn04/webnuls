@@ -391,7 +391,7 @@ const LayoutMain = () => {
       : userMenuItems;
 
   return (
-    <Layout>
+    <Layout style={{ minHeight: "100vh" }}>
       <Sider
           trigger={null}
           collapsible
@@ -401,6 +401,12 @@ const LayoutMain = () => {
           className={isMobile && !mobileOpen ? 'mobile-collapsed' : ''} 
           style={{ 
             width: mobileOpen ? '200px' : (collapsed && !isMobile ? '80px' : '200px'),
+            position: "fixed",
+            top: 0,
+            left: 0,
+            height: "100vh",
+            zIndex: 1000,
+            overflow: "auto",
           }}
         > 
           <div className="demo-logo-vertical" />
@@ -426,18 +432,32 @@ const LayoutMain = () => {
           />
       </Sider>
 
-      <Layout>
-        <AppHeader
-        pageTitle={pageTitle}
-        onToggleSidebar={toggleSidebar}
-        isSidebarCollapsed={collapsed}
-        />
+      <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'margin-left 0.2s' }}>
+
+        <Header
+          style={{
+            position: "fixed",
+            top: 0,
+            left: collapsed ? 80 : 200,
+            right: 0,
+            zIndex: 1001,
+            background: "#fff",
+            padding: 0,
+            transition: 'left 0.2s',
+          }}
+        >
+          <AppHeader
+            pageTitle={pageTitle}
+            onToggleSidebar={toggleSidebar}
+            isSidebarCollapsed={collapsed}
+          />
+        </Header>
 
         <Content
           style={{
             margin: '24px 16px',
             padding: 24,
-            minHeight: 280,
+            minHeight: "100vh",
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
           }}
