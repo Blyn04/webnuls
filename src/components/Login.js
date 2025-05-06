@@ -455,18 +455,19 @@ const Login = () => {
       await addDoc(collection(db, "pendingaccounts"), sanitizedData);
 
       // Step 6.1: Send confirmation email
-      // await fetch('https://<your-region>-<your-project-id>.cloudfunctions.net/sendEmail', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     to: email.trim().toLowerCase(),
-      //     subject: "Account Registration - Pending Approval",
-      //     text: `Hi ${name},\n\nThank you for registering. Your account is now pending approval from the ITSO.\n\nRegards,\nNU MOA ITSO Team`,
-      //     html: `<p>Hi ${name},</p><p>Thank you for registering. Your account is now <strong>pending approval</strong> from the ITSO.</p><p>Regards,<br>NU MOA ITSO Team</p>`,
-      //   }),
-      // });
+     // Step 6.1: Send confirmation email
+      await fetch('https://sendemail-guopzbbmca-uc.a.run.app', {  // Use your deployed URL here
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: email.trim().toLowerCase(),
+          subject: "Account Registration - Pending Approval",
+          text: `Hi ${name},\n\nThank you for registering. Your account is now pending approval from the ITSO.\n\nRegards,\nNU MOA ITSO Team`,
+          html: `<p>Hi ${name},</p><p>Thank you for registering. Your account is now <strong>pending approval</strong> from the ITSO.</p><p>Regards,<br>NU MOA ITSO Team</p>`,
+        }),
+      });
   
       // Step 7: Set the modal message and show the modal
       setModalMessage("Successfully Registered! Please check your email for further instructions. Your account is pending approval from the ITSO.");

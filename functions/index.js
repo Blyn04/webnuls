@@ -31,7 +31,7 @@ exports.sendEmail = onRequest(
 
         const msg = {
           to: req.body.to,
-          from: 'bernabebf@students.nu-moa.edu.ph',
+          from: 'berlenebernabe12@gmail.com',
           subject: req.body.subject,
           text: req.body.text,
           html: req.body.html,
