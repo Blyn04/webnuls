@@ -57,3 +57,14 @@
 .search-table .ant-table-tbody > tr:hover > td {
   background-color: #e6f7ff; /* Light blue highlight */
 }
+
+.search-modal-container .custom-descriptions .ant-descriptions-item-label {
+  background-color: #3366b3; /* light gray or any color you like */
+  font-weight: bold;
+  width: 50%;
+  font-size: 16px;
+}
+
+.search-modal-container .custom-descriptions .ant-descriptions-item-content {
+  font-size: 16px;
+}

@@ -23,11 +23,6 @@
   margin-right: 8px;
 }
 
-.pending-main {
-  display: flex;
-  gap: 20px;
-}
-
 .pending-search {
   margin-bottom: 10px;
   width: 100%;
@@ -67,7 +62,7 @@
 }
 
 .pending-table {
-  width: 50%;
+  width: 100%;
   background: white;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   table-layout: fixed;
@@ -112,3 +107,64 @@
 .pending-table .ant-table-tbody > tr:hover > td {
   background-color: #e6f7ff; /* Light blue highlight */
 }
+
+.request-list-modal button:nth-child(2){
+  background-color: red;
+  color: white;
+}
+
+.request-details-container{
+  display: flex;
+  align-items: center;
+  width: 800px; 
+  background-color: #212f7e;
+  height: 50px;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+  margin-top: -20px;
+  margin-left: -24px;
+
+}
+
+.request-details-whole{
+  background-color: #eaefff;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 800px;
+  padding-top: 15px;
+  margin-left: -24px;
+  padding-left: 20px;
+  font-size: 16px;
+} 
+
+.request-details-left{
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  padding-right: 30px;
+}
+
+.request-details-left div{
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.request-details-right{
+  width: 50%;
+  padding-right: 30px;
+}
+
+.request-details-right div{
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.details-table{
+  margin-top: 30px;
+}
+
