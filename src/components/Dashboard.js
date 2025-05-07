@@ -283,9 +283,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate,  useLocation } from "react-router-dom";
-import { Layout, Card, Col, Row, Table, List } from "antd";
+import { Layout, Card, Col, Row, Table, List, Modal } from "antd";
 import { db } from "../backend/firebase/FirebaseConfig"; 
-import { collectionGroup, query, where, getDocs, onSnapshot } from "firebase/firestore";
+import { collectionGroup, query, where, getDocs, onSnapshot, collection } from "firebase/firestore";
 import SuccessModal from "./customs/SuccessModal";
 import CustomCalendar from "./customs/CustomCalendar";
 import PoliciesModal from "./Policies";
@@ -300,6 +300,8 @@ import "./styles/Dashboard.css";
    const [predictedSales, setPredictedSales] = useState(null);  
    const [productTrends, setProductTrends] = useState([]);  
    const [showPolicies, setShowPolicies] = useState(false); 
+   const [selectedDate, setSelectedDate] = useState(null);
+   const [eventsOnSelectedDate, setEventsOnSelectedDate] = useState([]);
    const location = useLocation();
    const navigate = useNavigate();
  
@@ -382,15 +384,6 @@ import "./styles/Dashboard.css";
        navigate(location.pathname, { replace: true, state: newState });
      }
    }, [location.state, navigate]);
- 
-   const closeModal = () => {
-    setShowModal(false);         // Close success modal
-    setShowPolicies(true);       // Open policies modal next
-   };
-  
-   const closePolicies = () => {
-    setShowPolicies(false);      // Close policies modal
-   };
 
     // Fetch AI-based sales predictions and product trends
     useEffect(() => {
@@ -401,12 +394,51 @@ import "./styles/Dashboard.css";
           setPredictedSales(data.prediction);  // Update predicted sales state
         });
 
-      fetch('/api/product-trends')  // Example endpoint for product trends
+      fetch('/api/product-trends')  
         .then((res) => res.json())
         .then((data) => {
-          setProductTrends(data.trends);  // Update product trends state
+          setProductTrends(data.trends);  
         });
-    }, []);
+      }, []);
+ 
+   const closeModal = () => {
+    setShowModal(false);        
+    setShowPolicies(true);      
+   };
+  
+   const closePolicies = () => {
+    setShowPolicies(false);    
+   };
+
+   const handleDateSelect = async (date) => {
+    setSelectedDate(date);
+    const selectedDateStr = date.format("YYYY-MM-DD"); 
+  
+    // Fetch events from 'requestlog' collection based on selectedDate
+    const q = query(
+      collection(db, "requestlog"),
+      where("dateRequired", "==", selectedDateStr),
+      where("status", "==", "Approved")
+    );
+  
+    const querySnapshot = await getDocs(q);
+    const items = [];
+  
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (Array.isArray(data.requestList)) {
+        data.requestList.forEach((item) => {
+          items.push({
+            id: doc.id,
+            title: item.itemName || "Approved Request",
+            description: `Quantity: ${item.quantity}`, // Optional detail
+          });
+        });
+      }
+    });
+  
+    setEventsOnSelectedDate(items);
+  };  
  
    const summaryCards = [
      { title: "Pending Requests", count: pendingRequestCount, color: "#fa541c", icon: "📄" },
@@ -573,10 +605,32 @@ import "./styles/Dashboard.css";
             <Row style={{ marginTop: "20px", width: "100%" }}>
               <Col span={24}>
                 <div className="calendar-wrapper">
-                  <CustomCalendar />
+                  <CustomCalendar onSelectDate={handleDateSelect} />
                 </div>
               </Col>
             </Row>
+
+        {selectedDate && eventsOnSelectedDate.length > 0 && (
+          <Modal
+            title={`Events on ${selectedDate.format("YYYY-MM-DD")}`}
+            visible={true}
+            onCancel={() => setSelectedDate(null)}
+            footer={null}
+            zIndex={1006}
+          >
+            <List
+              dataSource={eventsOnSelectedDate}
+              renderItem={(event) => (
+                <List.Item key={event.id}>
+                  <Card title={event.title}>
+                    {/* Display more event details here */}
+                    <p>{event.description}</p>
+                  </Card>
+                </List.Item>
+              )}
+            />
+          </Modal>
+        )}
           </Content>
 
          <SuccessModal isVisible={showModal} onClose={closeModal} />
