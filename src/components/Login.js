@@ -424,8 +424,8 @@ const Login = () => {
       }
   
       // Step 4: Create the Firebase user with email and password
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const firebaseUser = userCredential.user;
+      // const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // const firebaseUser = userCredential.user;
   
       // Step 5: Determine the role based on the job title
       let role = "user";  // Default role is 'user'
@@ -440,22 +440,36 @@ const Login = () => {
       }
   
       // Step 6: Create a new document in the 'pendingaccounts' collection
+      // const sanitizedData = {
+      //   name: name.trim().toLowerCase(),
+      //   email: email.trim().toLowerCase(),
+      //   employeeId: employeeId.trim().replace(/[^\d-]/g, ''),
+      //   jobTitle,
+      //   department,
+      //   role,  // Assign role based on job title
+      //   createdAt: serverTimestamp(),
+      //   status: "pending", // Mark as pending
+      //   // uid: firebaseUser.uid,
+      // };
+  
+      // // Add user data to 'pendingaccounts' collection
+      // await addDoc(collection(db, "pendingaccounts"), sanitizedData);
+
+        // Save data to 'pendingaccounts' collection without creating the Firebase Auth user
       const sanitizedData = {
         name: name.trim().toLowerCase(),
         email: email.trim().toLowerCase(),
         employeeId: employeeId.trim().replace(/[^\d-]/g, ''),
         jobTitle,
         department,
-        role,  // Assign role based on job title
+        role, // Function to determine role based on job title
         createdAt: serverTimestamp(),
-        status: "pending", // Mark as pending
-        uid: firebaseUser.uid,
+        status: "pending",
+        password, // Include password here temporarily for approval process
       };
-  
-      // Add user data to 'pendingaccounts' collection
+
       await addDoc(collection(db, "pendingaccounts"), sanitizedData);
 
-      // Step 6.1: Send confirmation email
      // Step 6.1: Send confirmation email
       await fetch('https://sendemail-guopzbbmca-uc.a.run.app', {  // Use your deployed URL here
         method: 'POST',
