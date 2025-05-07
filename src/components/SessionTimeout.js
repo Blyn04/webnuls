@@ -92,6 +92,7 @@ const SessionTimeout = ({ onLogout }) => {
       ]}
       closable={false}
       maskClosable={false}
+      zIndex={1005}
     >
       <p>Your session has timed out due to inactivity. Please log in again.</p>
     </Modal>
