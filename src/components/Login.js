@@ -809,12 +809,12 @@ const Login = () => {
                 {signUpMode ? (
                   <>
                     <label style={{marginTop: '10px'}}>Already have an account?{" "}
-                    <span onClick={() => signUpAnimate()} style={{color: '#0a3e75', fontWeight: '700', cursor: 'pointer'}}>Login here</span></label>
+                    <span onClick={() => signUpAnimate()} style={{color: '#0a3e75', fontWeight: '700', cursor: 'pointer'}} className="link" >Login here</span></label>
                   </>
                 ) : (
                   <>
                     Don’t have an account?{" "}
-                    <span onClick={() => signUpAnimate()} style={{color: '#0a3e75', fontWeight: '700', cursor: 'pointer'}}>Sign up here</span>
+                    <span onClick={() => signUpAnimate()} style={{color: '#0a3e75', fontWeight: '700', cursor: 'pointer'}} className="link">Sign up here</span>
                   </>
                 )}
               </p>
