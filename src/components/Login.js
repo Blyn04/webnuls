@@ -351,6 +351,7 @@ const Login = () => {
   const handleSignUp = async () => {
     const { name, email, employeeId, password, confirmPassword, jobTitle, department } = signUpData;
     const auth = getAuth();
+    setIsLoading(true)
 
     if (!termsChecked) {
       setError("You must accept the terms and conditions before signing up.");
@@ -493,6 +494,10 @@ const Login = () => {
       } else {
         setError("Failed to create account. Try again.");
       }
+      
+    } finally{
+      setIsLoading(false)
+      setSignUpMode(false)
     }
   };
   

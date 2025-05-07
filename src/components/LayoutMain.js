@@ -456,7 +456,7 @@ const LayoutMain = () => {
         <Content
           style={{
             marginTop: 64,
-            paddingTop: 20,
+            paddingTop: 60,
             margin: '24px 16px',
             padding: 24,
             minHeight: "100vh",
