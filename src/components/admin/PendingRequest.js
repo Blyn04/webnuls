@@ -4,7 +4,7 @@ import Sidebar from "../Sidebar";
 import AppHeader from "../Header";
 import "../styles/adminStyle/PendingRequest.css";
 import { db } from "../../backend/firebase/FirebaseConfig"; 
-import { collection, getDocs, getDoc, doc, addDoc, query, where, deleteDoc, serverTimestamp, onSnapshot, updateDoc } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc, addDoc, query, where, deleteDoc, serverTimestamp, onSnapshot, updateDoc, orderBy } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import RequisitionRequestModal from "../customs/RequisitionRequestModal";
 import ApprovedRequestModal from "../customs/ApprovedRequestModal";
@@ -89,8 +89,8 @@ const PendingRequest = () => {
 
   useEffect(() => {
     const userRequestRef = collection(db, "userrequests");
-  
-    const unsubscribe = onSnapshot(userRequestRef, async (querySnapshot) => {
+    const q = query(userRequestRef, orderBy("timestamp", "desc"));
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       const fetched = [];
   
       for (const docSnap of querySnapshot.docs) {
