@@ -26,6 +26,8 @@ import CONFIG from "../../config";
 import "../styles/adminStyle/Inventory.css";
 import DeleteModal from "../customs/DeleteModal";
 import NotificationModal from "../customs/NotificationModal";
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -143,6 +145,22 @@ const Inventory = () => {
       matchesSearch
     );
   });  
+
+  const exportToExcel = () => {
+    // Prepare the data for Excel
+    const worksheet = XLSX.utils.json_to_sheet(dataSource); // your current data
+    const workbook = XLSX.utils.book_new();
+  
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory");
+  
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+  
+    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(data, "Inventory.xlsx");
+  };  
 
   const handleAdd = async (values) => {
     if (!itemName || !values.department) {
@@ -575,6 +593,11 @@ const Inventory = () => {
               >
                 Reset Filters
               </Button>
+
+              <Button type="primary" onClick={exportToExcel}>
+                Export to Excel
+              </Button>
+
             </Space>
           </div>
 
@@ -728,7 +751,6 @@ const Inventory = () => {
               );
             }}
           />
-
 
           <NotificationModal
             isVisible={isNotificationVisible}
