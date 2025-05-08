@@ -606,31 +606,10 @@ import "./styles/Dashboard.css";
               <Col span={24}>
                 <div className="calendar-wrapper">
                   <CustomCalendar onSelectDate={handleDateSelect} />
+                  {/* <CustomCalendar onSelectDate={(date) => setSelectedDate(date)} /> */}
                 </div>
               </Col>
             </Row>
-
-        {selectedDate && eventsOnSelectedDate.length > 0 && (
-          <Modal
-            title={`Events on ${selectedDate.format("YYYY-MM-DD")}`}
-            visible={true}
-            onCancel={() => setSelectedDate(null)}
-            footer={null}
-            zIndex={1006}
-          >
-            <List
-              dataSource={eventsOnSelectedDate}
-              renderItem={(event) => (
-                <List.Item key={event.id}>
-                  <Card title={event.title}>
-                    {/* Display more event details here */}
-                    <p>{event.description}</p>
-                  </Card>
-                </List.Item>
-              )}
-            />
-          </Modal>
-        )}
           </Content>
 
          <SuccessModal isVisible={showModal} onClose={closeModal} />
