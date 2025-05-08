@@ -110,6 +110,12 @@ const Profile = () => {
     }
   };
 
+  const capitalizeName = (name) => {
+    return name
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };  
+
   return (
     <Layout >
       {/* style={{ minHeight: "50vh" }} */}
@@ -165,7 +171,7 @@ const Profile = () => {
                   </div>
 
                   <Title level={5} style={{ marginTop: 10 }}>
-                    {formData?.name || "No Name Available"}
+                    {formData?.name ? capitalizeName(formData.name) : "No Name Available"}
                   </Title>
 
                   <Text type="secondary">
@@ -188,7 +194,7 @@ const Profile = () => {
                     />
                   )}
                   <p>
-                    <strong>Name:</strong> {formData.name}
+                    <strong>Name:</strong> {formData?.name ? capitalizeName(formData.name) : "No Name Available"}
                   </p>
                   
                   <p>

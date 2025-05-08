@@ -34,6 +34,9 @@ const AppHeader = ({ pageTitle, onToggleSidebar, isSidebarCollapsed }) => {
     navigate("/main/profile");
   };
 
+  const capitalizeName = (name) =>
+    name?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());  
+
   return (
     <Header className={`header ${isMobile ? "header-mobile" : ""}`}>
       <div className="header-left">
@@ -55,7 +58,7 @@ const AppHeader = ({ pageTitle, onToggleSidebar, isSidebarCollapsed }) => {
         >
           {!isMobile && (
             <div className="user-info">
-              <div className="user-name">Hi, {userName}!</div>
+              <div className="user-name">Hi, {capitalizeName(userName)}!</div>
               <div className="user-title">{jobTitle}</div>
             </div>
           )}
