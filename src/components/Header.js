@@ -62,7 +62,15 @@ const AppHeader = ({ pageTitle, onToggleSidebar, isSidebarCollapsed }) => {
               <div className="user-title">{jobTitle}</div>
             </div>
           )}
-          <Avatar icon={<UserOutlined />} />
+          <Avatar>
+            {userName
+              ? userName
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .toUpperCase()
+              : <UserOutlined />}
+          </Avatar>
         </div>
       )}
     </Header>

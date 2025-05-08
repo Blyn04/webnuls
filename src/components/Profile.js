@@ -139,7 +139,15 @@ const Profile = () => {
                     {imageUrl ? (
                       <Avatar src={imageUrl} size={100} />
                     ) : (
-                      <Avatar icon={<UserOutlined />} size={100} />
+                      <Avatar size={100}>
+                        {formData?.name
+                          ? formData?.name
+                              .split(' ')
+                              .map((n) => n[0])
+                              .join('')
+                              .toUpperCase()
+                          : <UserOutlined />}
+                      </Avatar>
                     )}
                   </Upload>
 
