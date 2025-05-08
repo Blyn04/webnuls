@@ -471,6 +471,7 @@ const AccountManagement = () => {
             title={editingAccount ? "Edit Account" : "Add Account"}
             open={isModalVisible}
             onCancel={() => setIsModalVisible(false)}
+            zIndex={1016}
             onOk={() => form.submit()}
             okText="Save"
           >
@@ -603,6 +604,7 @@ const AccountManagement = () => {
           }}
           onOk={handlePasswordConfirm}
           okText="Confirm"
+          zIndex={1017}
         >
           <Form layout="vertical">
             <Form.Item label="Enter your password to proceed:">

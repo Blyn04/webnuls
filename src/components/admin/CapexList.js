@@ -134,6 +134,7 @@ const CapexList = () => {
         onCancel={() => setViewModalVisible(false)}
         footer={null}
         width={800}
+        zIndex={1026}
       >
         {selectedRowDetails && (
           <div>

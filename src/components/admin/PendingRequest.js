@@ -1958,6 +1958,8 @@ const PendingRequest = () => {
           <Modal
             title="Provide Reasons for Unchecked Items"
             open={isMultiRejectModalVisible}
+            zIndex={1023}
+            width={'40%'}
             onCancel={() => setIsMultiRejectModalVisible(false)}
             footer={[
               <Button key="cancel" onClick={() => setIsMultiRejectModalVisible(false)}>

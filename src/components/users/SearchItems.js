@@ -513,6 +513,7 @@ const SearchItems = () => {
             className="search-modal-container"
             visible={isModalVisible}
             onCancel={() => setIsModalVisible(false)}
+            zIndex={1010}
             footer={null}
           >
             {selectedItem && (

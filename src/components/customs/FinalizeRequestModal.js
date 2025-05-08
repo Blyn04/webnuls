@@ -22,6 +22,7 @@ const FinalizeRequestModal = ({
       onCancel={onCancel}
       width={800}
       okText="Confirm and Submit"
+      zIndex={1007}
       cancelText="Cancel"
     >
       <p><strong>Date Required:</strong> {dateRequired || "N/A"}</p>

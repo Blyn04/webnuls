@@ -234,6 +234,7 @@ const HistoryLog = () => {
           <Modal
             title="Activity Details"
             visible={modalVisible}
+            zIndex={1015}
             onCancel={() => setModalVisible(false)}
             footer={null}
           >

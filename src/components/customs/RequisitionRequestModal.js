@@ -93,6 +93,7 @@ const RequisitionReqestModal = ({
       open={isModalVisible}
       onCancel={handleCancel}
       width={800}
+      zIndex={1022}
       footer={[
         <Button key="cancel" onClick={handleCancel}>Cancel</Button>,
         <Button key="reject" type="default" onClick={handleReturn}>Reject</Button>,

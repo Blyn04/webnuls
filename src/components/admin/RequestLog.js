@@ -282,6 +282,7 @@ const RequestLog = () => {
           visible={modalVisible}
           onCancel={closeModal}
           footer={[<Button key="close" onClick={closeModal}>Back</Button>]}
+          zIndex={1025}
           width={800}
         >
           {selectedRequest && (

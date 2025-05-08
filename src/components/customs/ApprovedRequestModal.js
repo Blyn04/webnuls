@@ -136,6 +136,7 @@ const ApprovedRequestModal = ({
         setSelectedApprovedRequest(null);
       }}
       width={800}
+      zIndex={1024}
       footer={
         selectedApprovedRequest?.status === "Returned" ? (
           <Button type="primary" onClick={handleApprove}>

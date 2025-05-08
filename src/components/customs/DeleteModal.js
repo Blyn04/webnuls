@@ -188,6 +188,7 @@ const DeleteModal = ({ visible, onClose, item, onDeleteSuccess, setDataSource })
       okText="Delete"
       okType="danger"
       cancelText="Cancel"
+      zIndex={1021}
     >
       <p>Are you sure you want to delete <strong>{item?.name}</strong>?</p>
     </Modal>
