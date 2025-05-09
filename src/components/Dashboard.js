@@ -414,11 +414,9 @@ import "./styles/Dashboard.css";
     setSelectedDate(date);
     const selectedDateStr = date.format("YYYY-MM-DD"); 
   
-    // Fetch events from 'requestlog' collection based on selectedDate
     const q = query(
-      collection(db, "requestlog"),
-      where("dateRequired", "==", selectedDateStr),
-      where("status", "==", "Approved")
+      collection(db, "borrowcatalog"),
+      where("dateRequired", "==", selectedDateStr)
     );
   
     const querySnapshot = await getDocs(q);
@@ -428,16 +426,18 @@ import "./styles/Dashboard.css";
       const data = doc.data();
       if (Array.isArray(data.requestList)) {
         data.requestList.forEach((item) => {
-          items.push({
-            id: doc.id,
-            title: item.itemName || "Approved Request",
-            description: `Quantity: ${item.quantity}`, // Optional detail
-          });
+          if (item.status === "Borrowed") {
+            items.push({
+              id: doc.id,
+              title: item.itemName || "Borrowed Item",
+              description: `Quantity: ${item.quantity}`,
+            });
+          }
         });
       }
     });
   
-    setEventsOnSelectedDate(items);
+    setEventsOnSelectedDate(items); // Ensure this state is properly declared
   };  
  
    const summaryCards = [

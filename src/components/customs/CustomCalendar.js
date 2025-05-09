@@ -12,31 +12,33 @@ const CustomCalendar = ({ onSelectDate }) => {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "requestlog"));
+        const querySnapshot = await getDocs(collection(db, "borrowcatalog"));
         const requests = [];
 
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          if (data.status === "Approved" && Array.isArray(data.requestList)) {
+          if (Array.isArray(data.requestList)) {
             data.requestList.forEach((item) => {
-              requests.push({
-                date: data.dateRequired,
-                title: item.itemName || "Approved Request",
-                userName: data.userName || "N/A",
-                department: item.department || "N/A",
-                room: item.room || "N/A",
-                status: item.status || "N/A",
-                quantity: item.quantity || "N/A",
-                condition: item.condition || "N/A",
-                approvedBy: data.approvedBy || "N/A",
-              });
+              if (item.status === "Borrowed") {
+                requests.push({
+                  date: data.dateRequired,
+                  title: item.itemName || "Borrowed Item",
+                  userName: data.userName || "N/A",
+                  department: item.department || "N/A",
+                  room: item.room || "N/A",
+                  status: item.status || "N/A",
+                  quantity: Number(item.quantity) || 1,
+                  condition: item.condition || "N/A",
+                  approvedBy: data.approvedBy || "N/A",
+                });
+              }
             });
           }
         });
 
         setApprovedRequests(requests);
       } catch (error) {
-        console.error("Error fetching approved requests:", error);
+        console.error("Error fetching approved requests from borrowcatalog:", error);
       }
     };
 
@@ -69,27 +71,40 @@ const CustomCalendar = ({ onSelectDate }) => {
   const handleDateSelect = (date) => {
     const dateStr = date.format("YYYY-MM-DD");
     const matchedRequests = approvedRequests.filter((item) => item.date === dateStr);
-    setSelectedDateRequests(matchedRequests);
+
+    // Group by itemName + condition + userName + room + department
+    const grouped = {};
+
+    matchedRequests.forEach((item) => {
+      const key = `${item.title}-${item.condition}-${item.userName}-${item.room}-${item.department}`;
+      if (!grouped[key]) {
+        grouped[key] = { ...item, quantity: Number(item.quantity) || 1 };
+      } else {
+        grouped[key].quantity += Number(item.quantity) || 1;
+      }
+    });
+
+    const groupedArray = Object.values(grouped);
+
+    setSelectedDateRequests(groupedArray);
     setIsModalVisible(true);
-    onSelectDate(date); // keep your original onSelectDate behavior
+    onSelectDate(date);
   };
 
   return (
     <>
-      <Calendar
-        dateCellRender={dateCellRender}
-        onSelect={handleDateSelect}
-      />
+      <Calendar dateCellRender={dateCellRender} onSelect={handleDateSelect} />
 
       <Modal
-        title="Approved Requests"
+        title="Borrowed Items"
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
         width={700}
+        zIndex={1027}
       >
         {selectedDateRequests.length === 0 ? (
-          <p>No approved requests for this date.</p>
+          <p>No borrowed items for this date.</p>
         ) : (
           <List
             itemLayout="vertical"
