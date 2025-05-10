@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate,  useLocation } from "react-router-dom";
 import { Layout, Card, Col, Row, Table, List, Modal } from "antd";
 import { db } from "../backend/firebase/FirebaseConfig"; 
-import { collectionGroup, query, where, getDocs, onSnapshot, collection } from "firebase/firestore";
+import { collectionGroup, query, where, getDocs, onSnapshot, collection, orderBy, limit } from "firebase/firestore";
 import SuccessModal from "./customs/SuccessModal";
 import CustomCalendar from "./customs/CustomCalendar";
 import PoliciesModal from "./Policies";
@@ -19,6 +19,7 @@ import "./styles/Dashboard.css";
    const [showPolicies, setShowPolicies] = useState(false); 
    const [selectedDate, setSelectedDate] = useState(null);
    const [eventsOnSelectedDate, setEventsOnSelectedDate] = useState([]);
+   const [recentProducts, setRecentProducts] = useState([]);
    const location = useLocation();
    const navigate = useNavigate();
  
@@ -37,86 +38,106 @@ import "./styles/Dashboard.css";
      { key: 4, name: "PIR Passive Infrared Sensor", date: "2019-02-03", total: "$6.00" },
    ]);
  
-   const [recentProducts, setRecentProducts] = useState([
-     { title: "PIR Passive Infrared Sensor", category: "Sensors", price: "$5" },
-     { title: "Electronics Project Enclosure Case Box", category: "Electronics", price: "$30" },
-   ]);
+    useEffect(() => {
+      const q = collectionGroup(db, "userrequests");
+  
+      // Set up the real-time listener
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        setPendingRequestCount(querySnapshot.size);
+  
+      }, (error) => {
+        console.error("Error fetching pending requests:", error);
+      });
+  
+      // Cleanup the listener on unmount
+      return () => unsubscribe();
+    }, []);
  
-   useEffect(() => {
-     const q = collectionGroup(db, "userrequests");
+    useEffect(() => {
+      const q = collectionGroup(db, "borrowcatalog");
+  
+      // Set up the real-time listener
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        setBorrowCAtalogCount(querySnapshot.size);
+  
+      }, (error) => {
+        console.error("Error fetching pending requests:", error);
+      });
+  
+      // Cleanup the listener on unmount
+      return () => unsubscribe();
+    }, []);
  
-     // Set up the real-time listener
-     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-       setPendingRequestCount(querySnapshot.size);
+    useEffect(() => {
+      if (location.state?.loginSuccess === true) {
+        setShowModal(true);
+      }
+    }, [location.state]);
  
-     }, (error) => {
-       console.error("Error fetching pending requests:", error);
-     });
+    useEffect(() => {
+      const handleBackButton = (event) => {
+        event.preventDefault();
+        window.history.pushState(null, "", window.location.href);
+      };
+  
+      window.history.pushState(null, "", window.location.href);
+      window.addEventListener("popstate", handleBackButton);
+  
+      return () => {
+        window.removeEventListener("popstate", handleBackButton);
+      };
+    }, []);
  
-     // Cleanup the listener on unmount
-     return () => unsubscribe();
-   }, []);
- 
-   useEffect(() => {
-     const q = collectionGroup(db, "borrowcatalog");
- 
-     // Set up the real-time listener
-     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-       setBorrowCAtalogCount(querySnapshot.size);
- 
-     }, (error) => {
-       console.error("Error fetching pending requests:", error);
-     });
- 
-     // Cleanup the listener on unmount
-     return () => unsubscribe();
-   }, []);
- 
-   useEffect(() => {
-     if (location.state?.loginSuccess === true) {
-       setShowModal(true);
-     }
-   }, [location.state]);
- 
-   useEffect(() => {
-     const handleBackButton = (event) => {
-       event.preventDefault();
-       window.history.pushState(null, "", window.location.href);
-     };
- 
-     window.history.pushState(null, "", window.location.href);
-     window.addEventListener("popstate", handleBackButton);
- 
-     return () => {
-       window.removeEventListener("popstate", handleBackButton);
-     };
-   }, []);
- 
-   useEffect(() => {
-     if (location.state?.loginSuccess) {
-       sessionStorage.setItem("isLoggedIn", "true");
-       setShowModal(true);
-       const newState = { ...location.state };
-       delete newState.loginSuccess;
-       navigate(location.pathname, { replace: true, state: newState });
-     }
-   }, [location.state, navigate]);
+    useEffect(() => {
+      if (location.state?.loginSuccess) {
+        sessionStorage.setItem("isLoggedIn", "true");
+        setShowModal(true);
+        const newState = { ...location.state };
+        delete newState.loginSuccess;
+        navigate(location.pathname, { replace: true, state: newState });
+      }
+    }, [location.state, navigate]);
 
     // Fetch AI-based sales predictions and product trends
     useEffect(() => {
-      // Replace with your AI-powered API endpoints once your Blaze plan is active
-      fetch('/api/predict-sales')  // Example endpoint for sales prediction
-        .then((res) => res.json())
-        .then((data) => {
-          setPredictedSales(data.prediction);  // Update predicted sales state
+        // Replace with your AI-powered API endpoints once your Blaze plan is active
+        fetch('/api/predict-sales')  // Example endpoint for sales prediction
+          .then((res) => res.json())
+          .then((data) => {
+            setPredictedSales(data.prediction);  // Update predicted sales state
+          });
+
+        fetch('/api/product-trends')  
+          .then((res) => res.json())
+          .then((data) => {
+            setProductTrends(data.trends);  
+          });
+    }, []);
+
+    useEffect(() => {
+      // Query to fetch recent products ordered by 'entryDate' and limit to a certain number (e.g., last 5 products)
+      const fetchRecentProducts = async () => {
+        const productsRef = collection(db, "inventory"); // Assuming "inventory" is the collection name
+
+        // Query to fetch the most recent products
+        const q = query(
+          productsRef, 
+          orderBy("entryDate", "desc"),  // Order by the entry date in descending order
+          limit(5)  // Limit the number of recent products (e.g., 5)
+        );
+
+        const querySnapshot = await getDocs(q);
+        const recentItems = [];
+
+        querySnapshot.forEach((doc) => {
+          recentItems.push(doc.data());
         });
 
-      fetch('/api/product-trends')  
-        .then((res) => res.json())
-        .then((data) => {
-          setProductTrends(data.trends);  
-        });
-      }, []);
+        setRecentProducts(recentItems);  // Set the fetched data to the state
+        };
+
+        fetchRecentProducts();
+    }, []);
  
    const closeModal = () => {
     setShowModal(false);        
@@ -306,10 +327,10 @@ import "./styles/Dashboard.css";
                       <List.Item>
                         <div style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
                           <div>
-                            <div>{item.title}</div>
+                            <div>{item.itemName}</div>
                             <small style={{ color: "#999" }}>{item.category}</small>
                           </div>
-                          <div>{item.price}</div>
+                          <div>{item.entryDate}</div>
                         </div>
                       </List.Item>
                     )}
