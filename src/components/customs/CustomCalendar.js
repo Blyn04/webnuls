@@ -11,6 +11,7 @@ const CustomCalendar = ({ onSelectDate }) => {
   const [selectedDateRequests, setSelectedDateRequests] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterProgram, setFilterProgram] = useState("all");
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -32,6 +33,7 @@ const CustomCalendar = ({ onSelectDate }) => {
                 quantity: item.quantity || "N/A",
                 condition: item.condition || "N/A",
                 approvedBy: data.approvedBy || "N/A",
+                program: data.program || "N/A", 
               });
             });
           }
@@ -47,8 +49,22 @@ const CustomCalendar = ({ onSelectDate }) => {
     return () => unsubscribe();
   }, []);
 
-  // 🔍 Filter logic for events
-  const filteredApprovedRequests = filterStatus === "all" ? approvedRequests : approvedRequests.filter((item) => item.status.toLowerCase() === filterStatus);
+  useEffect(() => {
+  console.log("Filter program:", filterProgram);
+  console.log("Filtered requests:", filteredApprovedRequests);
+}, [filterStatus, filterProgram, approvedRequests]);
+
+
+  const filteredApprovedRequests = approvedRequests.filter((item) => {
+    const statusMatches =
+      filterStatus === "all" || item.status.toLowerCase() === filterStatus;
+
+    const programMatches =
+      filterProgram === "all" ||
+      item.program?.toLowerCase().trim() === filterProgram.toLowerCase().trim();
+
+    return statusMatches && programMatches;
+  });
 
   const getListData = (value) => {
     const dateStr = value.format("YYYY-MM-DD");
@@ -59,6 +75,7 @@ const CustomCalendar = ({ onSelectDate }) => {
         let type = "default";
 
         if (status === "borrowed") type = "error";
+        
         else if (status === "returned") type = "success";
 
         return {
@@ -91,19 +108,34 @@ const CustomCalendar = ({ onSelectDate }) => {
 
   return (
     <>
-      {/* 🗂️ Filter for status outside of the modal */}
-      <div style={{ marginBottom: 16 }}>
-        <span style={{ marginRight: 8, fontWeight: "bold" }}>Filter by status:</span>
-        <Select
-          value={filterStatus}
-          onChange={setFilterStatus}
-          style={{ width: 200 }}
-        >
-          <Option value="all">All</Option>
-          <Option value="approved">Approved</Option>
-          <Option value="borrowed">Borrowed</Option>
-          <Option value="returned">Returned</Option>
-        </Select>
+      <div style={{ marginBottom: 16, display: "flex", gap: "16px", alignItems: "center" }}>
+        <div>
+          <span style={{ marginRight: 8, fontWeight: "bold" }}>Filter by status:</span>
+          <Select
+            value={filterStatus}
+            onChange={setFilterStatus}
+            style={{ width: 160 }}
+          >
+            <Option value="all">All</Option>
+            <Option value="approved">Approved</Option>
+            <Option value="borrowed">Borrowed</Option>
+            <Option value="returned">Returned</Option>
+          </Select>
+        </div>
+
+        <div>
+          <span style={{ marginRight: 8, fontWeight: "bold" }}>Filter by program:</span>
+          <Select
+            value={filterProgram}
+            onChange={setFilterProgram}
+            style={{ width: 200 }}
+          >
+            <Option value="all">All</Option>
+            <Option value="SAM - BSMT">SAM - BSMT</Option>
+            <Option value="SAH - BSN">SAH - BSN</Option>
+            <Option value="SHS">SHS</Option>
+          </Select>
+        </div>
       </div>
 
       <Calendar dateCellRender={dateCellRender} onSelect={handleDateSelect} />
