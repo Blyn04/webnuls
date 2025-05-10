@@ -208,12 +208,21 @@ const Inventory = () => {
       status: "Available",
       condition: "Good",  
       // usageType: values.usageType,
+      rawTimestamp: new Date(),
     };
   
-    const encryptedData = CryptoJS.AES.encrypt(
-      JSON.stringify(inventoryItem),
-      SECRET_KEY
-    ).toString();
+    // const encryptedData = CryptoJS.AES.encrypt(
+    //   JSON.stringify(inventoryItem),
+    //   SECRET_KEY
+    // ).toString();
+
+    let encryptedData;
+    if (values.type !== "Consumable") {
+      encryptedData = CryptoJS.AES.encrypt(
+        JSON.stringify(inventoryItem),
+        SECRET_KEY
+      ).toString();
+    }
   
     const newItem = {
       id: count + 1,
@@ -223,12 +232,19 @@ const Inventory = () => {
       expiryDate: expiryDate, 
       qrCode: encryptedData,
       ...inventoryItem,
+      ...(values.type !== "Consumable" && { qrCode: encryptedData }),
     };
   
+    // try {
+    //   await addDoc(collection(db, "inventory"), {
+    //     ...inventoryItem,
+    //     qrCode: encryptedData,
+    //   });
+
     try {
       await addDoc(collection(db, "inventory"), {
         ...inventoryItem,
-        qrCode: encryptedData,
+        ...(values.type !== "Consumable" && { qrCode: encryptedData }),
       });
   
       setDataSource([...dataSource, newItem]);
