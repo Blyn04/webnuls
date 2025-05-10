@@ -280,7 +280,6 @@
 //  };
  
 //  export default Dashboard;
-
 import React, { useState, useEffect } from "react";
 import { useNavigate,  useLocation } from "react-router-dom";
 import { Layout, Card, Col, Row, Table, List, Modal } from "antd";
@@ -410,35 +409,34 @@ import "./styles/Dashboard.css";
     setShowPolicies(false);    
    };
 
-   const handleDateSelect = async (date) => {
+  const handleDateSelect = async (date) => {
     setSelectedDate(date);
     const selectedDateStr = date.format("YYYY-MM-DD"); 
-  
+
     const q = query(
       collection(db, "borrowcatalog"),
       where("dateRequired", "==", selectedDateStr)
+      // Removed the status == "Approved" filter
     );
-  
+
     const querySnapshot = await getDocs(q);
     const items = [];
-  
+
     querySnapshot.forEach((doc) => {
       const data = doc.data();
       if (Array.isArray(data.requestList)) {
         data.requestList.forEach((item) => {
-          if (item.status === "Borrowed") {
-            items.push({
-              id: doc.id,
-              title: item.itemName || "Borrowed Item",
-              description: `Quantity: ${item.quantity}`,
-            });
-          }
+          items.push({
+            id: doc.id,
+            title: item.itemName || "Request",
+            description: `Quantity: ${item.quantity} | Status: ${item.status}`,
+          });
         });
       }
     });
-  
-    setEventsOnSelectedDate(items); // Ensure this state is properly declared
-  };  
+
+    setEventsOnSelectedDate(items);
+  };
  
    const summaryCards = [
      { title: "Pending Requests", count: pendingRequestCount, color: "#fa541c", icon: "📄" },
@@ -605,8 +603,8 @@ import "./styles/Dashboard.css";
             <Row style={{ marginTop: "20px", width: "100%" }}>
               <Col span={24}>
                 <div className="calendar-wrapper">
-                  <CustomCalendar onSelectDate={handleDateSelect} />
-                  {/* <CustomCalendar onSelectDate={(date) => setSelectedDate(date)} /> */}
+                <CustomCalendar onSelectDate={handleDateSelect} />
+                {/* <CustomCalendar onSelectDate={(date) => setSelectedDate(date)} /> */}
                 </div>
               </Col>
             </Row>
