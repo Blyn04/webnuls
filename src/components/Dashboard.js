@@ -41,30 +41,26 @@ import "./styles/Dashboard.css";
     useEffect(() => {
       const q = collectionGroup(db, "userrequests");
   
-      // Set up the real-time listener
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         setPendingRequestCount(querySnapshot.size);
   
       }, (error) => {
         console.error("Error fetching pending requests:", error);
       });
-  
-      // Cleanup the listener on unmount
+
       return () => unsubscribe();
     }, []);
  
     useEffect(() => {
       const q = collectionGroup(db, "borrowcatalog");
   
-      // Set up the real-time listener
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         setBorrowCAtalogCount(querySnapshot.size);
   
       }, (error) => {
         console.error("Error fetching pending requests:", error);
       });
-  
-      // Cleanup the listener on unmount
+
       return () => unsubscribe();
     }, []);
  
@@ -115,15 +111,13 @@ import "./styles/Dashboard.css";
     }, []);
 
     useEffect(() => {
-      // Query to fetch recent products ordered by 'entryDate' and limit to a certain number (e.g., last 5 products)
       const fetchRecentProducts = async () => {
-        const productsRef = collection(db, "inventory"); // Assuming "inventory" is the collection name
+        const productsRef = collection(db, "inventory");
 
-        // Query to fetch the most recent products
         const q = query(
           productsRef, 
-          orderBy("entryDate", "desc"),  // Order by the entry date in descending order
-          limit(5)  // Limit the number of recent products (e.g., 5)
+          orderBy("entryDate", "desc"),  
+          limit(5)  
         );
 
         const querySnapshot = await getDocs(q);
@@ -133,7 +127,7 @@ import "./styles/Dashboard.css";
           recentItems.push(doc.data());
         });
 
-        setRecentProducts(recentItems);  // Set the fetched data to the state
+        setRecentProducts(recentItems);  
         };
 
         fetchRecentProducts();
@@ -155,7 +149,6 @@ import "./styles/Dashboard.css";
     const q = query(
       collection(db, "borrowcatalog"),
       where("dateRequired", "==", selectedDateStr)
-      // Removed the status == "Approved" filter
     );
 
     const querySnapshot = await getDocs(q);
@@ -281,7 +274,7 @@ import "./styles/Dashboard.css";
                       <List.Item>
                         <div style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
                           <span>{item.title}</span>
-                          <span>{item.salesTrend}</span> {/* Display trend data */}
+                          <span>{item.salesTrend}</span> 
                         </div>
                       </List.Item>
                     )}
@@ -290,7 +283,6 @@ import "./styles/Dashboard.css";
               </Col>
             </Row>
 
-            {/* Main Content - Highest Sale / Latest Sales / Recent Products */}
             <Row gutter={[16, 16]} style={{ marginTop: "20px" }}>
               <Col xs={24} md={8}>
                 <Card title="Highest Sale Products">
@@ -343,7 +335,6 @@ import "./styles/Dashboard.css";
               <Col span={24}>
                 <div className="calendar-wrapper">
                 <CustomCalendar onSelectDate={handleDateSelect} />
-                {/* <CustomCalendar onSelectDate={(date) => setSelectedDate(date)} /> */}
                 </div>
               </Col>
             </Row>
